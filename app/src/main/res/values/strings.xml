@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">LightClient</string>
+    <string name="retrieving_list_of_devices">Получение списка устройств</string>
+    <string name="connecting_to">Подключение к %s…</string>
+    <string name="fetching_data">Получение данных…</string>
+    <string name="devices_not_found">Устройств не обнаружено🙁</string>
+    <string name="connecting_to_controller">Подключение к контроллеру</string>
+    <string name="pick_controller">Выберите, к какому контроллеру вы хотите подключиться. Если вашего контроллера нет в этом списке, убедитесь, что вы выполнили сопряжение с ним в настройках Bluetooth</string>
+    <string name="waiting_for_connectivity">Ожидание блюпупа…</string>
+    <string name="failed_to_sync">Не удалось синхронизироваться с контроллером</string>
 </resources>
