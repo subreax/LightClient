@@ -217,7 +217,11 @@ fun ColorProperty(
 
 
 private fun Float.toStringRound2(): String {
-    return (round(this * 100.0f) / 100.0f).toString().substringBefore(".0")
+    val str = (round(this * 100.0f) / 100.0f).toString()
+    if (!str.endsWith(".0")) {
+        return str
+    }
+    return str.substring(0, str.length-2)
 }
 
 
