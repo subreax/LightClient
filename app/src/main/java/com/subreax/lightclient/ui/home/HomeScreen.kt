@@ -1,13 +1,14 @@
 package com.subreax.lightclient.ui.home
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -17,18 +18,52 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
-import kotlin.text.Typography
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
+    val uiState = homeViewModel.uiState
+
+    val propertyCallback = PropertyCallback(
+        colorPropertyClicked = { prop ->
+
+        },
+        stringEnumClicked = { prop ->
+
+        },
+        floatRangeChanged = { prop, value ->
+            homeViewModel.setPropertyValue(prop, value)
+        },
+        toggleChanged = { prop, value ->
+            homeViewModel.setPropertyValue(prop, value)
+        }
+    )
+
+    HomeScreen(
+        deviceName = uiState.deviceName,
+        globalProperties = uiState.globalProperties,
+        sceneProperties = uiState.sceneProperties,
+        propertyCallback = propertyCallback
+    )
+}
+
+
+@Composable
+fun HomeScreen(
+    deviceName: String,
+    globalProperties: List<Property>,
+    sceneProperties: List<Property>,
+    propertyCallback: PropertyCallback
+) {
     val greeting = "Добрых вечеров!"
     val connectedDeviceInfo = buildAnnotatedString {
         withStyle(SpanStyle(color = LocalContentColorMediumAlpha)) {
             append("Выполнено подключение к контроллеру ")
         }
-        append("ESP32-Home")
+        append(deviceName)
     }
 
     val propertyModifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -56,29 +91,9 @@ fun HomeScreen() {
                 .padding(horizontal = 8.dp)
                 .fillMaxWidth()
         ) {
-            StringEnumProperty(
-                name = "Сцена",
-                values = listOf("Smoke"),
-                pickedValue = 0,
-                onClick = { /*TODO*/ },
-                modifier = propertyModifier
-            )
-
-            IntRangeProperty(
-                name = "Яркость",
-                min = 0,
-                max = 100,
-                value = 63,
-                onValueChanged = {},
-                modifier = propertyModifier
-            )
-
-            ToggleProperty(
-                name = "Датчик движения",
-                checked = true,
-                onCheckedChange = {},
-                modifier = propertyModifier
-            )
+            globalProperties.forEach {
+                Property(it, propertyCallback, propertyModifier)
+            }
             Spacer(modifier = Modifier.height(8.dp))
         }
 
@@ -88,23 +103,59 @@ fun HomeScreen() {
                 .padding(start = 8.dp, end = 8.dp, top = 16.dp)
                 .fillMaxWidth()
         ) {
-            ColorProperty(
-                name = "Основной цвет",
-                color = Color(0xFF0099EF),
-                onClick = { /*TODO*/ },
-                modifier = propertyModifier
-            )
-
-            FloatRangeProperty(
-                name = "Скорость",
-                min = 0.0f,
-                max = 5.0f,
-                value = 1.0f,
-                onValueChanged = { /*TODO*/ },
-                modifier = propertyModifier
-            )
+            sceneProperties.forEach {
+                Property(it, propertyCallback, propertyModifier)
+            }
 
             Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun Property(
+    property: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier
+) {
+    when (property) {
+        is Property.StringEnumProperty -> {
+            StringEnumProperty(
+                name = property.name,
+                values = property.values,
+                pickedValue = property.currentValue.value,
+                onClick = { callback.stringEnumClicked(property) },
+                modifier = modifier
+            )
+        }
+
+        is Property.ColorProperty -> {
+            ColorProperty(
+                name = property.name,
+                color = Color(property.color.value),
+                onClick = { callback.colorPropertyClicked(property) },
+                modifier = modifier
+            )
+        }
+
+        is Property.FloatRangeProperty -> {
+            FloatRangeProperty(
+                name = property.name,
+                min = property.min,
+                max = property.max,
+                value = property.current.value,
+                onValueChanged = { callback.floatRangeChanged(property, it) },
+                modifier = modifier
+            )
+        }
+
+        is Property.ToggleProperty -> {
+            ToggleProperty(
+                name = property.name,
+                checked = property.toggled.value,
+                onCheckedChange = { callback.toggleChanged(property, it) },
+                modifier = modifier
+            )
         }
     }
 }
@@ -132,15 +183,28 @@ fun PropertiesSection(
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
-    widthDp = 320,
-    heightDp = 640,
+    widthDp = 360,
+    heightDp = 780,
     showBackground = true
 )
 @Composable
 fun HomeScreenPreview() {
     LightClientTheme {
-        HomeScreen()
+        HomeScreen(
+            deviceName = "ESP32-Home",
+            globalProperties = listOf(
+                Property.StringEnumProperty(0, "Сцена", mutableStateOf(0), listOf("Smoke")),
+                Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f, mutableStateOf(42.0f)),
+                Property.ToggleProperty(2, "Датчик движения", mutableStateOf(true))
+            ),
+            sceneProperties = listOf(
+                Property.ColorProperty(3, "Цвет", mutableStateOf(0xff0098ff)),
+                Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, mutableStateOf(1.0f))
+            ),
+            propertyCallback = PropertyCallback({}, {}, {_, _ -> }, {_, _ -> })
+        )
     }
 }

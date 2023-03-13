@@ -5,6 +5,7 @@ import com.subreax.lightclient.data.controllers.ConnectivityController
 import com.subreax.lightclient.data.controllers.SynchronizationController
 import com.subreax.lightclient.data.impl.FakeConnectionRepository
 import com.subreax.lightclient.data.impl.FakeConnectivityObserver
+import com.subreax.lightclient.data.impl.FakeDeviceRepository
 import com.subreax.lightclient.data.state.ApplicationState
 import dagger.Module
 import dagger.Provides
@@ -51,5 +52,14 @@ object AppModule {
         connectivityObserver: ConnectivityObserver
     ): ConnectivityController {
         return ConnectivityController(appState, connectivityObserver)
+    }
+
+
+    @Singleton
+    @Provides
+    fun provideDeviceRepository(
+        syncController: SynchronizationController
+    ): DeviceRepository {
+        return FakeDeviceRepository(syncController)
     }
 }

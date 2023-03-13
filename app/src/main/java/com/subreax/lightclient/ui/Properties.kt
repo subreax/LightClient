@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.subreax.lightclient.ui.theme.LightClientTheme
+import kotlin.math.round
 import kotlin.math.roundToInt
 
 @Composable
@@ -143,10 +144,13 @@ fun FloatRangeProperty(
     typeName: String = "float range"
 ) {
     ColumnPropertyWrapper(modifier = modifier) {
-        PropertyInfo(type = typeName, name = name, additionalInfo = "$min .. $max")
+        PropertyInfo(
+            type = typeName,
+            name = name,
+            additionalInfo = "${min.toStringRound2()} .. ${max.toStringRound2()}"
+        )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Slider(
@@ -158,8 +162,8 @@ fun FloatRangeProperty(
                     .height(32.dp)
             )
             Text(
-                text = value.toString(), // todo: remove .0 at the end
-                modifier = Modifier.widthIn(24.dp),
+                text = value.toStringRound2(),
+                modifier = Modifier.widthIn(48.dp),
                 textAlign = TextAlign.End,
                 color = LocalContentColorMediumAlpha,
                 style = MaterialTheme.typography.body2
@@ -198,10 +202,6 @@ fun ColorProperty(
     modifier: Modifier = Modifier
 ) {
     RowPropertyWrapper(onClick = onClick, modifier = modifier) {
-        /*Column(Modifier.weight(1.0f)) {
-            PropertyType("color")
-            Text(name)
-        }*/
         PropertyInfo(type = "color", name = name, modifier = Modifier.weight(1.0f))
 
         Box(
@@ -213,6 +213,11 @@ fun ColorProperty(
 
         Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "")
     }
+}
+
+
+private fun Float.toStringRound2(): String {
+    return (round(this * 100.0f) / 100.0f).toString().substringBefore(".0")
 }
 
 
