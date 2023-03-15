@@ -21,7 +21,10 @@ class ApplicationState {
     private val fsm: Fsm<AppEventId>
 
     val stateId: Flow<AppStateId>
-        get() = fsm.stateId.map { AppStateId.values()[it] }
+        get() = fsm.stateId.map { it.toAppStateId() }
+
+    val stateIdValue: AppStateId
+        get() = fsm.stateId.value.toAppStateId()
 
     init {
         fsm = Fsm.Builder<AppEventId>()
@@ -96,6 +99,10 @@ class ApplicationState {
     fun notifyEvent(event: AppEventId) {
         Log.v("AppState", "notifying event: $event")
         fsm.notifyEvent(event)
+    }
+
+    private fun Int.toAppStateId(): AppStateId {
+        return AppStateId.values()[this]
     }
 }
 

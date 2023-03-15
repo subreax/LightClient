@@ -17,9 +17,6 @@ class FakeConnectivityObserver : ConnectivityObserver {
             delay(1000)
 
             _status.value = true
-            delay(10000)
-
-            _status.value = false
         }
     }
 

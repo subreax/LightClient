@@ -2,20 +2,26 @@ package com.subreax.lightclient.data.impl
 
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.ConnectionRepository
-import com.subreax.lightclient.data.ConnectivityObserver
 import com.subreax.lightclient.data.Device
+import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.state.AppEventId
+import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.ui.UiText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class FakeConnectionRepository @Inject constructor(
     private val appState: ApplicationState,
-    private val connectivityObserver: ConnectivityObserver
+    private val deviceApi: DeviceApi
 ) : ConnectionRepository {
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
     override val devices: Flow<List<Device>> = flow {
         val devices = mutableListOf<Device>()
         emit(devices)
@@ -35,21 +41,36 @@ class FakeConnectionRepository @Inject constructor(
 
     private var pickedDevice: Device? = null
 
+    init {
+        coroutineScope.launch {
+            deviceApi.connectionStatus.collect { connected ->
+                if (!connected && appState.stateIdValue == AppStateId.Ready) {
+                    appState.notifyEvent(AppEventId.ConnectionLost)
+                }
+            }
+        }
+    }
+
     override suspend fun setDevice(device: Device) {
         pickedDevice = device
         appState.notifyEvent(AppEventId.DevicePicked)
     }
 
     override suspend fun connect(): LResult<Unit> {
-        delay(1000)
-        if (connectivityObserver.isAvailable) {
-            return LResult.Success(Unit)
-        }
-        return LResult.Failure(UiText.Hardcoded("Нет блюпупа"))
+        return pickedDevice?.let { device ->
+            val result = deviceApi.connect(device)
+            if (result is LResult.Success) {
+                appState.notifyEvent(AppEventId.Connected)
+            }
+            else {
+                appState.notifyEvent(AppEventId.Disconnected)
+            }
+            result
+        } ?: LResult.Failure(UiText.Hardcoded("Устройство не выбрано"))
     }
 
     override suspend fun disconnect() {
-        delay(500)
+        deviceApi.disconnect()
         appState.notifyEvent(AppEventId.Disconnected)
     }
 }

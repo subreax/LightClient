@@ -1,8 +1,8 @@
 package com.subreax.lightclient.data.state
 
 import com.subreax.lightclient.data.state.Fsm.State
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 
 typealias FsmEventHandler<E> = Fsm<E>.(E) -> Unit
@@ -14,7 +14,7 @@ class Fsm<E>(
     initialState: Int
 ) {
     private val _stateId = MutableStateFlow(initialState)
-    val stateId: Flow<Int>
+    val stateId: StateFlow<Int>
         get() = _stateId
 
 

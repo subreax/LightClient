@@ -8,7 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -23,6 +23,7 @@ import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
@@ -139,7 +140,7 @@ fun Property(
             StringEnumProperty(
                 name = property.name,
                 values = property.values,
-                pickedValue = property.currentValue.value,
+                pickedValue = property.currentValue.collectAsState().value,
                 onClick = { callback.stringEnumClicked(property) },
                 modifier = modifier
             )
@@ -148,7 +149,7 @@ fun Property(
         is Property.ColorProperty -> {
             ColorProperty(
                 name = property.name,
-                color = Color(property.color.value),
+                color = Color(property.color.collectAsState().value),
                 onClick = { callback.colorPropertyClicked(property) },
                 modifier = modifier
             )
@@ -159,7 +160,7 @@ fun Property(
                 name = property.name,
                 min = property.min,
                 max = property.max,
-                value = property.current.value,
+                value = property.current.collectAsState().value,
                 onValueChanged = { callback.floatRangeChanged(property, it) },
                 modifier = modifier
             )
@@ -168,7 +169,7 @@ fun Property(
         is Property.ToggleProperty -> {
             ToggleProperty(
                 name = property.name,
-                checked = property.toggled.value,
+                checked = property.toggled.collectAsState().value,
                 onCheckedChange = { callback.toggleChanged(property, it) },
                 modifier = modifier
             )
@@ -213,13 +214,13 @@ fun HomeScreenPreview() {
             appState = AppStateId.Ready,
             deviceName = "ESP32-Home",
             globalProperties = listOf(
-                Property.StringEnumProperty(0, "Сцена", mutableStateOf(0), listOf("Smoke")),
-                Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f, mutableStateOf(42.0f)),
-                Property.ToggleProperty(2, "Датчик движения", mutableStateOf(true))
+                Property.StringEnumProperty(0, "Сцена", MutableStateFlow(0), listOf("Smoke")),
+                Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f, MutableStateFlow(42.0f)),
+                Property.ToggleProperty(2, "Датчик движения", MutableStateFlow(true))
             ),
             sceneProperties = listOf(
-                Property.ColorProperty(3, "Цвет", mutableStateOf(0xff0098ff)),
-                Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, mutableStateOf(1.0f))
+                Property.ColorProperty(3, "Цвет", MutableStateFlow(0xff0098ff)),
+                Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, MutableStateFlow(1.0f))
             ),
             propertyCallback = PropertyCallback({}, {}, {_, _ -> }, {_, _ -> })
         )

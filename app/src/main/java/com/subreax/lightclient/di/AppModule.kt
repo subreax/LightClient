@@ -5,6 +5,8 @@ import com.subreax.lightclient.data.*
 import com.subreax.lightclient.data.controllers.ConnectionController
 import com.subreax.lightclient.data.controllers.ConnectivityController
 import com.subreax.lightclient.data.controllers.SynchronizationController
+import com.subreax.lightclient.data.deviceapi.DeviceApi
+import com.subreax.lightclient.data.deviceapi.impl.FakeDeviceApi
 import com.subreax.lightclient.data.impl.FakeConnectionRepository
 import com.subreax.lightclient.data.impl.FakeConnectivityObserver
 import com.subreax.lightclient.data.impl.FakeDeviceRepository
@@ -24,9 +26,9 @@ object AppModule {
     @Singleton
     fun provideConnectionRepository(
         appState: ApplicationState,
-        connectivityObserver: ConnectivityObserver
+        deviceApi: DeviceApi
     ): ConnectionRepository {
-        return FakeConnectionRepository(appState, connectivityObserver)
+        return FakeConnectionRepository(appState, deviceApi)
     }
 
     @Provides
@@ -73,14 +75,22 @@ object AppModule {
     @Singleton
     @Provides
     fun provideDeviceRepository(
-        syncController: SynchronizationController
+        syncController: SynchronizationController,
+        deviceApi: DeviceApi,
+        uiLog: UiLog
     ): DeviceRepository {
-        return FakeDeviceRepository(syncController)
+        return FakeDeviceRepository(syncController, deviceApi, uiLog)
     }
 
     @Singleton
     @Provides
     fun provideUiLog(@ApplicationContext context: Context): UiLog {
         return UiLog(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDeviceApi(): DeviceApi {
+        return FakeDeviceApi()
     }
 }
