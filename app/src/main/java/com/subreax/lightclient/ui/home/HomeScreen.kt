@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
 
@@ -43,6 +44,7 @@ fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
     )
 
     HomeScreen(
+        appState = uiState.appState,
         deviceName = uiState.deviceName,
         globalProperties = uiState.globalProperties,
         sceneProperties = uiState.sceneProperties,
@@ -53,6 +55,7 @@ fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
 
 @Composable
 fun HomeScreen(
+    appState: AppStateId,
     deviceName: String,
     globalProperties: List<Property>,
     sceneProperties: List<Property>,
@@ -61,7 +64,20 @@ fun HomeScreen(
     val greeting = "Добрых вечеров!"
     val connectedDeviceInfo = buildAnnotatedString {
         withStyle(SpanStyle(color = LocalContentColorMediumAlpha)) {
-            append("Выполнено подключение к контроллеру ")
+            when (appState) {
+                AppStateId.Ready -> {
+                    append("Выполнено подключение к контроллеру ")
+                }
+                AppStateId.Connecting -> {
+                    append("Переподключение к контроллеру ")
+                }
+                AppStateId.Syncing -> {
+                    append("Синхронизация с контроллером ")
+                }
+                else -> {
+                    append("$appState ")
+                }
+            }
         }
         append(deviceName)
     }
@@ -194,6 +210,7 @@ fun PropertiesSection(
 fun HomeScreenPreview() {
     LightClientTheme {
         HomeScreen(
+            appState = AppStateId.Ready,
             deviceName = "ESP32-Home",
             globalProperties = listOf(
                 Property.StringEnumProperty(0, "Сцена", mutableStateOf(0), listOf("Smoke")),

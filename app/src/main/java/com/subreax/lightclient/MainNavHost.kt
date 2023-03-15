@@ -36,15 +36,15 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Screen.Connection.route) {
         composable(Screen.Connection.route) {
             ConnectionScreen(navHome = {
-                val route = Screen.Home.buildRoute(it.address)
+                /*val route = Screen.Home.buildRoute(it.address)
                 navController.navigate(route) {
                     popUpTo(Screen.Connection.route) { inclusive = true }
                 }
-            })
+            */})
         }
 
-        composable(Screen.Home.routeWithArgs, arguments = Screen.Home.args) {
-            val deviceAddress = it.arguments?.getString(Screen.Home.deviceAddressArg)!!
+        composable(Screen.Home.route) {
+            //val deviceAddress = it.arguments?.getString(Screen.Home.deviceAddressArg)!!
             HomeScreen()
         }
 

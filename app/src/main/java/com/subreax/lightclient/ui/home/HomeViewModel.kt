@@ -7,21 +7,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.data.DeviceRepository
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.data.state.AppStateId
+import com.subreax.lightclient.data.state.ApplicationState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val deviceRepository: DeviceRepository
+    private val deviceRepository: DeviceRepository,
+    private val appState: ApplicationState
 ) : ViewModel() {
     data class UiState(
+        val appState: AppStateId,
         val deviceName: String,
         val globalProperties: List<Property>,
         val sceneProperties: List<Property>
     )
 
-    private var _uiState by mutableStateOf(UiState("", emptyList(), emptyList()))
+    private var _uiState by mutableStateOf(UiState(AppStateId.Ready, "", emptyList(), emptyList()))
     val uiState: UiState
         get() = _uiState
 
@@ -37,6 +41,12 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             deviceRepository.sceneProperties.collect {
                 _uiState = _uiState.copy(sceneProperties = it)
+            }
+        }
+
+        viewModelScope.launch {
+            appState.stateId.collect {
+                _uiState = _uiState.copy(appState = it)
             }
         }
     }

@@ -2,11 +2,11 @@ package com.subreax.lightclient.data.impl
 
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.ConnectionRepository
+import com.subreax.lightclient.data.ConnectivityObserver
 import com.subreax.lightclient.data.Device
-import com.subreax.lightclient.data.controllers.SynchronizationController
 import com.subreax.lightclient.data.state.AppEventId
 import com.subreax.lightclient.data.state.ApplicationState
-import com.subreax.lightclient.utils.waitFor
+import com.subreax.lightclient.ui.UiText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 class FakeConnectionRepository @Inject constructor(
     private val appState: ApplicationState,
-    private val syncController: SynchronizationController
+    private val connectivityObserver: ConnectivityObserver
 ) : ConnectionRepository {
     override val devices: Flow<List<Device>> = flow {
         val devices = mutableListOf<Device>()
@@ -33,33 +33,23 @@ class FakeConnectionRepository @Inject constructor(
         emit(devices.toList())
     }
 
-    override suspend fun tryAutoConnect(): Boolean {
-        return false
+    private var pickedDevice: Device? = null
+
+    override suspend fun setDevice(device: Device) {
+        pickedDevice = device
+        appState.notifyEvent(AppEventId.DevicePicked)
     }
 
-    override suspend fun connect(device: Device): LResult<Unit> {
+    override suspend fun connect(): LResult<Unit> {
         delay(1000)
-        appState.notifyEvent(AppEventId.Connected)
-        val syncStatus = syncController.syncStatus.waitFor {
-            it == SynchronizationController.SyncStatus.Failed ||
-                    it == SynchronizationController.SyncStatus.Done
-        }
-
-        if (syncStatus == SynchronizationController.SyncStatus.Done) {
+        if (connectivityObserver.isAvailable) {
             return LResult.Success(Unit)
         }
-        appState.notifyEvent(AppEventId.Disconnected)
-        return LResult.Failure(syncController.lastError)
-
-        //return AResult.Success(Unit)
-        //return AResult.Failure(UiText.Hardcoded("Не удалось подключиться к ${device.name}"))
+        return LResult.Failure(UiText.Hardcoded("Нет блюпупа"))
     }
 
     override suspend fun disconnect() {
-
-    }
-
-    override suspend fun isConnected(): Boolean {
-        return false
+        delay(500)
+        appState.notifyEvent(AppEventId.Disconnected)
     }
 }

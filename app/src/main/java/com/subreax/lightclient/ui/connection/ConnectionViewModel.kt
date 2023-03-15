@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.ConnectionRepository
 import com.subreax.lightclient.data.Device
@@ -55,19 +54,24 @@ class ConnectionViewModel @Inject constructor(
         viewModelScope.launch {
             appState.stateId.collect {
                 when (it) {
-                    AppStateId.ConnectivityNotAvailable -> {
+                    AppStateId.WaitingForConnectivity -> {
                         uiState = uiState.copy(waitingForConnectivity = true, devices = emptyList())
                     }
-                    AppStateId.ConnectivityAvailable -> {
-                        uiState = uiState.copy(waitingForConnectivity = false)
+                    AppStateId.Disconnected -> {
+                        uiState = uiState.copy(waitingForConnectivity = false, loading = false)
                     }
-                    AppStateId.Connected -> {
+                    AppStateId.Connecting -> {
+                        uiState = uiState.copy(
+                            loading = true,
+                            loadingMsg = UiText.Res(R.string.connecting_to, pickedDevice?.name ?: "unknown")
+                        )
+                    }
+                    AppStateId.Syncing -> {
                         uiState = uiState.copy(loadingMsg = UiText.Res(R.string.fetching_data))
                     }
                     AppStateId.Ready -> {
-                        pickedDevice?.let { device -> navHome.emit(device) }
+                        //pickedDevice?.let { device -> navHome.emit(device) }
                     }
-                    else -> {}
                 }
             }
         }
@@ -81,19 +85,17 @@ class ConnectionViewModel @Inject constructor(
 
     fun connect(device: Device) {
         pickedDevice = device
-        uiState = uiState.copy(
-            loading = true,
-            loadingMsg = UiText.Res(R.string.connecting_to, device.name)
-        )
+
 
         viewModelScope.launch {
-            val result = connectionRepository.connect(device)
+            connectionRepository.setDevice(device)
+            /*val result = connectionRepository.connect()
             if (result is LResult.Failure) {
                 uiState = uiState.copy(
                     loading = false,
                     errorMsg = ErrorMsg(System.currentTimeMillis(), result.message)
                 )
-            }
+            }*/
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.subreax.lightclient.data.state
 
 import android.util.Log
-import com.subreax.lightclient.data.ConnectivityObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -9,17 +8,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 enum class AppEventId {
-    ConnectivityDisabled, ConnectivityEnabled, Connected, Configured, Disconnected, ConnectionLost
+    ConnectivityDisabled, ConnectivityEnabled, DevicePicked, Connected, Synced, Disconnected, ConnectionLost
 }
 
 enum class AppStateId {
-    ConnectivityNotAvailable, ConnectivityAvailable, Connected, Ready, Reconnecting
+    WaitingForConnectivity, Disconnected, Connecting, Syncing, Ready
 }
 
 
-class ApplicationState(
-    private val connectivityObserver: ConnectivityObserver
-) {
+class ApplicationState {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val fsm: Fsm<AppEventId>
 
@@ -28,34 +25,47 @@ class ApplicationState(
 
     init {
         fsm = Fsm.Builder<AppEventId>()
-            .addState(AppStateId.ConnectivityNotAvailable) { event ->
+            .addState(AppStateId.WaitingForConnectivity) { event ->
                 if (event == AppEventId.ConnectivityEnabled) {
-                    setState(AppStateId.ConnectivityAvailable)
+                    setState(AppStateId.Disconnected)
                 }
             }
 
-            .addState(AppStateId.ConnectivityAvailable) { event ->
+            .addState(AppStateId.Disconnected) { event ->
                 when (event) {
-                    AppEventId.Connected -> {
-                        setState(AppStateId.Connected)
-                    }
                     AppEventId.ConnectivityDisabled -> {
-                        setState(AppStateId.ConnectivityNotAvailable)
+                        setState(AppStateId.WaitingForConnectivity)
+                    }
+                    AppEventId.DevicePicked -> {
+                        setState(AppStateId.Connecting)
                     }
                     else -> {}
                 }
             }
 
-            .addState(AppStateId.Connected) { event ->
+            .addState(AppStateId.Connecting) { event ->
                 when (event) {
-                    AppEventId.Configured -> {
+                    AppEventId.Connected -> {
+                        setState(AppStateId.Syncing)
+                    }
+                    AppEventId.Disconnected,
+                    AppEventId.ConnectivityDisabled -> {
+                        setState(AppStateId.WaitingForConnectivity)
+                    }
+                    else -> {}
+                }
+            }
+
+            .addState(AppStateId.Syncing) { event ->
+                when (event) {
+                    AppEventId.Synced -> {
                         setState(AppStateId.Ready)
                     }
                     AppEventId.Disconnected -> {
-                        setState(AppStateId.ConnectivityAvailable)
+                        setState(AppStateId.Disconnected)
                     }
                     AppEventId.ConnectivityDisabled -> {
-                        setState(AppStateId.ConnectivityNotAvailable)
+                        setState(AppStateId.WaitingForConnectivity)
                     }
                     else -> {}
                 }
@@ -64,34 +74,16 @@ class ApplicationState(
             .addState(AppStateId.Ready) { event ->
                 when (event) {
                     AppEventId.Disconnected -> {
-                        setState(AppStateId.ConnectivityAvailable)
+                        setState(AppStateId.Disconnected)
                     }
-                    AppEventId.ConnectivityDisabled -> {
-                        setState(AppStateId.Reconnecting)
-                    }
+                    AppEventId.ConnectivityDisabled,
                     AppEventId.ConnectionLost -> {
-                        setState(AppStateId.Reconnecting)
+                        setState(AppStateId.Connecting)
                     }
                     else -> {}
                 }
             }
-
-            .addState(AppStateId.Reconnecting) { event ->
-                when (event) {
-                    AppEventId.Connected -> {
-                        setState(AppStateId.Connected)
-                    }
-                    AppEventId.Disconnected -> {
-                        if (connectivityObserver.isAvailable) {
-                            setState(AppStateId.ConnectivityAvailable)
-                        } else {
-                            setState(AppStateId.ConnectivityNotAvailable)
-                        }
-                    }
-                    else -> {}
-                }
-            }
-            .build(AppStateId.ConnectivityNotAvailable.ordinal)
+            .build(AppStateId.WaitingForConnectivity.ordinal)
 
         coroutineScope.launch {
             stateId.collect {

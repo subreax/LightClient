@@ -3,6 +3,7 @@ package com.subreax.lightclient.data.controllers
 import android.util.Log
 import com.subreax.lightclient.data.ConnectivityObserver
 import com.subreax.lightclient.data.state.AppEventId
+import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +26,14 @@ class ConnectivityController(
                 }
                 else {
                     appState.notifyEvent(AppEventId.ConnectivityDisabled)
+                }
+            }
+        }
+
+        coroutineScope.launch {
+            appState.stateId.collect {
+                if (it == AppStateId.WaitingForConnectivity && connectivityObserver.isAvailable) {
+                    appState.notifyEvent(AppEventId.ConnectivityEnabled)
                 }
             }
         }

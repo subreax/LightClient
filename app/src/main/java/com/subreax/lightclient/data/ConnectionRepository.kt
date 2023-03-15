@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface ConnectionRepository {
     val devices: Flow<List<Device>>
 
-    suspend fun tryAutoConnect(): Boolean
-    suspend fun connect(device: Device): LResult<Unit>
+    suspend fun setDevice(device: Device)
+    suspend fun connect(): LResult<Unit>
     suspend fun disconnect()
-    suspend fun isConnected(): Boolean
 }
