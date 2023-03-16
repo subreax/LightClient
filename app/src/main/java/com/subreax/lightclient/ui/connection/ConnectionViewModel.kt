@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.R
-import com.subreax.lightclient.data.ConnectionRepository
+import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.Device
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState

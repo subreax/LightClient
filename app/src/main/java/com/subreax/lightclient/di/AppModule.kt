@@ -2,14 +2,17 @@ package com.subreax.lightclient.di
 
 import android.content.Context
 import com.subreax.lightclient.data.*
-import com.subreax.lightclient.data.controllers.ConnectionController
-import com.subreax.lightclient.data.controllers.ConnectivityController
-import com.subreax.lightclient.data.controllers.SynchronizationController
+import com.subreax.lightclient.data.connection.ConnectionRepository
+import com.subreax.lightclient.data.connectivity.ConnectivityObserver
+import com.subreax.lightclient.data.state.controllers.ConnectionController
+import com.subreax.lightclient.data.state.controllers.ConnectivityController
+import com.subreax.lightclient.data.state.controllers.SynchronizationController
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.deviceapi.impl.FakeDeviceApi
-import com.subreax.lightclient.data.impl.BtConnectivityObserver
-import com.subreax.lightclient.data.impl.FakeConnectionRepository
-import com.subreax.lightclient.data.impl.FakeDeviceRepository
+import com.subreax.lightclient.data.connectivity.impl.BtConnectivityObserver
+import com.subreax.lightclient.data.connection.impl.FakeConnectionRepository
+import com.subreax.lightclient.data.device.DeviceRepository
+import com.subreax.lightclient.data.device.impl.FakeDeviceRepository
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.ui.UiLog
 import dagger.Module

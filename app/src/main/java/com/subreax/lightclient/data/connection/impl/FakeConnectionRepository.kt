@@ -1,8 +1,8 @@
-package com.subreax.lightclient.data.impl
+package com.subreax.lightclient.data.connection.impl
 
 import com.subreax.lightclient.LResult
-import com.subreax.lightclient.data.ConnectionRepository
 import com.subreax.lightclient.data.Device
+import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.state.AppEventId
 import com.subreax.lightclient.data.state.AppStateId

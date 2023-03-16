@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.subreax.lightclient.data.DeviceRepository
+import com.subreax.lightclient.data.device.DeviceRepository
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState

@@ -1,8 +1,8 @@
-package com.subreax.lightclient.data.controllers
+package com.subreax.lightclient.data.state.controllers
 
 import android.util.Log
 import com.subreax.lightclient.R
-import com.subreax.lightclient.data.ConnectionRepository
+import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.state.AppEventId
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState

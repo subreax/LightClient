@@ -2,7 +2,7 @@ package com.subreax.lightclient.data.deviceapi.impl
 
 import android.util.Log
 import com.subreax.lightclient.LResult
-import com.subreax.lightclient.data.ConnectivityObserver
+import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.Device
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.deviceapi.DeviceApi

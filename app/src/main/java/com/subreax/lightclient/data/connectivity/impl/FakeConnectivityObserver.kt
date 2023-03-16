@@ -1,6 +1,6 @@
-package com.subreax.lightclient.data.impl
+package com.subreax.lightclient.data.connectivity.impl
 
-import com.subreax.lightclient.data.ConnectivityObserver
+import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

@@ -1,4 +1,4 @@
-package com.subreax.lightclient.data.impl
+package com.subreax.lightclient.data.connectivity.impl
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
-import com.subreax.lightclient.data.ConnectivityObserver
+import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 

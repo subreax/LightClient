@@ -1,10 +1,10 @@
 package com.subreax.lightclient
 
 import android.app.Application
-import com.subreax.lightclient.data.DeviceRepository
-import com.subreax.lightclient.data.controllers.ConnectionController
-import com.subreax.lightclient.data.controllers.ConnectivityController
-import com.subreax.lightclient.data.controllers.SynchronizationController
+import com.subreax.lightclient.data.device.DeviceRepository
+import com.subreax.lightclient.data.state.controllers.ConnectionController
+import com.subreax.lightclient.data.state.controllers.ConnectivityController
+import com.subreax.lightclient.data.state.controllers.SynchronizationController
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

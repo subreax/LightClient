@@ -1,4 +1,4 @@
-package com.subreax.lightclient.data
+package com.subreax.lightclient.data.connectivity
 
 import kotlinx.coroutines.flow.Flow
 

@@ -1,5 +1,6 @@
-package com.subreax.lightclient.data
+package com.subreax.lightclient.data.device
 
+import com.subreax.lightclient.data.Property
 import kotlinx.coroutines.flow.Flow
 
 

@@ -1,9 +1,9 @@
-package com.subreax.lightclient.data.impl
+package com.subreax.lightclient.data.device.impl
 
 import com.subreax.lightclient.LResult
-import com.subreax.lightclient.data.DeviceRepository
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.data.controllers.SynchronizationController
+import com.subreax.lightclient.data.device.DeviceRepository
+import com.subreax.lightclient.data.state.controllers.SynchronizationController
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.ui.UiLog
 import kotlinx.coroutines.CoroutineScope

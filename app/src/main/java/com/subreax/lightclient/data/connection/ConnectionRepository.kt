@@ -1,6 +1,7 @@
-package com.subreax.lightclient.data
+package com.subreax.lightclient.data.connection
 
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.data.Device
 import kotlinx.coroutines.flow.Flow
 
 
