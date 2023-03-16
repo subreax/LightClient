@@ -2,9 +2,11 @@ package com.subreax.lightclient.data.deviceapi.impl
 
 import android.util.Log
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.data.ConnectivityObserver
 import com.subreax.lightclient.data.Device
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.deviceapi.DeviceApi
+import com.subreax.lightclient.ui.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 
-class FakeDeviceApi : DeviceApi {
+class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : DeviceApi {
     private var _device: Device? = null
     private var _isConnected: Boolean = false
         set(value) {
@@ -36,9 +38,14 @@ class FakeDeviceApi : DeviceApi {
 
     override suspend fun connect(device: Device): LResult<Unit> = withContext(Dispatchers.IO) {
         delay(1000)
-        _device = device
-        _isConnected = true
-        LResult.Success(Unit)
+        if (connectivityObserver.isAvailable) {
+            _device = device
+            _isConnected = true
+            LResult.Success(Unit)
+        }
+        else {
+            LResult.Failure(UiText.Hardcoded("Нет блюпупа"))
+        }
     }
 
     override suspend fun disconnect(): LResult<Unit> {

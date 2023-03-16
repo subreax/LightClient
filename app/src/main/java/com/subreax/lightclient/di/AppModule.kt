@@ -7,8 +7,8 @@ import com.subreax.lightclient.data.controllers.ConnectivityController
 import com.subreax.lightclient.data.controllers.SynchronizationController
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.deviceapi.impl.FakeDeviceApi
+import com.subreax.lightclient.data.impl.BtConnectivityObserver
 import com.subreax.lightclient.data.impl.FakeConnectionRepository
-import com.subreax.lightclient.data.impl.FakeConnectivityObserver
 import com.subreax.lightclient.data.impl.FakeDeviceRepository
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.ui.UiLog
@@ -24,6 +24,12 @@ import javax.inject.Singleton
 object AppModule {
     @Provides
     @Singleton
+    fun provideConnectivityObserver(@ApplicationContext context: Context): ConnectivityObserver {
+        return BtConnectivityObserver(context)
+    }
+
+    @Provides
+    @Singleton
     fun provideConnectionRepository(
         appState: ApplicationState,
         deviceApi: DeviceApi
@@ -35,12 +41,6 @@ object AppModule {
     @Singleton
     fun provideApplicationState(): ApplicationState {
         return ApplicationState()
-    }
-
-    @Provides
-    @Singleton
-    fun provideConnectivityObserver(): ConnectivityObserver {
-        return FakeConnectivityObserver()
     }
 
     @Provides
@@ -90,7 +90,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideDeviceApi(): DeviceApi {
-        return FakeDeviceApi()
+    fun provideDeviceApi(connectivityObserver: ConnectivityObserver): DeviceApi {
+        return FakeDeviceApi(connectivityObserver)
     }
 }

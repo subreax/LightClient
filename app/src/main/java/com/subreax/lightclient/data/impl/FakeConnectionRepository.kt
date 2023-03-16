@@ -62,9 +62,6 @@ class FakeConnectionRepository @Inject constructor(
             if (result is LResult.Success) {
                 appState.notifyEvent(AppEventId.Connected)
             }
-            else {
-                appState.notifyEvent(AppEventId.Disconnected)
-            }
             result
         } ?: LResult.Failure(UiText.Hardcoded("Устройство не выбрано"))
     }

@@ -3,6 +3,7 @@ package com.subreax.lightclient.data.controllers
 import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.ConnectionRepository
+import com.subreax.lightclient.data.state.AppEventId
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.ui.UiLog
@@ -50,6 +51,7 @@ class ConnectionController @Inject constructor(
             Log.d(TAG, "Success")
         }
         else {
+            appState.notifyEvent(AppEventId.Disconnected)
             uiLog.e((result as LResult.Failure).message)
             Log.d(TAG, "Failed to connect")
         }
