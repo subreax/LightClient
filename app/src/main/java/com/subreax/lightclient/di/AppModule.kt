@@ -94,7 +94,10 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideDeviceApi(@ApplicationContext context: Context, connectivityObserver: ConnectivityObserver): DeviceApi {
-        return BleDeviceApi(context)
+    fun provideDeviceApi(
+        @ApplicationContext context: Context,
+        connectivityObserver: ConnectivityObserver
+    ): DeviceApi {
+        return BleDeviceApi(context, connectivityObserver)
     }
 }

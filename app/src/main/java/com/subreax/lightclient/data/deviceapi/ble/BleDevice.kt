@@ -16,6 +16,7 @@ import kotlinx.coroutines.withTimeout
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.*
 
 data class BleResponseHeader(
     val fnId: Byte,
@@ -164,5 +165,8 @@ class BleDevice(
 
     companion object {
         private const val TAG = "BleDevice"
+        val SERVICE_UUID = UUID.fromString("b7816278-8536-11ed-a1eb-0242ac120002")!!
+        val RW_CHARACTERISTIC_UUID = UUID.fromString("d4b51c9a-8536-11ed-a1eb-0242ac120002")!!
+        val NOTIFY_CHARACTERISTIC_UUID = UUID.fromString("b64172a8-8537-11ed-a1eb-0242ac120002")!!
     }
 }

@@ -7,16 +7,12 @@ import com.welie.blessed.BluetoothPeripheralCallback
 import com.welie.blessed.GattStatus
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.*
 
 
 typealias OnReadListener = (status: GattStatus, data: ByteBuffer) -> Unit
 typealias OnNotificationListener = (data: ByteBuffer) -> Unit
 
-class BleDeviceCallback(
-    private val rwCharacteristicUuid: UUID,
-    private val notifyCharacteristicUuid: UUID
-) : BluetoothPeripheralCallback() {
+class BleDeviceCallback : BluetoothPeripheralCallback() {
     private val readListeners = mutableListOf<OnReadListener>()
     private val notificationListeners = mutableListOf<OnNotificationListener>()
 
@@ -27,16 +23,16 @@ class BleDeviceCallback(
         status: GattStatus
     ) {
         if (value == null) {
-            Log.w("BleDeviceApi", "characteristic value is null")
+            Log.w(TAG, "${characteristic.uuid}: value is null")
         }
 
         val buf = ByteBuffer.wrap(value!!)
         buf.order(ByteOrder.LITTLE_ENDIAN)
 
-        if (characteristic.uuid == rwCharacteristicUuid) {
+        if (characteristic.uuid == BleDevice.RW_CHARACTERISTIC_UUID) {
             emitOnRead(status, buf)
         }
-        else if (characteristic.uuid == notifyCharacteristicUuid) {
+        else if (characteristic.uuid == BleDevice.NOTIFY_CHARACTERISTIC_UUID) {
             emitOnNotification(buf)
         }
     }
@@ -70,5 +66,9 @@ class BleDeviceCallback(
         notificationListeners.forEach { listener ->
             listener(buf)
         }
+    }
+
+    companion object {
+        private const val TAG = "BleDeviceCallback"
     }
 }

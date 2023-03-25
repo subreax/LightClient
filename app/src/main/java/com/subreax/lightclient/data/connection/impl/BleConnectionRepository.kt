@@ -40,6 +40,10 @@ class BleConnectionRepository(
 
         coroutineScope.launch {
             appState.stateId.collect { state ->
+                if (state == AppStateId.WaitingForConnectivity) {
+                    _devices.value = emptyList()
+                }
+
                 if (state == AppStateId.Disconnected) {
                     startScanningBondedDevices()
                 }
@@ -94,7 +98,6 @@ class BleConnectionRepository(
 
     private fun CoroutineScope.stopScanningBondedDevices() {
         scanBondedDevicesJob?.cancel()
-        _devices.value = emptyList()
     }
 
     private fun hasBtConnectPermission(): Boolean {

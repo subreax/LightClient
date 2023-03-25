@@ -35,15 +35,15 @@ class ConnectionController @Inject constructor(
     private suspend fun tryToConnect() {
         var success = false
         var result: LResult<Unit> = LResult.Success(Unit)
-        for (i in 1..3) {
+        for (i in 0 until RECONNECT_ATTEMPTS_COUNT) {
             Log.d(TAG, "Connecting... Attempt #$i")
             result = connectionRepository.connect()
             if (result is LResult.Success) {
                 success = true
                 break
             }
-            else {
-                delay(2000L)
+            else if (i+1 != RECONNECT_ATTEMPTS_COUNT) {
+                delay(RECONNECT_DELAY_MS)
             }
         }
 
@@ -59,5 +59,7 @@ class ConnectionController @Inject constructor(
 
     companion object {
         private const val TAG = "ConnectionController"
+        private const val RECONNECT_ATTEMPTS_COUNT = 5
+        private const val RECONNECT_DELAY_MS = 3000L
     }
 }

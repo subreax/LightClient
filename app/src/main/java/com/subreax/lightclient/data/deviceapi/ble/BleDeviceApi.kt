@@ -9,6 +9,7 @@ import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.PropertyType
+import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.utils.getUtf8String
 import com.welie.blessed.BluetoothCentralManager
@@ -21,30 +22,31 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 
 class BleDeviceApi(
-    context: Context
+    context: Context,
+    private val connectivityObserver: ConnectivityObserver
 ) : DeviceApi {
     private val connectionCallback = BtConnectionCallback()
     private val central = BluetoothCentralManager(
         context, connectionCallback, Handler(Looper.getMainLooper())
     )
 
-    private val serviceUuid = UUID.fromString("b7816278-8536-11ed-a1eb-0242ac120002")
-    private val rwCharacteristicUuid = UUID.fromString("d4b51c9a-8536-11ed-a1eb-0242ac120002")
-    private val notifyCharacteristicUuid = UUID.fromString("b64172a8-8537-11ed-a1eb-0242ac120002")
+    private val deviceCallback = BleDeviceCallback()
+
+    private val propertyDeserializers = mapOf(
+        PropertyType.FloatRange to FloatRangePropertySerializer(),
+        PropertyType.Color to ColorPropertySerializer(),
+        PropertyType.StringEnum to EnumPropertySerializer()
+    )
 
 
-    private val deviceCallback = BleDeviceCallback(rwCharacteristicUuid, notifyCharacteristicUuid)
-
-    private var device: BleDevice? = null
-
-    private var connectedPeripheral: BluetoothPeripheral? = null
     private var hasDisconnectRequested = AtomicBoolean(false)
 
+    private var device: BleDevice? = null
+    private var connectedPeripheral: BluetoothPeripheral? = null
     private var bleService: BluetoothGattService? = null
     private var bleRWCharacteristic: BluetoothGattCharacteristic? = null
     private var bleNotifyCharacteristic: BluetoothGattCharacteristic? = null
@@ -56,12 +58,6 @@ class BleDeviceApi(
     private val _propertiesChanged = MutableSharedFlow<DeviceApi.PropertyGroup>()
     override val propertiesChanged: Flow<DeviceApi.PropertyGroup>
         get() = _propertiesChanged
-
-    private val propertyDeserializers = mapOf(
-        PropertyType.FloatRange to FloatRangePropertySerializer(),
-        PropertyType.Color to ColorPropertySerializer(),
-        PropertyType.StringEnum to EnumPropertySerializer()
-    )
 
     init {
         connectionCallback.addListener {
@@ -78,6 +74,10 @@ class BleDeviceApi(
     override suspend fun connect(
         deviceDesc: DeviceDesc
     ): LResult<Unit> = withContext(Dispatchers.IO) {
+        if (!connectivityObserver.isAvailable) {
+            return@withContext LResult.Failure("Bluetooth is off")
+        }
+
         val peripheral = central.getPeripheral(deviceDesc.address)
 
         var status = DeviceApi.ConnectionStatus.Disconnected
@@ -99,19 +99,20 @@ class BleDeviceApi(
 
         if (status == DeviceApi.ConnectionStatus.Connected) {
             connectedPeripheral = peripheral
-            bleService = peripheral.getService(serviceUuid)
+            bleService = peripheral.getService(BleDevice.SERVICE_UUID)
             if (bleService == null) {
                 disconnect()
                 return@withContext LResult.Failure("Service not found")
             }
 
-            bleRWCharacteristic = bleService!!.getCharacteristic(rwCharacteristicUuid)
+            bleRWCharacteristic = bleService!!.getCharacteristic(BleDevice.RW_CHARACTERISTIC_UUID)
             if (bleRWCharacteristic == null) {
                 disconnect()
                 return@withContext LResult.Failure("RW Characteristic not found")
             }
 
-            bleNotifyCharacteristic = bleService!!.getCharacteristic(notifyCharacteristicUuid)
+            bleNotifyCharacteristic =
+                bleService!!.getCharacteristic(BleDevice.NOTIFY_CHARACTERISTIC_UUID)
             if (bleNotifyCharacteristic == null) {
                 disconnect()
                 return@withContext LResult.Failure("Notify Characteristic not found")
@@ -242,7 +243,7 @@ class BleDeviceApi(
             putInt(property.id)
             serializer.serializeValue(property, this)
         }
-        delay(2 * 16)
+        delay(1000/30)
         LResult.Success(Unit)
     }
 
