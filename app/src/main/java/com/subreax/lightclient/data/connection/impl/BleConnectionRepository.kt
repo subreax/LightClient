@@ -7,13 +7,12 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
 import com.subreax.lightclient.LResult
-import com.subreax.lightclient.data.Device
+import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.state.AppEventId
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
-import com.subreax.lightclient.ui.UiText
 import com.subreax.lightclient.ui.isPermissionGranted
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -28,11 +27,11 @@ class BleConnectionRepository(
     private val btAdapter: BluetoothAdapter
     private var scanBondedDevicesJob: Job? = null
 
-    private val _devices = MutableStateFlow<List<Device>>(emptyList())
-    override val devices: Flow<List<Device>>
+    private val _devices = MutableStateFlow<List<DeviceDesc>>(emptyList())
+    override val devices: Flow<List<DeviceDesc>>
         get() = _devices
 
-    private var pickedDevice: Device? = null
+    private var selectedDeviceDesc: DeviceDesc? = null
 
 
     init {
@@ -60,19 +59,19 @@ class BleConnectionRepository(
     }
 
 
-    override suspend fun setDevice(device: Device) {
-        pickedDevice = device
-        appState.notifyEvent(AppEventId.DevicePicked)
+    override suspend fun selectDevice(deviceDesc: DeviceDesc) {
+        selectedDeviceDesc = deviceDesc
+        appState.notifyEvent(AppEventId.DeviceSelected)
     }
 
     override suspend fun connect(): LResult<Unit> {
-        return pickedDevice?.let { device ->
+        return selectedDeviceDesc?.let { device ->
             val result = deviceApi.connect(device)
             if (result is LResult.Success) {
                 appState.notifyEvent(AppEventId.Connected)
             }
             result
-        } ?: LResult.Failure(UiText.Hardcoded("Device is not picked"))
+        } ?: LResult.Failure("Device is not picked")
     }
 
     override suspend fun disconnect() {
@@ -85,7 +84,7 @@ class BleConnectionRepository(
         scanBondedDevicesJob = launch {
             while (isActive) {
                 if (hasBtConnectPermission()) {
-                    val devicesList = btAdapter.bondedDevices.map { Device(it.name, it.address) }
+                    val devicesList = btAdapter.bondedDevices.map { DeviceDesc(it.name, it.address) }
                     _devices.value = devicesList
                 }
                 delay(2000)

@@ -1,9 +1,9 @@
-package com.subreax.lightclient.data.deviceapi.impl
+package com.subreax.lightclient.data.deviceapi.ble
 
 import android.graphics.Color
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.ui.UiText
+import com.subreax.lightclient.utils.getUtf8String
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
@@ -23,7 +23,7 @@ class FloatRangePropertySerializer : PropertySerializer {
                 Property.FloatRangeProperty(id, name, min, max, min)
             )
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure(UiText.Hardcoded("No info provided for min and max values"))
+            LResult.Failure("No info provided for min and max values")
         }
     }
 
@@ -36,7 +36,7 @@ class FloatRangePropertySerializer : PropertySerializer {
             out.putInt(q15)
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure(UiText.Hardcoded("Failed to write value of FloatRange"))
+            LResult.Failure("Failed to write value of FloatRange")
         }
     }
 
@@ -48,7 +48,7 @@ class FloatRangePropertySerializer : PropertySerializer {
             frp.current.value = value
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure(UiText.Hardcoded("No value"))
+            LResult.Failure("No value")
         }
     }
 }
@@ -67,9 +67,9 @@ class ColorPropertySerializer : PropertySerializer {
 
         return try {
             out.putInt(color)
-            return LResult.Success(Unit)
+            LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            return LResult.Failure(UiText.Hardcoded("Failed to write value of ColorRange"))
+            LResult.Failure("Failed to write value of ColorRange")
         }
     }
 
@@ -80,7 +80,7 @@ class ColorPropertySerializer : PropertySerializer {
             colorProp.color.value = buf.getInt()
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure(UiText.Hardcoded("No value"))
+            LResult.Failure("No value")
         }
     }
 }
@@ -93,7 +93,7 @@ class EnumPropertySerializer : PropertySerializer {
         try {
             val count = buf.getShort().toInt()
             if (count == 0) {
-                return LResult.Failure(UiText.Hardcoded("Enum should have at least 1 enumerator"))
+                return LResult.Failure("Enum should have at least 1 enumerator")
             }
 
             for (i in 0 until count) {
@@ -102,7 +102,7 @@ class EnumPropertySerializer : PropertySerializer {
 
             return LResult.Success(Property.StringEnumProperty(id, name, values, 0))
         } catch (ex: BufferUnderflowException) {
-            return LResult.Failure(UiText.Hardcoded("Failed to read enum property"))
+            return LResult.Failure("Failed to read enum property")
         }
     }
 
@@ -114,7 +114,7 @@ class EnumPropertySerializer : PropertySerializer {
             out.putShort(value.toShort())
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure(UiText.Hardcoded("Failed to write value of StringEnumProperty"))
+            LResult.Failure("Failed to write value of StringEnumProperty")
         }
     }
 
@@ -124,14 +124,14 @@ class EnumPropertySerializer : PropertySerializer {
         try {
             val value = buf.getShort().toInt()
             if (value >= enumProp.values.size) {
-                return LResult.Failure(UiText.Hardcoded(
+                return LResult.Failure(
                     "Enum value should be in range 0..${enumProp.values.size}, but actual is $value"
-                ))
+                )
             }
             enumProp.currentValue.value = value
             return LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            return LResult.Failure(UiText.Hardcoded("No value"))
+            return LResult.Failure("No value")
         }
     }
 }

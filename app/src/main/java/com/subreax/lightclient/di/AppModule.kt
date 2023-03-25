@@ -9,7 +9,7 @@ import com.subreax.lightclient.data.connectivity.impl.BtConnectivityObserver
 import com.subreax.lightclient.data.device.DeviceRepository
 import com.subreax.lightclient.data.device.impl.FakeDeviceRepository
 import com.subreax.lightclient.data.deviceapi.DeviceApi
-import com.subreax.lightclient.data.deviceapi.impl.BleDeviceApi
+import com.subreax.lightclient.data.deviceapi.ble.BleDeviceApi
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.data.state.controllers.ConnectionController
 import com.subreax.lightclient.data.state.controllers.ConnectivityController

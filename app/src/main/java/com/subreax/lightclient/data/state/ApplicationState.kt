@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 enum class AppEventId {
-    ConnectivityDisabled, ConnectivityEnabled, DevicePicked, Connected, Synced, Disconnected, ConnectionLost
+    ConnectivityDisabled, ConnectivityEnabled, DeviceSelected, Connected, Synced, Disconnected, ConnectionLost
 }
 
 enum class AppStateId {
@@ -39,7 +39,7 @@ class ApplicationState {
                     AppEventId.ConnectivityDisabled -> {
                         setState(AppStateId.WaitingForConnectivity)
                     }
-                    AppEventId.DevicePicked -> {
+                    AppEventId.DeviceSelected -> {
                         setState(AppStateId.Connecting)
                     }
                     else -> {}

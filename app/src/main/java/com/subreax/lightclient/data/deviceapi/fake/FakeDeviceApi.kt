@@ -1,12 +1,11 @@
-package com.subreax.lightclient.data.deviceapi.impl
+package com.subreax.lightclient.data.deviceapi.fake
 
 import android.util.Log
 import com.subreax.lightclient.LResult
-import com.subreax.lightclient.data.connectivity.ConnectivityObserver
-import com.subreax.lightclient.data.Device
+import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.deviceapi.DeviceApi
-import com.subreax.lightclient.ui.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : DeviceApi {
-    private var _device: Device? = null
+    private var _deviceDesc: DeviceDesc? = null
     private var _isConnected: Boolean = false
         set(value) {
             field = value
@@ -37,21 +36,21 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
 
     private var _sceneProps = _smokeSceneProps
 
-    override suspend fun connect(device: Device): LResult<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun connect(deviceDesc: DeviceDesc): LResult<Unit> = withContext(Dispatchers.IO) {
         delay(1000)
         if (connectivityObserver.isAvailable) {
-            _device = device
+            _deviceDesc = deviceDesc
             _isConnected = true
             LResult.Success(Unit)
         }
         else {
-            LResult.Failure(UiText.Hardcoded("Нет блюпупа"))
+            LResult.Failure("Нет блюпупа")
         }
     }
 
     override suspend fun disconnect(): LResult<Unit> {
         _isConnected = false
-        _device = null
+        _deviceDesc = null
         return LResult.Success(Unit)
     }
 
@@ -60,7 +59,7 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
     }
 
     override fun getDeviceName(): String {
-        return _device?.name ?: "unknown"
+        return _deviceDesc?.name ?: "unknown"
     }
 
     override suspend fun getProperties(

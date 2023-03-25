@@ -1,7 +1,7 @@
 package com.subreax.lightclient.data.deviceapi
 
 import com.subreax.lightclient.LResult
-import com.subreax.lightclient.data.Device
+import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
 import kotlinx.coroutines.flow.Flow
 
@@ -14,7 +14,7 @@ interface DeviceApi {
         Connected, Disconnected, ConnectionLost
     }
 
-    suspend fun connect(device: Device): LResult<Unit>
+    suspend fun connect(deviceDesc: DeviceDesc): LResult<Unit>
     suspend fun disconnect(): LResult<Unit>
     fun isConnected(): Boolean
     fun getDeviceName(): String

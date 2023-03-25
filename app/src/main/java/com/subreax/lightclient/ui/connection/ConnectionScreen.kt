@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.R
-import com.subreax.lightclient.data.Device
+import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.ui.LocalContentColorMediumAlpha
 import com.subreax.lightclient.ui.TopBar
 import com.subreax.lightclient.ui.edgePadding
@@ -29,7 +29,7 @@ import com.subreax.lightclient.ui.theme.LightClientTheme
 
 @Composable
 fun ConnectionScreen(
-    navHome: (Device) -> Unit,
+    navHome: (DeviceDesc) -> Unit,
     connectionViewModel: ConnectionViewModel = hiltViewModel()
 ) {
     val uiState = connectionViewModel.uiState
@@ -42,7 +42,7 @@ fun ConnectionScreen(
 
     ConnectionScreen(
         devices = uiState.devices,
-        onDevicePicked = connectionViewModel::connect,
+        onDeviceSelected = connectionViewModel::connect,
         isLoading = uiState.loading,
         waitingForConnectivity = uiState.waitingForConnectivity,
         errorTime = uiState.errorMsg.time,
@@ -53,8 +53,8 @@ fun ConnectionScreen(
 
 @Composable
 fun ConnectionScreen(
-    devices: List<Device>,
-    onDevicePicked: (Device) -> Unit,
+    devices: List<DeviceDesc>,
+    onDeviceSelected: (DeviceDesc) -> Unit,
     isLoading: Boolean,
     waitingForConnectivity: Boolean,
     errorTime: Long,
@@ -97,7 +97,7 @@ fun ConnectionScreen(
                     DeviceItem(
                         name = device.name,
                         address = device.address,
-                        onClick = { onDevicePicked(device) }
+                        onClick = { onDeviceSelected(device) }
                     )
                 }
             } else if (!waitingForConnectivity) {
@@ -172,11 +172,11 @@ fun ConnectionScreenPreview() {
     LightClientTheme {
         ConnectionScreen(
             devices = listOf(
-                Device("ESP32-Home", "FC:81:CC:4F:8E:36"),
-                Device("ESP32-Kitchen", "D1:09:75:BA:15:2D"),
-                Device("ESP32-Bath", "5A:46:70:63:6E:99")
+                DeviceDesc("ESP32-Home", "FC:81:CC:4F:8E:36"),
+                DeviceDesc("ESP32-Kitchen", "D1:09:75:BA:15:2D"),
+                DeviceDesc("ESP32-Bath", "5A:46:70:63:6E:99")
             ),
-            onDevicePicked = { },
+            onDeviceSelected = { },
             isLoading = false,
             waitingForConnectivity = false,
             errorTime = 0,
@@ -192,7 +192,7 @@ fun ConnectionScreenPreviewNoDevices() {
     LightClientTheme {
         ConnectionScreen(
             devices = emptyList(),
-            onDevicePicked = { },
+            onDeviceSelected = { },
             isLoading = false,
             waitingForConnectivity = false,
             errorTime = 0,

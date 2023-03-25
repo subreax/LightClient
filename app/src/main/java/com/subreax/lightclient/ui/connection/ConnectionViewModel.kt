@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.connection.ConnectionRepository
-import com.subreax.lightclient.data.Device
+import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.ui.UiText
@@ -31,7 +31,7 @@ class ConnectionViewModel @Inject constructor(
         val loadingMsg: UiText,
         val errorMsg: ErrorMsg,
         val waitingForConnectivity: Boolean,
-        val devices: List<Device>
+        val devices: List<DeviceDesc>
     )
 
     var uiState by mutableStateOf(
@@ -45,9 +45,9 @@ class ConnectionViewModel @Inject constructor(
     )
         private set
 
-    val navHome = MutableSharedFlow<Device>()
+    val navHome = MutableSharedFlow<DeviceDesc>()
 
-    private var pickedDevice: Device? = null
+    private var selectedDevice: DeviceDesc? = null
 
 
     init {
@@ -63,7 +63,7 @@ class ConnectionViewModel @Inject constructor(
                     AppStateId.Connecting -> {
                         uiState = uiState.copy(
                             loading = true,
-                            loadingMsg = UiText.Res(R.string.connecting_to, pickedDevice?.name ?: "unknown")
+                            loadingMsg = UiText.Res(R.string.connecting_to, selectedDevice?.name ?: "unknown")
                         )
                     }
                     AppStateId.Syncing -> {
@@ -83,19 +83,12 @@ class ConnectionViewModel @Inject constructor(
         }
     }
 
-    fun connect(device: Device) {
-        pickedDevice = device
+    fun connect(deviceDesc: DeviceDesc) {
+        selectedDevice = deviceDesc
 
 
         viewModelScope.launch {
-            connectionRepository.setDevice(device)
-            /*val result = connectionRepository.connect()
-            if (result is LResult.Failure) {
-                uiState = uiState.copy(
-                    loading = false,
-                    errorMsg = ErrorMsg(System.currentTimeMillis(), result.message)
-                )
-            }*/
+            connectionRepository.selectDevice(deviceDesc)
         }
     }
 }

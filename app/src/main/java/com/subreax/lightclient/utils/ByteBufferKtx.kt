@@ -1,4 +1,4 @@
-package com.subreax.lightclient.data.deviceapi.impl
+package com.subreax.lightclient.utils
 
 import java.nio.ByteBuffer
 
