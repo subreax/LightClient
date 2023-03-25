@@ -10,6 +10,10 @@ interface DeviceApi {
         Global, Scene
     }
 
+    enum class ConnectionStatus {
+        Connected, Disconnected, ConnectionLost
+    }
+
     suspend fun connect(device: Device): LResult<Unit>
     suspend fun disconnect(): LResult<Unit>
     fun isConnected(): Boolean
@@ -17,10 +21,10 @@ interface DeviceApi {
 
     suspend fun getProperties(group: PropertyGroup): LResult<List<Property>>
     suspend fun setPropertyValue(property: Property.FloatRangeProperty, value: Float): LResult<Unit>
-    suspend fun setPropertyValue(property: Property.ColorProperty, value: Long): LResult<Unit>
+    suspend fun setPropertyValue(property: Property.ColorProperty, value: Int): LResult<Unit>
     suspend fun setPropertyValue(property: Property.ToggleProperty, value: Boolean): LResult<Unit>
     suspend fun setPropertyValue(property: Property.StringEnumProperty, value: Int): LResult<Unit>
 
-    val connectionStatus: Flow<Boolean>
+    val connectionStatus: Flow<ConnectionStatus>
     val propertiesChanged: Flow<PropertyGroup>
 }

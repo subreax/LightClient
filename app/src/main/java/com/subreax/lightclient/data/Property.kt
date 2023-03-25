@@ -2,31 +2,43 @@ package com.subreax.lightclient.data
 
 import kotlinx.coroutines.flow.MutableStateFlow
 
-sealed class Property(val id: Int, val name: String) {
+enum class PropertyType {
+    FloatRange, Color, StringEnum, Toggle
+}
+
+sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     class StringEnumProperty(
         id: Int,
         name: String,
-        val currentValue: MutableStateFlow<Int>,
-        val values: List<String>
-    ) : Property(id, name)
+        val values: List<String>,
+        initialValue: Int,
+    ) : Property(id, PropertyType.StringEnum, name) {
+        val currentValue = MutableStateFlow(initialValue)
+    }
 
     class FloatRangeProperty(
         id: Int,
         name: String,
         val min: Float,
         val max: Float,
-        val current: MutableStateFlow<Float>
-    ) : Property(id, name)
+        initialValue: Float
+    ) : Property(id, PropertyType.FloatRange, name) {
+        val current = MutableStateFlow(initialValue)
+    }
 
     class ColorProperty(
         id: Int,
         name: String,
-        val color: MutableStateFlow<Long>
-    ) : Property(id, name)
+        initialValue: Int
+    ) : Property(id, PropertyType.Color, name) {
+        val color = MutableStateFlow(initialValue)
+    }
 
     class ToggleProperty(
         id: Int,
         name: String,
-        val toggled: MutableStateFlow<Boolean>
-    ) : Property(id, name)
+        initialValue: Boolean
+    ) : Property(id, PropertyType.Toggle, name) {
+        val toggled = MutableStateFlow(initialValue)
+    }
 }

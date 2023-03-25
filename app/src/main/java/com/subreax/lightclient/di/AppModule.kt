@@ -3,17 +3,17 @@ package com.subreax.lightclient.di
 import android.content.Context
 import com.subreax.lightclient.data.*
 import com.subreax.lightclient.data.connection.ConnectionRepository
+import com.subreax.lightclient.data.connection.impl.BleConnectionRepository
 import com.subreax.lightclient.data.connectivity.ConnectivityObserver
+import com.subreax.lightclient.data.connectivity.impl.BtConnectivityObserver
+import com.subreax.lightclient.data.device.DeviceRepository
+import com.subreax.lightclient.data.device.impl.FakeDeviceRepository
+import com.subreax.lightclient.data.deviceapi.DeviceApi
+import com.subreax.lightclient.data.deviceapi.impl.BleDeviceApi
+import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.data.state.controllers.ConnectionController
 import com.subreax.lightclient.data.state.controllers.ConnectivityController
 import com.subreax.lightclient.data.state.controllers.SynchronizationController
-import com.subreax.lightclient.data.deviceapi.DeviceApi
-import com.subreax.lightclient.data.deviceapi.impl.FakeDeviceApi
-import com.subreax.lightclient.data.connectivity.impl.BtConnectivityObserver
-import com.subreax.lightclient.data.connection.impl.FakeConnectionRepository
-import com.subreax.lightclient.data.device.DeviceRepository
-import com.subreax.lightclient.data.device.impl.FakeDeviceRepository
-import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.ui.UiLog
 import dagger.Module
 import dagger.Provides
@@ -34,10 +34,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideConnectionRepository(
+        @ApplicationContext context: Context,
         appState: ApplicationState,
         deviceApi: DeviceApi
     ): ConnectionRepository {
-        return FakeConnectionRepository(appState, deviceApi)
+        return BleConnectionRepository(context, appState, deviceApi)
     }
 
     @Provides
@@ -93,7 +94,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideDeviceApi(connectivityObserver: ConnectivityObserver): DeviceApi {
-        return FakeDeviceApi(connectivityObserver)
+    fun provideDeviceApi(@ApplicationContext context: Context, connectivityObserver: ConnectivityObserver): DeviceApi {
+        return BleDeviceApi(context)
     }
 }

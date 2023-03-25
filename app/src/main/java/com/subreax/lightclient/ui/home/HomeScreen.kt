@@ -23,7 +23,6 @@ import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
@@ -214,13 +213,13 @@ fun HomeScreenPreview() {
             appState = AppStateId.Ready,
             deviceName = "ESP32-Home",
             globalProperties = listOf(
-                Property.StringEnumProperty(0, "Сцена", MutableStateFlow(0), listOf("Smoke")),
-                Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f, MutableStateFlow(42.0f)),
-                Property.ToggleProperty(2, "Датчик движения", MutableStateFlow(true))
+                Property.StringEnumProperty(0, "Сцена", listOf("Smoke"), 0),
+                Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f, 42.0f),
+                Property.ToggleProperty(2, "Датчик движения", true)
             ),
             sceneProperties = listOf(
-                Property.ColorProperty(3, "Цвет", MutableStateFlow(0xff0098ff)),
-                Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, MutableStateFlow(1.0f))
+                Property.ColorProperty(3, "Цвет", -16738049),
+                Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, 1.0f)
             ),
             propertyCallback = PropertyCallback({}, {}, {_, _ -> }, {_, _ -> })
         )

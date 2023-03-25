@@ -5,7 +5,6 @@ import com.subreax.lightclient.data.Device
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.state.AppEventId
-import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.ui.UiText
 import kotlinx.coroutines.CoroutineScope
@@ -43,8 +42,8 @@ class FakeConnectionRepository @Inject constructor(
 
     init {
         coroutineScope.launch {
-            deviceApi.connectionStatus.collect { connected ->
-                if (!connected && appState.stateIdValue == AppStateId.Ready) {
+            deviceApi.connectionStatus.collect { status ->
+                if (status == DeviceApi.ConnectionStatus.ConnectionLost) {
                     appState.notifyEvent(AppEventId.ConnectionLost)
                 }
             }

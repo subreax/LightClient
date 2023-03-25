@@ -41,18 +41,18 @@ class FakeDeviceRepository @Inject constructor(
             if (result1 is LResult.Success) {
                 _globalProperties.value = result1.value
             } else {
-                return@addAction false
+                return@addAction result1 as LResult.Failure
             }
 
             val result2 = deviceApi.getProperties(DeviceApi.PropertyGroup.Scene)
             if (result2 is LResult.Success) {
                 _sceneProperties.value = result2.value
             } else {
-                return@addAction false
+                return@addAction result2 as LResult.Failure
             }
 
             setPropertyListeners()
-            true
+            LResult.Success(Unit)
         }
 
         coroutineScope.launch {

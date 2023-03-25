@@ -12,6 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : DeviceApi {
@@ -24,14 +25,14 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
 
 
     private val _globalProps = listOf(
-        Property.StringEnumProperty(0, "Сцена", MutableStateFlow(0), listOf("Smoke")),
-        Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f, MutableStateFlow(42.0f)),
-        Property.ToggleProperty(2, "Датчик движения", MutableStateFlow(true))
+        Property.StringEnumProperty(0, "Сцена", listOf("Smoke"), 0),
+        Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f,42.0f),
+        Property.ToggleProperty(2, "Датчик движения", true)
     )
 
     private val _smokeSceneProps = listOf(
-        Property.ColorProperty(3, "Цвет", MutableStateFlow(0xff0098ff)),
-        Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, MutableStateFlow(1.0f))
+        Property.ColorProperty(3, "Цвет", -16738049),
+        Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, 1.0f)
     )
 
     private var _sceneProps = _smokeSceneProps
@@ -83,7 +84,7 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
 
     override suspend fun setPropertyValue(
         property: Property.ColorProperty,
-        value: Long
+        value: Int
     ): LResult<Unit> = withContext(Dispatchers.IO) {
         delay(100)
         Log.d("FakeDeviceApi", "${property.name} = $value")
@@ -114,8 +115,8 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
     }
 
     private val _flowIsConnected = MutableStateFlow(_isConnected)
-    override val connectionStatus: Flow<Boolean>
-        get() = _flowIsConnected
+    override val connectionStatus: Flow<DeviceApi.ConnectionStatus>
+        get() = _flowIsConnected.map { if (it) DeviceApi.ConnectionStatus.Connected else DeviceApi.ConnectionStatus.Disconnected }
 
     private val _propertiesChanged = MutableSharedFlow<DeviceApi.PropertyGroup>()
     override val propertiesChanged: Flow<DeviceApi.PropertyGroup>

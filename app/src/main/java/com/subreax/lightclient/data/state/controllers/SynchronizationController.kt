@@ -1,6 +1,7 @@
 package com.subreax.lightclient.data.state.controllers
 
 import android.util.Log
+import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.state.AppEventId
@@ -21,39 +22,42 @@ class SynchronizationController @Inject constructor(
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
     private val coroutineScope = CoroutineScope(dispatcher)
-    private val actions = mutableListOf<suspend () -> Boolean>()
+    private val actions = mutableListOf<suspend () -> LResult<Unit>>()
 
     fun start() {
         coroutineScope.launch {
             appState.stateId.collect {
                 if (it == AppStateId.Syncing) {
-                    if (sync()) {
+                    val status = sync()
+                    if (status is LResult.Success) {
                         appState.notifyEvent(AppEventId.Synced)
                     }
                     else {
                         connectionRepository.disconnect()
-                        uiLog.e(UiText.Res(R.string.failed_to_sync))
-                        Log.e("SyncController", "Failed to sync")
+                        val errorMsg = (status as LResult.Failure).message
+                        uiLog.e(UiText.Res(R.string.failed_to_sync, errorMsg.toString()))
+                        Log.e("SyncController", "Failed to sync: $errorMsg")
                     }
                 }
             }
         }
     }
 
-    fun addAction(action: suspend () -> Boolean) {
+    fun addAction(action: suspend () -> LResult<Unit>) {
         actions.add(action)
     }
 
-    fun removeAction(action: suspend () -> Boolean) {
+    fun removeAction(action: suspend () -> LResult<Unit>) {
         actions.remove(action)
     }
 
-    private suspend fun sync(): Boolean {
+    private suspend fun sync(): LResult<Unit> {
         for (action in actions) {
-            if (!action()) {
-                return false
+            val result = action()
+            if (result is LResult.Failure) {
+                return result
             }
         }
-        return true
+        return LResult.Success(Unit)
     }
 }
