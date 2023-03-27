@@ -1,7 +1,6 @@
 package com.subreax.lightclient
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.SnackbarHost
@@ -14,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -55,7 +55,8 @@ class MainActivity : ComponentActivity() {
                             appStateId = applicationState.value,
                             modifier = Modifier
                                 .statusBarsPadding()
-                                .align(Alignment.TopStart)
+                                .align(Alignment.BottomStart)
+                                .padding(start = 16.dp)
                         )
                     }
                 }
@@ -81,7 +82,6 @@ fun AppStateObserver(appState: ApplicationState, navController: NavHostControlle
                 AppStateId.Disconnected -> {
                     val currentRoute =
                         navController.currentBackStackEntry?.destination?.route
-                    Log.d("MainActivity", "Current route: $currentRoute")
 
                     currentRoute.let { route ->
                         if (route != Screen.Connection.route) {
