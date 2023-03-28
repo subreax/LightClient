@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.subreax.lightclient.ui.ExploreScreen
+import com.subreax.lightclient.ui.colorpickerscreen.ColorPickerScreen
 import com.subreax.lightclient.ui.connection.ConnectionScreen
 import com.subreax.lightclient.ui.home.HomeScreen
 
@@ -15,17 +16,14 @@ import com.subreax.lightclient.ui.home.HomeScreen
 sealed class Screen(val route: String) {
     object Connection : Screen("connection_route")
 
-    object Home : Screen("home_screen") {
-        val deviceAddressArg = "device_address"
+    object Home : Screen("home_screen")
+
+    object ColorPicker : Screen("color_picker") {
+        val propertyIdArg = "id"
+        val routeWithArgs = "$route/{$propertyIdArg}"
         val args = listOf(
-            navArgument(deviceAddressArg) { type = NavType.StringType }
+            navArgument(propertyIdArg) { type = NavType.IntType }
         )
-
-        val routeWithArgs = "$route/{$deviceAddressArg}"
-
-        fun buildRoute(deviceAddress: String): String {
-            return "$route/$deviceAddress"
-        }
     }
 
     object Explore : Screen("explore_screen")
@@ -35,17 +33,22 @@ sealed class Screen(val route: String) {
 fun MainNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Screen.Connection.route) {
         composable(Screen.Connection.route) {
-            ConnectionScreen(navHome = {
-                /*val route = Screen.Home.buildRoute(it.address)
-                navController.navigate(route) {
-                    popUpTo(Screen.Connection.route) { inclusive = true }
-                }
-            */})
+            ConnectionScreen(navHome = {})
         }
 
         composable(Screen.Home.route) {
-            //val deviceAddress = it.arguments?.getString(Screen.Home.deviceAddressArg)!!
-            HomeScreen()
+            HomeScreen(navToColorPicker = {
+                navController.navigate("${Screen.ColorPicker.route}/$it")
+            })
+        }
+
+        composable(
+            route = Screen.ColorPicker.routeWithArgs,
+            arguments = Screen.ColorPicker.args
+        ) {
+            ColorPickerScreen(navBack = {
+                navController.popBackStack()
+            })
         }
 
         composable(Screen.Explore.route) {

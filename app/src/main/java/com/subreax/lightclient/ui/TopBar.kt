@@ -16,7 +16,7 @@ fun TopBar(
 ) {
     Row(
         modifier = modifier
-            .padding(start = edgePaddingValue, end = edgePaddingValue, top = 32.dp, bottom = 8.dp)
+            .padding(start = edgePaddingValue, end = edgePaddingValue, top = 32.dp, bottom = 0.dp)
             .windowInsetsPadding(WindowInsets.statusBars)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),

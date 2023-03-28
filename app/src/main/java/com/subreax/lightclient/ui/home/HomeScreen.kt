@@ -25,12 +25,15 @@ import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    navToColorPicker: (propId: Int) -> Unit
+) {
     val uiState = homeViewModel.uiState
 
     val propertyCallback = PropertyCallback(
         colorPropertyClicked = { prop ->
-
+            navToColorPicker(prop.id)
         },
         stringEnumClicked = { prop ->
 

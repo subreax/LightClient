@@ -76,12 +76,24 @@ class FakeDeviceRepository @Inject constructor(
         return deviceApi.getDeviceName()
     }
 
+    override fun getPropertyById(id: Int): LResult<Property> {
+        val prop = findPropertyById(id)
+        return if (prop != null)
+            LResult.Success(prop)
+        else
+            LResult.Failure("Property #$id not found")
+    }
+
     override fun setPropertyValue(property: Property.ToggleProperty, value: Boolean) {
         property.toggled.value = value
     }
 
     override fun setPropertyValue(property: Property.FloatRangeProperty, value: Float) {
         property.current.value = value
+    }
+
+    override fun setPropertyValue(property: Property.ColorProperty, value: Int) {
+        property.color.value = value
     }
 
     private fun listenPropertyChanges(scope: CoroutineScope, property: Property) {
@@ -148,6 +160,14 @@ class FakeDeviceRepository @Inject constructor(
         }
     }
 
+    private fun findPropertyById(id: Int): Property? {
+        val sceneProp = _sceneProperties.value.find { it.id == id }
+        if (sceneProp != null) {
+            return sceneProp
+        }
+
+        return _globalProperties.value.find { it.id == id }
+    }
 
     private fun <T> Flow<T>.dropFirst(): Flow<T> {
         var isFirst = true

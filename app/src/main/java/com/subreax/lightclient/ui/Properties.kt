@@ -1,23 +1,23 @@
 package com.subreax.lightclient.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.subreax.lightclient.ui.colorpicker.ColorDisplay
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -204,12 +204,7 @@ fun ColorProperty(
     RowPropertyWrapper(onClick = onClick, modifier = modifier) {
         PropertyInfo(type = "color", name = name, modifier = Modifier.weight(1.0f))
 
-        Box(
-            Modifier
-                .size(width = 24.dp, height = 24.dp)
-                .clip(CircleShape)
-                .background(color)
-        )
+        ColorDisplay(color = color, size = 24.dp)
 
         Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "")
     }

@@ -243,15 +243,21 @@ class BleDeviceApi(
             putInt(property.id)
             serializer.serializeValue(property, this)
         }
-        delay(1000/30)
+        delay(1000/15)
         LResult.Success(Unit)
     }
 
     override suspend fun setPropertyValue(
         property: Property.ColorProperty,
         value: Int
-    ): LResult<Unit> {
-        return LResult.Success(Unit)
+    ): LResult<Unit> = withContext(Dispatchers.IO) {
+        val serializer = propertyDeserializers[PropertyType.Color]!!
+        device?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+            putInt(property.id)
+            serializer.serializeValue(property, this)
+        }
+        delay(1000/15)
+        LResult.Success(Unit)
     }
 
     override suspend fun setPropertyValue(
