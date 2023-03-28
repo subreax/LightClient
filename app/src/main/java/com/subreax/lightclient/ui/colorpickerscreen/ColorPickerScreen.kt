@@ -1,20 +1,12 @@
 package com.subreax.lightclient.ui.colorpickerscreen
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.subreax.lightclient.ui.LocalContentColorMediumAlpha
 import com.subreax.lightclient.ui.TopBar
 import com.subreax.lightclient.ui.colorpicker.ColorPicker
 import com.subreax.lightclient.ui.colorpicker.HSVColor
@@ -48,25 +40,13 @@ fun ColorPickerScreen(
     navBack: () -> Unit
 ) {
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = navBack, modifier = Modifier.padding(top = 56.dp)) {
-                Icon(
-                    imageVector = Icons.Filled.ChevronLeft,
-                    contentDescription = "",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-
-            Column {
-                TopBar(title = colorName)
-                Text(
-                    "Изменение цвета",
-                    color = LocalContentColorMediumAlpha,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(32.dp))
+        TopBar(
+            title = colorName,
+            subtitle = {
+                Text("Изменение цвета")
+            },
+            navBack = navBack
+        )
 
         ColorPicker(
             hsv = color,

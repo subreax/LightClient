@@ -66,23 +66,24 @@ fun HomeScreen(
 ) {
     val greeting = "Добрых вечеров!"
     val connectedDeviceInfo = buildAnnotatedString {
-        withStyle(SpanStyle(color = LocalContentColorMediumAlpha)) {
-            when (appState) {
-                AppStateId.Ready -> {
-                    append("Выполнено подключение к контроллеру ")
-                }
-                AppStateId.Connecting -> {
-                    append("Переподключение к контроллеру ")
-                }
-                AppStateId.Syncing -> {
-                    append("Синхронизация с контроллером ")
-                }
-                else -> {
-                    append("$appState ")
-                }
+        when (appState) {
+            AppStateId.Ready -> {
+                append("Выполнено подключение к контроллеру ")
+            }
+            AppStateId.Connecting -> {
+                append("Переподключение к контроллеру ")
+            }
+            AppStateId.Syncing -> {
+                append("Синхронизация с контроллером ")
+            }
+            else -> {
+                append("$appState ")
             }
         }
-        append(deviceName)
+
+        withStyle(SpanStyle(color = LocalContentColor.current.copy(alpha = ContentAlpha.high))) {
+            append(deviceName)
+        }
     }
 
     val propertyModifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -90,18 +91,13 @@ fun HomeScreen(
     Column(Modifier.fillMaxSize()) {
         TopBar(
             title = greeting,
+            subtitle = { Text(text = connectedDeviceInfo) },
             actions = {
                 IconButton(onClick = { /*TODO*/ }) {
                     Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
                 }
-            }
-        )
-
-        Text(
-            text = connectedDeviceInfo,
-            modifier = Modifier
-                .edgePadding()
-                .padding(bottom = 24.dp)
+            },
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
         PropertiesSection(
@@ -224,7 +220,7 @@ fun HomeScreenPreview() {
                 Property.ColorProperty(3, "Цвет", -16738049),
                 Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, 1.0f)
             ),
-            propertyCallback = PropertyCallback({}, {}, {_, _ -> }, {_, _ -> })
+            propertyCallback = PropertyCallback({}, {}, { _, _ -> }, { _, _ -> })
         )
     }
 }

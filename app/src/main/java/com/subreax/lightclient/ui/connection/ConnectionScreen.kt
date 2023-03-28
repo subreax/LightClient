@@ -80,16 +80,17 @@ fun ConnectionScreen(
                 .verticalScroll(scrollState)
                 .fillMaxWidth()
         ) {
-            TopBar(title = stringResource(R.string.connecting_to_controller))
-            Text(
-                text = stringResource(R.string.pick_controller),
-                color = LocalContentColorMediumAlpha,
-                modifier = Modifier.edgePadding()
+            TopBar(
+                title = stringResource(R.string.connecting_to_controller),
+                subtitle = {
+                    Text(stringResource(R.string.pick_controller))
+                }
             )
+
             Divider(
                 Modifier
                     .fillMaxWidth(2.0f / 3.0f)
-                    .padding(vertical = 16.dp), thickness = 2.dp
+                    .padding(bottom = 16.dp), thickness = 2.dp
             )
 
             if (!waitingForConnectivity && devices.isNotEmpty()) {
