@@ -3,7 +3,9 @@ package com.subreax.lightclient.ui.home
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -88,7 +90,11 @@ fun HomeScreen(
 
     val propertyModifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         TopBar(
             title = greeting,
             subtitle = { Text(text = connectedDeviceInfo) },
@@ -124,6 +130,8 @@ fun HomeScreen(
 
             Spacer(Modifier.height(8.dp))
         }
+
+        Spacer(Modifier.height(16.dp))
     }
 }
 
