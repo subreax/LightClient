@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.*
+
 
 data class BleResponseHeader(
     val fnId: Byte,
@@ -31,23 +31,23 @@ data class BleResponse(
     val body: ByteBuffer
 )
 
-class BleDevice(
+class BleDeviceEndpoint(
     private val peripheral: BluetoothPeripheral,
     private val callback: BleDeviceCallback,
-    private val rwCharacteristic: BluetoothGattCharacteristic
+    private val rw: BluetoothGattCharacteristic
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private val _notificationsFlow = MutableSharedFlow<BleLightNotification>()
-    val notificationFlow: Flow<BleLightNotification>
-        get() = _notificationsFlow
+    private val _eventFlow = MutableSharedFlow<BleLightEvent>()
+    val eventFlow: Flow<BleLightEvent>
+        get() = _eventFlow
 
     private val requestBuf = ByteBuffer.allocate(512).apply {
         order(ByteOrder.LITTLE_ENDIAN)
     }
 
     init {
-        callback.addNotificationListener {
-            handleNotification(it)
+        callback.addEventListener {
+            handleEvent(it)
         }
     }
 
@@ -58,7 +58,7 @@ class BleDevice(
         requestBuf.newRequest(fnId)
         onWriteBody(requestBuf)
 
-        val header = writeAndWaitNotification(requestBuf) ?: return LResult.Failure("No header")
+        val header = writeAndWaitResponseHeader(requestBuf) ?: return LResult.Failure("No header")
         val body = read() ?: return LResult.Failure("No body")
         return if (header.isOk()) {
             LResult.Success(BleResponse(header, body))
@@ -91,14 +91,14 @@ class BleDevice(
 
     private fun writeAsync(buf: ByteBuffer) {
         peripheral.writeCharacteristic(
-            rwCharacteristic,
+            rw,
             buf.getWrittenData(),
             WriteType.WITHOUT_RESPONSE
         )
     }
 
     private fun readAsync() {
-        peripheral.readCharacteristic(rwCharacteristic)
+        peripheral.readCharacteristic(rw)
     }
 
     private suspend fun read(): ByteBuffer? {
@@ -128,7 +128,7 @@ class BleDevice(
         return body
     }
 
-    private suspend fun writeAndWaitNotification(
+    private suspend fun writeAndWaitResponseHeader(
         buf: ByteBuffer,
         checkHeader: (BleResponseHeader) -> Boolean
     ): BleResponseHeader? {
@@ -156,8 +156,8 @@ class BleDevice(
         return header
     }
 
-    private suspend fun writeAndWaitNotification(buf: ByteBuffer): BleResponseHeader? =
-        writeAndWaitNotification(buf) { true }
+    private suspend fun writeAndWaitResponseHeader(buf: ByteBuffer): BleResponseHeader? =
+        writeAndWaitResponseHeader(buf) { true }
 
     private fun parseResponseHeader(data: ByteBuffer): BleResponseHeader? {
         return try {
@@ -170,27 +170,22 @@ class BleDevice(
         }
     }
 
-    private fun handleNotification(buf: ByteBuffer) {
+    private fun handleEvent(buf: ByteBuffer) {
         try {
             val notificationId = buf.get().toInt()
             if (notificationId == 0) {
                 val groupId = buf.get().toInt()
                 val group = DeviceApi.PropertyGroup.values()[groupId]
                 coroutineScope.launch {
-                    _notificationsFlow.emit(BleLightNotification.PropertiesChanged(group))
+                    _eventFlow.emit(BleLightEvent.PropertiesChanged(group))
                 }
             }
-        }
-        catch (ex: BufferUnderflowException) {
-            Log.e(TAG, "Failed to handle notification ${buf.toPrettyString()}")
+        } catch (ex: BufferUnderflowException) {
+            Log.e(TAG, "Failed to handle event ${buf.toPrettyString()}")
         }
     }
 
     companion object {
-        private const val TAG = "BleDevice"
-        val SERVICE_UUID = UUID.fromString("b7816278-8536-11ed-a1eb-0242ac120002")!!
-        val RW_CHARACTERISTIC_UUID = UUID.fromString("d4b51c9a-8536-11ed-a1eb-0242ac120002")!!
-        val RESPONSE_HEADER_CHARACTERISTIC_UUID = UUID.fromString("b64172a8-8537-11ed-a1eb-0242ac120002")!!
-        val NOTIFICATION_CHARACTERISTIC_UUID = UUID.fromString("b818f931-5046-4b35-b5c7-eb62e84a2be1")!!
+        private const val TAG = "BleDeviceEndpoint"
     }
 }

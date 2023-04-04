@@ -1,10 +1,6 @@
 package com.subreax.lightclient.data.deviceapi.ble
 
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattService
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
@@ -12,30 +8,23 @@ import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.utils.getUtf8String
-import com.welie.blessed.BluetoothCentralManager
-import com.welie.blessed.BluetoothCentralManagerCallback
-import com.welie.blessed.BluetoothPeripheral
-import com.welie.blessed.HciStatus
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 class BleDeviceApi(
     context: Context,
-    private val connectivityObserver: ConnectivityObserver
+    connectivityObserver: ConnectivityObserver
 ) : DeviceApi {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private var notificationListenerJob: Job? = null
 
-    private val connectionCallback = BtConnectionCallback()
-    private val central = BluetoothCentralManager(
-        context, connectionCallback, Handler(Looper.getMainLooper())
-    )
+    private val connection = DeviceConnection(context, connectivityObserver)
+    private val endpoint: BleDeviceEndpoint?
+        get() = connection.endpoint
 
-    private val deviceCallback = BleDeviceCallback()
+    private var eventListenerJob: Job? = null
 
     private val propertyDeserializers = mapOf(
         PropertyType.FloatRange to FloatRangePropertySerializer(),
@@ -43,33 +32,21 @@ class BleDeviceApi(
         PropertyType.StringEnum to EnumPropertySerializer()
     )
 
-
-    private var hasDisconnectRequested = AtomicBoolean(false)
-
-    private var device: BleDevice? = null
-    private var connectedPeripheral: BluetoothPeripheral? = null
-    private var bleService: BluetoothGattService? = null
-    private var bleRWCharacteristic: BluetoothGattCharacteristic? = null
-    private var bleResHeaderCharacteristic: BluetoothGattCharacteristic? = null
-    private var bleNotificationCharacteristic: BluetoothGattCharacteristic? = null
-
-    private val _connectionStatus = MutableStateFlow(DeviceApi.ConnectionStatus.Disconnected)
     override val connectionStatus: Flow<DeviceApi.ConnectionStatus>
-        get() = _connectionStatus
+        get() = connection.status
 
     private val _propertiesChanged = MutableSharedFlow<DeviceApi.PropertyGroup>()
     override val propertiesChanged: Flow<DeviceApi.PropertyGroup>
         get() = _propertiesChanged
 
     init {
-        connectionCallback.addListener {
-            if (it != DeviceApi.ConnectionStatus.Connected) {
-                device = null
-                connectedPeripheral = null
-                bleService = null
-                bleRWCharacteristic = null
-                bleResHeaderCharacteristic = null
-                bleNotificationCharacteristic = null
+        coroutineScope.launch {
+            connection.status.collect {
+                if (it == DeviceApi.ConnectionStatus.Connected) {
+                    listenForEvents()
+                } else {
+                    cancelEventListener()
+                }
             }
         }
     }
@@ -77,113 +54,17 @@ class BleDeviceApi(
     override suspend fun connect(
         deviceDesc: DeviceDesc
     ): LResult<Unit> = withContext(Dispatchers.IO) {
-        if (!connectivityObserver.isAvailable) {
-            return@withContext LResult.Failure("Bluetooth is off")
-        }
-
-        val peripheral = central.getPeripheral(deviceDesc.address)
-
-        var status = DeviceApi.ConnectionStatus.Disconnected
-        try {
-            val s1 = withTimeout(3000) {
-                suspendCancellableCoroutine { cont ->
-                    connectionCallback.addOneShotListener { status ->
-                        cont.resumeWith(Result.success(status))
-                    }
-
-                    central.connectPeripheral(peripheral, deviceCallback)
-                }
-            }
-
-            status = s1
-        } catch (ex: TimeoutCancellationException) {
-            disconnect()
-        }
-
-        if (status == DeviceApi.ConnectionStatus.Connected) {
-            connectedPeripheral = peripheral
-            bleService = peripheral.getService(BleDevice.SERVICE_UUID)
-            if (bleService == null) {
-                disconnect()
-                return@withContext LResult.Failure("Service not found")
-            }
-
-            bleRWCharacteristic = bleService!!.getCharacteristic(BleDevice.RW_CHARACTERISTIC_UUID)
-            if (bleRWCharacteristic == null) {
-                disconnect()
-                return@withContext LResult.Failure("RW Characteristic not found")
-            }
-
-            bleResHeaderCharacteristic =
-                bleService!!.getCharacteristic(BleDevice.RESPONSE_HEADER_CHARACTERISTIC_UUID)
-            if (bleResHeaderCharacteristic == null) {
-                disconnect()
-                return@withContext LResult.Failure("Response Header Characteristic not found")
-            }
-
-            connectedPeripheral!!.setNotify(bleResHeaderCharacteristic!!, true)
-            delay(200)
-
-            bleNotificationCharacteristic =
-                bleService!!.getCharacteristic(BleDevice.NOTIFICATION_CHARACTERISTIC_UUID)
-
-            if (bleNotificationCharacteristic == null) {
-                disconnect()
-                return@withContext LResult.Failure("Notification Characteristic not found")
-            }
-
-            connectedPeripheral!!.setNotify(bleNotificationCharacteristic!!, true)
-            delay(200)
-
-
-            connectedPeripheral!!.requestMtu(BluetoothPeripheral.MAX_MTU)
-            delay(1000)
-            device = BleDevice(connectedPeripheral!!, deviceCallback, bleRWCharacteristic!!)
-
-
-            notificationListenerJob = coroutineScope.launch {
-                device!!.notificationFlow.collect {
-                    handleNotification(it)
-                }
-            }
-
-
-            LResult.Success(Unit)
-        } else {
-            LResult.Failure("Failed to connect")
-        }
+        return@withContext connection.connect(deviceDesc.address)
     }
 
     override suspend fun disconnect(): LResult<Unit> = withContext(Dispatchers.IO) {
-        connectedPeripheral?.let { prph ->
-            hasDisconnectRequested.set(true)
-            suspendCancellableCoroutine { cont ->
-                connectionCallback.addOneShotListener { status ->
-                    cont.resumeWith(Result.success(Unit))
-                }
-
-                central.cancelConnection(prph)
-            }
-        }
-
-        bleResHeaderCharacteristic?.let {
-            connectedPeripheral?.setNotify(it, false)
-        }
-
-        connectedPeripheral = null
-        bleService = null
-        bleRWCharacteristic = null
-        bleResHeaderCharacteristic = null
-        bleNotificationCharacteristic = null
-
+        connection.disconnect()
         LResult.Success(Unit)
     }
 
-    override fun isConnected(): Boolean {
-        return _connectionStatus.value == DeviceApi.ConnectionStatus.Connected
-    }
+    override fun isConnected() = connection.status.value == DeviceApi.ConnectionStatus.Connected
 
-    override fun getDeviceName() = connectedPeripheral?.name ?: "unknown"
+    override fun getDeviceName() = connection.peripheral?.name ?: "unknown"
 
     override suspend fun getProperties(
         group: DeviceApi.PropertyGroup
@@ -265,11 +146,11 @@ class BleDeviceApi(
         value: Float
     ): LResult<Unit> = withContext(Dispatchers.IO) {
         val serializer = propertyDeserializers[PropertyType.FloatRange]!!
-        device?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+        endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
             putInt(property.id)
             serializer.serializeValue(property, this)
         }
-        delay(1000/15)
+        delay(1000 / 15)
         LResult.Success(Unit)
     }
 
@@ -278,11 +159,11 @@ class BleDeviceApi(
         value: Int
     ): LResult<Unit> = withContext(Dispatchers.IO) {
         val serializer = propertyDeserializers[PropertyType.Color]!!
-        device?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+        endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
             putInt(property.id)
             serializer.serializeValue(property, this)
         }
-        delay(1000/15)
+        delay(1000 / 15)
         LResult.Success(Unit)
     }
 
@@ -298,11 +179,11 @@ class BleDeviceApi(
         value: Int
     ): LResult<Unit> = withContext(Dispatchers.IO) {
         val serializer = propertyDeserializers[PropertyType.StringEnum]!!
-        device?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+        endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
             putInt(property.id)
             serializer.serializeValue(property, this)
         }
-        delay(1000/15)
+        delay(1000 / 15)
         LResult.Success(Unit)
     }
 
@@ -311,7 +192,7 @@ class BleDeviceApi(
         onWriteBody: ByteBuffer.() -> Unit,
         onSuccess: (BleResponse) -> LResult<T>
     ): LResult<T> = withContext(Dispatchers.IO) {
-        val result = device?.doRequest(fnId, onWriteBody) ?: LResult.Failure("No connection")
+        val result = endpoint?.doRequest(fnId, onWriteBody) ?: LResult.Failure("No connection")
         if (result is LResult.Success) {
             onSuccess(result.value)
         } else {
@@ -319,53 +200,22 @@ class BleDeviceApi(
         }
     }
 
-    private suspend fun handleNotification(notification: BleLightNotification) {
-        if (notification is BleLightNotification.PropertiesChanged) {
-            _propertiesChanged.emit(notification.group)
+    private fun listenForEvents() {
+        eventListenerJob = coroutineScope.launch {
+            endpoint!!.eventFlow.collect {
+                handleNotification(it)
+            }
         }
     }
 
-    private inner class BtConnectionCallback : BluetoothCentralManagerCallback() {
-        private val oneShotListeners = mutableListOf<(DeviceApi.ConnectionStatus) -> Unit>()
-        private val listeners = mutableListOf<(DeviceApi.ConnectionStatus) -> Unit>()
+    private fun cancelEventListener() {
+        eventListenerJob?.cancel()
+        eventListenerJob = null
+    }
 
-        fun addOneShotListener(listener: (DeviceApi.ConnectionStatus) -> Unit) {
-            oneShotListeners.add(listener)
-        }
-
-        fun addListener(listener: (DeviceApi.ConnectionStatus) -> Unit) {
-            listeners.add(listener)
-        }
-
-        override fun onConnectedPeripheral(peripheral: BluetoothPeripheral) {
-            notify(DeviceApi.ConnectionStatus.Connected)
-        }
-
-        override fun onDisconnectedPeripheral(peripheral: BluetoothPeripheral, status: HciStatus) {
-            if (hasDisconnectRequested.get()) {
-                notify(DeviceApi.ConnectionStatus.Disconnected)
-                hasDisconnectRequested.set(false)
-            } else {
-                notify(DeviceApi.ConnectionStatus.ConnectionLost)
-            }
-        }
-
-        override fun onConnectionFailed(peripheral: BluetoothPeripheral, status: HciStatus) {
-            notify(DeviceApi.ConnectionStatus.Disconnected)
-        }
-
-        private fun notify(status: DeviceApi.ConnectionStatus) {
-            _connectionStatus.value = status
-
-            listeners.forEach { listener ->
-                listener(status)
-            }
-
-            val oneShotListeners1 = oneShotListeners.toList()
-            oneShotListeners1.forEach { listener ->
-                listener(status)
-            }
-            oneShotListeners.removeAll(oneShotListeners1)
+    private suspend fun handleNotification(notification: BleLightEvent) {
+        if (notification is BleLightEvent.PropertiesChanged) {
+            _propertiesChanged.emit(notification.group)
         }
     }
 
