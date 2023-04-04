@@ -38,7 +38,7 @@ fun HomeScreen(
             navToColorPicker(prop.id)
         },
         stringEnumClicked = { prop ->
-
+            homeViewModel.setNextStringEnumValue(prop)
         },
         floatRangeChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)

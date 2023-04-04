@@ -58,4 +58,9 @@ class HomeViewModel @Inject constructor(
     fun setPropertyValue(property: Property.FloatRangeProperty, value: Float) {
         deviceRepository.setPropertyValue(property, value)
     }
+
+    fun setNextStringEnumValue(property: Property.StringEnumProperty) {
+        val next = (property.currentValue.value + 1) % property.values.size
+        deviceRepository.setPropertyValue(property, next)
+    }
 }

@@ -17,9 +17,7 @@ import com.welie.blessed.BluetoothCentralManagerCallback
 import com.welie.blessed.BluetoothPeripheral
 import com.welie.blessed.HciStatus
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -29,6 +27,9 @@ class BleDeviceApi(
     context: Context,
     private val connectivityObserver: ConnectivityObserver
 ) : DeviceApi {
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private var notificationListenerJob: Job? = null
+
     private val connectionCallback = BtConnectionCallback()
     private val central = BluetoothCentralManager(
         context, connectionCallback, Handler(Looper.getMainLooper())
@@ -49,7 +50,8 @@ class BleDeviceApi(
     private var connectedPeripheral: BluetoothPeripheral? = null
     private var bleService: BluetoothGattService? = null
     private var bleRWCharacteristic: BluetoothGattCharacteristic? = null
-    private var bleNotifyCharacteristic: BluetoothGattCharacteristic? = null
+    private var bleResHeaderCharacteristic: BluetoothGattCharacteristic? = null
+    private var bleNotificationCharacteristic: BluetoothGattCharacteristic? = null
 
     private val _connectionStatus = MutableStateFlow(DeviceApi.ConnectionStatus.Disconnected)
     override val connectionStatus: Flow<DeviceApi.ConnectionStatus>
@@ -66,7 +68,8 @@ class BleDeviceApi(
                 connectedPeripheral = null
                 bleService = null
                 bleRWCharacteristic = null
-                bleNotifyCharacteristic = null
+                bleResHeaderCharacteristic = null
+                bleNotificationCharacteristic = null
             }
         }
     }
@@ -111,18 +114,40 @@ class BleDeviceApi(
                 return@withContext LResult.Failure("RW Characteristic not found")
             }
 
-            bleNotifyCharacteristic =
-                bleService!!.getCharacteristic(BleDevice.NOTIFY_CHARACTERISTIC_UUID)
-            if (bleNotifyCharacteristic == null) {
+            bleResHeaderCharacteristic =
+                bleService!!.getCharacteristic(BleDevice.RESPONSE_HEADER_CHARACTERISTIC_UUID)
+            if (bleResHeaderCharacteristic == null) {
                 disconnect()
-                return@withContext LResult.Failure("Notify Characteristic not found")
+                return@withContext LResult.Failure("Response Header Characteristic not found")
             }
 
-            connectedPeripheral!!.setNotify(bleNotifyCharacteristic!!, true)
-            delay(100)
+            connectedPeripheral!!.setNotify(bleResHeaderCharacteristic!!, true)
+            delay(200)
+
+            bleNotificationCharacteristic =
+                bleService!!.getCharacteristic(BleDevice.NOTIFICATION_CHARACTERISTIC_UUID)
+
+            if (bleNotificationCharacteristic == null) {
+                disconnect()
+                return@withContext LResult.Failure("Notification Characteristic not found")
+            }
+
+            connectedPeripheral!!.setNotify(bleNotificationCharacteristic!!, true)
+            delay(200)
+
+
             connectedPeripheral!!.requestMtu(BluetoothPeripheral.MAX_MTU)
             delay(1000)
             device = BleDevice(connectedPeripheral!!, deviceCallback, bleRWCharacteristic!!)
+
+
+            notificationListenerJob = coroutineScope.launch {
+                device!!.notificationFlow.collect {
+                    handleNotification(it)
+                }
+            }
+
+
             LResult.Success(Unit)
         } else {
             LResult.Failure("Failed to connect")
@@ -141,14 +166,15 @@ class BleDeviceApi(
             }
         }
 
-        bleNotifyCharacteristic?.let {
+        bleResHeaderCharacteristic?.let {
             connectedPeripheral?.setNotify(it, false)
         }
 
         connectedPeripheral = null
         bleService = null
         bleRWCharacteristic = null
-        bleNotifyCharacteristic = null
+        bleResHeaderCharacteristic = null
+        bleNotificationCharacteristic = null
 
         LResult.Success(Unit)
     }
@@ -270,8 +296,14 @@ class BleDeviceApi(
     override suspend fun setPropertyValue(
         property: Property.StringEnumProperty,
         value: Int
-    ): LResult<Unit> {
-        return LResult.Success(Unit)
+    ): LResult<Unit> = withContext(Dispatchers.IO) {
+        val serializer = propertyDeserializers[PropertyType.StringEnum]!!
+        device?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+            putInt(property.id)
+            serializer.serializeValue(property, this)
+        }
+        delay(1000/15)
+        LResult.Success(Unit)
     }
 
     private suspend fun <T> doRequest(
@@ -284,6 +316,12 @@ class BleDeviceApi(
             onSuccess(result.value)
         } else {
             result as LResult.Failure
+        }
+    }
+
+    private suspend fun handleNotification(notification: BleLightNotification) {
+        if (notification is BleLightNotification.PropertiesChanged) {
+            _propertiesChanged.emit(notification.group)
         }
     }
 

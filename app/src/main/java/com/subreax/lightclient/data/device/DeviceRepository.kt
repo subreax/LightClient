@@ -14,4 +14,5 @@ interface DeviceRepository {
     fun setPropertyValue(property: Property.ToggleProperty, value: Boolean)
     fun setPropertyValue(property: Property.FloatRangeProperty, value: Float)
     fun setPropertyValue(property: Property.ColorProperty, value: Int)
+    fun setPropertyValue(property: Property.StringEnumProperty, value: Int)
 }

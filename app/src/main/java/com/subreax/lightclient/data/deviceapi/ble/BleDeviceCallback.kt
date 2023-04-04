@@ -10,10 +10,12 @@ import java.nio.ByteOrder
 
 
 typealias OnReadListener = (status: GattStatus, data: ByteBuffer) -> Unit
+typealias OnResponseListener = (data: ByteBuffer) -> Unit
 typealias OnNotificationListener = (data: ByteBuffer) -> Unit
 
 class BleDeviceCallback : BluetoothPeripheralCallback() {
     private val readListeners = mutableListOf<OnReadListener>()
+    private val responseListeners = mutableListOf<OnResponseListener>()
     private val notificationListeners = mutableListOf<OnNotificationListener>()
 
     override fun onCharacteristicUpdate(
@@ -29,11 +31,16 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
         val buf = ByteBuffer.wrap(value!!)
         buf.order(ByteOrder.LITTLE_ENDIAN)
 
-        if (characteristic.uuid == BleDevice.RW_CHARACTERISTIC_UUID) {
-            emitOnRead(status, buf)
-        }
-        else if (characteristic.uuid == BleDevice.NOTIFY_CHARACTERISTIC_UUID) {
-            emitOnNotification(buf)
+        when (characteristic.uuid) {
+            BleDevice.RW_CHARACTERISTIC_UUID -> {
+                emitOnRead(status, buf)
+            }
+            BleDevice.RESPONSE_HEADER_CHARACTERISTIC_UUID -> {
+                emitOnResponse(buf)
+            }
+            BleDevice.NOTIFICATION_CHARACTERISTIC_UUID -> {
+                emitOnNotification(buf)
+            }
         }
     }
 
@@ -47,7 +54,16 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
         readListeners.remove(listener)
     }
 
-    fun addOnNotificationListener(listener: OnNotificationListener): OnNotificationListener {
+    fun addOnResponseListener(listener: OnResponseListener): OnResponseListener {
+        responseListeners.add(listener)
+        return listener
+    }
+
+    fun removeResponseListener(listener: OnResponseListener) {
+        responseListeners.remove(listener)
+    }
+
+    fun addNotificationListener(listener: OnNotificationListener): OnNotificationListener {
         notificationListeners.add(listener)
         return listener
     }
@@ -59,6 +75,12 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
     private fun emitOnRead(status: GattStatus, buf: ByteBuffer) {
         readListeners.forEach { listener ->
             listener(status, buf)
+        }
+    }
+
+    private fun emitOnResponse(buf: ByteBuffer) {
+        responseListeners.forEach { listener ->
+            listener(buf)
         }
     }
 

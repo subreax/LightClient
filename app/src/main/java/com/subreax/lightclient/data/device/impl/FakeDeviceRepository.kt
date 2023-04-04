@@ -1,5 +1,6 @@
 package com.subreax.lightclient.data.device.impl
 
+import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.DeviceRepository
@@ -57,6 +58,11 @@ class FakeDeviceRepository @Inject constructor(
 
         coroutineScope.launch {
             deviceApi.propertiesChanged.collect {
+                if (it != DeviceApi.PropertyGroup.Scene) {
+                    Log.e("FakeDeviceRepository", "Don't support updating properties other than scene properties")
+                    return@collect
+                }
+
                 cancelScenePropertyListeners()
 
                 val result2 = deviceApi.getProperties(DeviceApi.PropertyGroup.Scene)
@@ -94,6 +100,10 @@ class FakeDeviceRepository @Inject constructor(
 
     override fun setPropertyValue(property: Property.ColorProperty, value: Int) {
         property.color.value = value
+    }
+
+    override fun setPropertyValue(property: Property.StringEnumProperty, value: Int) {
+        property.currentValue.value = value
     }
 
     private fun listenPropertyChanges(scope: CoroutineScope, property: Property) {

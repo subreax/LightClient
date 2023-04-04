@@ -3,16 +3,16 @@ package com.subreax.lightclient.data.deviceapi.ble
 import android.bluetooth.BluetoothGattCharacteristic
 import android.util.Log
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.utils.getUtf8String
 import com.subreax.lightclient.utils.getWrittenData
+import com.subreax.lightclient.utils.toPrettyString
 import com.welie.blessed.BluetoothPeripheral
 import com.welie.blessed.GattStatus
 import com.welie.blessed.WriteType
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.withTimeout
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -36,12 +36,19 @@ class BleDevice(
     private val callback: BleDeviceCallback,
     private val rwCharacteristic: BluetoothGattCharacteristic
 ) {
-    private val _notificationsFlow = MutableSharedFlow<Unit>()
-    val notificationFlow: Flow<Unit>
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val _notificationsFlow = MutableSharedFlow<BleLightNotification>()
+    val notificationFlow: Flow<BleLightNotification>
         get() = _notificationsFlow
 
     private val requestBuf = ByteBuffer.allocate(512).apply {
         order(ByteOrder.LITTLE_ENDIAN)
+    }
+
+    init {
+        callback.addNotificationListener {
+            handleNotification(it)
+        }
     }
 
     suspend fun doRequest(
@@ -123,14 +130,14 @@ class BleDevice(
 
     private suspend fun writeAndWaitNotification(
         buf: ByteBuffer,
-        checkNotification: (BleResponseHeader) -> Boolean
+        checkHeader: (BleResponseHeader) -> Boolean
     ): BleResponseHeader? {
         val deferred = CompletableDeferred<Unit>()
 
         var header: BleResponseHeader? = null
-        val listener = callback.addOnNotificationListener {
+        val listener = callback.addOnResponseListener {
             header = parseResponseHeader(it)
-            if (header != null && checkNotification(header!!)) {
+            if (header != null && checkHeader(header!!)) {
                 deferred.complete(Unit)
             }
         }
@@ -145,7 +152,7 @@ class BleDevice(
             Log.e(TAG, "writeAndWaitNotification() timeout")
         }
 
-        callback.removeNotificationListener(listener)
+        callback.removeResponseListener(listener)
         return header
     }
 
@@ -163,10 +170,27 @@ class BleDevice(
         }
     }
 
+    private fun handleNotification(buf: ByteBuffer) {
+        try {
+            val notificationId = buf.get().toInt()
+            if (notificationId == 0) {
+                val groupId = buf.get().toInt()
+                val group = DeviceApi.PropertyGroup.values()[groupId]
+                coroutineScope.launch {
+                    _notificationsFlow.emit(BleLightNotification.PropertiesChanged(group))
+                }
+            }
+        }
+        catch (ex: BufferUnderflowException) {
+            Log.e(TAG, "Failed to handle notification ${buf.toPrettyString()}")
+        }
+    }
+
     companion object {
         private const val TAG = "BleDevice"
         val SERVICE_UUID = UUID.fromString("b7816278-8536-11ed-a1eb-0242ac120002")!!
         val RW_CHARACTERISTIC_UUID = UUID.fromString("d4b51c9a-8536-11ed-a1eb-0242ac120002")!!
-        val NOTIFY_CHARACTERISTIC_UUID = UUID.fromString("b64172a8-8537-11ed-a1eb-0242ac120002")!!
+        val RESPONSE_HEADER_CHARACTERISTIC_UUID = UUID.fromString("b64172a8-8537-11ed-a1eb-0242ac120002")!!
+        val NOTIFICATION_CHARACTERISTIC_UUID = UUID.fromString("b818f931-5046-4b35-b5c7-eb62e84a2be1")!!
     }
 }
