@@ -28,8 +28,9 @@ import com.subreax.lightclient.ui.theme.LightClientTheme
 
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel = hiltViewModel(),
-    navToColorPicker: (propId: Int) -> Unit
+    navToColorPicker: (propId: Int) -> Unit,
+    navToEnumPicker: (propId: Int) -> Unit,
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState = homeViewModel.uiState
 
@@ -38,7 +39,7 @@ fun HomeScreen(
             navToColorPicker(prop.id)
         },
         stringEnumClicked = { prop ->
-            homeViewModel.setNextStringEnumValue(prop)
+            navToEnumPicker(prop.id)
         },
         floatRangeChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)
