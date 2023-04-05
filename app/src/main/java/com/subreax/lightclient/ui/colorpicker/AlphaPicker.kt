@@ -39,7 +39,7 @@ fun AlphaPicker(
                     Brush.horizontalGradient(
                         listOf(
                             Color.Transparent,
-                            hsv.toColor()
+                            hsv.toColor(alpha = 1.0f)
                         )
                     )
                 ),
