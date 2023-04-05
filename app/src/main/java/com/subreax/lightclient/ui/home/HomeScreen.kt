@@ -12,13 +12,13 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.data.Property
@@ -88,7 +88,7 @@ fun HomeScreen(
         }
     }
 
-    val propertyModifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    val propertyModifier = Modifier.padding(horizontal = 8.dp)
 
     Column(
         modifier = Modifier
@@ -109,26 +109,24 @@ fun HomeScreen(
         PropertiesSection(
             name = "Глобальные параметры",
             modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            spacing = 8.dp
         ) {
             globalProperties.forEach {
                 Property(it, propertyCallback, propertyModifier)
             }
-            Spacer(modifier = Modifier.height(8.dp))
         }
 
         PropertiesSection(
             name = "Параметры сцены",
             modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp, top = 16.dp)
-                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .fillMaxWidth(),
+            spacing = 8.dp
         ) {
             sceneProperties.forEach {
                 Property(it, propertyCallback, propertyModifier)
             }
-
-            Spacer(Modifier.height(8.dp))
         }
 
         Spacer(Modifier.height(16.dp))
@@ -141,6 +139,9 @@ fun Property(
     callback: PropertyCallback,
     modifier: Modifier = Modifier
 ) {
+    val shape = RoundedCornerShape(16.dp)
+    val contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp)
+
     when (property) {
         is Property.StringEnumProperty -> {
             StringEnumProperty(
@@ -148,7 +149,9 @@ fun Property(
                 values = property.values,
                 pickedValue = property.currentValue.collectAsState().value,
                 onClick = { callback.stringEnumClicked(property) },
-                modifier = modifier
+                modifier = modifier,
+                shape = shape,
+                contentPadding = contentPadding
             )
         }
 
@@ -157,7 +160,9 @@ fun Property(
                 name = property.name,
                 color = Color(property.color.collectAsState().value),
                 onClick = { callback.colorPropertyClicked(property) },
-                modifier = modifier
+                modifier = modifier,
+                shape = shape,
+                contentPadding = contentPadding
             )
         }
 
@@ -168,7 +173,9 @@ fun Property(
                 max = property.max,
                 value = property.current.collectAsState().value,
                 onValueChanged = { callback.floatRangeChanged(property, it) },
-                modifier = modifier
+                modifier = modifier,
+                shape = shape,
+                contentPadding = contentPadding
             )
         }
 
@@ -177,7 +184,9 @@ fun Property(
                 name = property.name,
                 checked = property.toggled.collectAsState().value,
                 onCheckedChange = { callback.toggleChanged(property, it) },
-                modifier = modifier
+                modifier = modifier,
+                shape = shape,
+                contentPadding = contentPadding
             )
         }
     }
@@ -187,20 +196,17 @@ fun Property(
 fun PropertiesSection(
     name: String,
     modifier: Modifier = Modifier,
+    spacing: Dp = 8.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp)),
-        elevation = 2.dp
-    ) {
-        Column {
-            Text(
-                text = name,
-                style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colors.primary,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
-            )
+    Column(modifier) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
             content()
         }
     }

@@ -9,7 +9,10 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -24,31 +27,23 @@ import kotlin.math.roundToInt
 
 @Composable
 private fun PropertyInfo(
-    type: String,
     name: String,
     modifier: Modifier = Modifier,
     additionalInfo: String = ""
 ) {
     Text(
         text = buildAnnotatedString {
-            val textColorDark = LocalContentColorMediumAlpha
-            withStyle(
-                // todo: set text style 'caption'
-                SpanStyle(
-                    fontSize = 11.1.sp,
-                    color = textColorDark
-                )
-            ) {
-                append("$type${System.lineSeparator()}")
-            }
-
             append(name)
 
-            if (additionalInfo.isNotEmpty()) {
-                append("  ")
+            withStyle(
                 // todo: set text style 'body2'
-                withStyle(SpanStyle(fontSize = 13.3.sp, color = textColorDark)) {
-                    append(additionalInfo)
+                SpanStyle(
+                    fontSize = 13.3.sp,
+                    color = LocalContentColorMediumAlpha
+                )
+            ) {
+                if (additionalInfo.isNotBlank()) {
+                    append(System.lineSeparator() + additionalInfo)
                 }
             }
         },
@@ -59,41 +54,28 @@ private fun PropertyInfo(
 @Composable
 private fun RowPropertyWrapper(
     modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onClick: (() -> Unit)? = null,
     content: @Composable RowScope.() -> Unit
 ) {
-    val modifier1 =
-        if (onClick != null)
-            Modifier.clickable(onClick = onClick)
-        else
-            Modifier
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier1.then(modifier)
-    ) {
-        content()
+    var modifier1: Modifier = modifier.clip(shape)
+    if (onClick != null) {
+        modifier1 = modifier1
+            .clickable { onClick() }
     }
-}
 
-@Composable
-private fun ColumnPropertyWrapper(
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    val modifier1 =
-        if (onClick != null)
-            Modifier.clickable(onClick = onClick)
-        else
-            Modifier
-
-    Column(modifier1.then(modifier)) {
-        content()
+    Surface(modifier1, elevation = 2.dp) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(contentPadding)
+        ) {
+            content()
+        }
     }
-}
 
+}
 
 @Composable
 fun StringEnumProperty(
@@ -101,14 +83,21 @@ fun StringEnumProperty(
     values: List<String>,
     pickedValue: Int,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val value = if (values.isNotEmpty() && pickedValue < values.size) {
         values[pickedValue]
     } else "E_OUT_OF_BOUNDS"
 
-    RowPropertyWrapper(onClick = onClick, modifier = modifier) {
-        PropertyInfo(type = "enum", name = name, Modifier.weight(1.0f))
+    RowPropertyWrapper(
+        onClick = onClick,
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    ) {
+        PropertyInfo(name = name, Modifier.weight(1.0f))
         Text(text = value)
         Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "")
     }
@@ -120,10 +109,17 @@ fun ToggleProperty(
     name: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    RowPropertyWrapper(onClick = { onCheckedChange(!checked) }, modifier = modifier) {
-        PropertyInfo(type = "toggle", name = name, Modifier.weight(1.0f))
+    RowPropertyWrapper(
+        onClick = { onCheckedChange(!checked) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    ) {
+        PropertyInfo(name = name, Modifier.weight(1.0f))
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
@@ -141,34 +137,39 @@ fun FloatRangeProperty(
     value: Float,
     onValueChanged: (Float) -> Unit,
     modifier: Modifier = Modifier,
-    typeName: String = "float range"
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    ColumnPropertyWrapper(modifier = modifier) {
-        PropertyInfo(
-            type = typeName,
-            name = name,
-            additionalInfo = "${min.toStringRound2()} .. ${max.toStringRound2()}"
-        )
-
+    RowPropertyWrapper(
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.weight(1f)
         ) {
-            Slider(
-                value = value,
-                valueRange = min..max,
-                onValueChange = { onValueChanged(it) },
-                modifier = Modifier
-                    .weight(1.0f)
-                    .height(32.dp)
+            PropertyInfo(
+                name = name,
+                additionalInfo = "${min.toStringRound2()} .. ${max.toStringRound2()}"
             )
+
             Text(
                 text = value.toStringRound2(),
-                modifier = Modifier.widthIn(48.dp),
                 textAlign = TextAlign.End,
-                color = LocalContentColorMediumAlpha,
                 style = MaterialTheme.typography.body2
             )
         }
+
+        Slider(
+            value = value,
+            valueRange = min..max,
+            onValueChange = { onValueChanged(it) },
+            modifier = Modifier
+                .weight(1f)
+                .height(37.dp)
+        )
     }
 }
 
@@ -180,7 +181,9 @@ fun IntRangeProperty(
     max: Int,
     value: Int,
     onValueChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     FloatRangeProperty(
         name = name,
@@ -189,7 +192,8 @@ fun IntRangeProperty(
         value = value.toFloat(),
         onValueChanged = { onValueChanged(it.roundToInt()) },
         modifier = modifier,
-        typeName = "int range",
+        shape = shape,
+        contentPadding = contentPadding
     )
 }
 
@@ -199,10 +203,17 @@ fun ColorProperty(
     name: String,
     color: Color,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    RowPropertyWrapper(onClick = onClick, modifier = modifier) {
-        PropertyInfo(type = "color", name = name, modifier = Modifier.weight(1.0f))
+    RowPropertyWrapper(
+        onClick = onClick,
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    ) {
+        PropertyInfo(name = name, modifier = Modifier.weight(1.0f))
 
         ColorDisplay(color = color, size = 24.dp)
 
@@ -216,7 +227,7 @@ private fun Float.toStringRound2(): String {
     if (!str.endsWith(".0")) {
         return str
     }
-    return str.substring(0, str.length-2)
+    return str.substring(0, str.length - 2)
 }
 
 
@@ -229,7 +240,7 @@ fun StringEnumPropertyPreview() {
             values = listOf("Smoke"),
             pickedValue = 0,
             onClick = {},
-            modifier = Modifier.padding(8.dp)
+            contentPadding = PaddingValues(8.dp)
         )
     }
 }
@@ -242,7 +253,7 @@ fun TogglePropertyPreview() {
             name = "Датчик движения",
             checked = true,
             onCheckedChange = { },
-            modifier = Modifier.padding(8.dp)
+            contentPadding = PaddingValues(8.dp)
         )
     }
 }
@@ -257,7 +268,7 @@ fun IntRangePropertyPreivew() {
             max = 100,
             value = 63,
             onValueChanged = {},
-            modifier = Modifier.padding(8.dp)
+            contentPadding = PaddingValues(8.dp)
         )
     }
 }
@@ -272,7 +283,7 @@ fun FloatRangePropertyPreivew() {
             max = 5.0f,
             value = 1.0f,
             onValueChanged = {},
-            modifier = Modifier.padding(8.dp)
+            contentPadding = PaddingValues(8.dp)
         )
     }
 }
@@ -285,7 +296,7 @@ fun ColorPropertyPreview() {
             name = "Основной цвет",
             color = Color(0xFF0099EF),
             onClick = { /*TODO*/ },
-            modifier = Modifier.padding(8.dp)
+            contentPadding = PaddingValues(8.dp)
         )
     }
 }
