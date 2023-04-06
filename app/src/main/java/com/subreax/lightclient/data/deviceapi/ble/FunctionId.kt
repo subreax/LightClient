@@ -4,5 +4,6 @@ enum class FunctionId {
     GetPropertyInfoById,
     GetPropertyValueById,
     GetPropertiesIdsByGroup,
+    GetPropertyById,
     SetPropertyValueById,
 }

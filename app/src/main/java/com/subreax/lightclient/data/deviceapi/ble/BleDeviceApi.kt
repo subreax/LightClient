@@ -103,31 +103,22 @@ class BleDeviceApi(
 
         val ids = (propIdsResult as LResult.Success).value
 
-        val totalRequests = 1 + ids.size*2
+        val totalRequests = 1 + ids.size
         val progressIncr = 1f / totalRequests
         progress.value += progressIncr
 
         val properties = mutableListOf<Property>()
         for (id in ids) {
-            coroutineContext.ensureActive()
-
-            val propertyInfoResult = getPropertyInfoById(id)
-            if (propertyInfoResult is LResult.Failure) {
-                return@withContext propertyInfoResult
+            val result = getPropertyById(id)
+            if (result is LResult.Failure) {
+                return@withContext result
             }
 
-            val property = (propertyInfoResult as LResult.Success).value
-            progress.value += progressIncr
-
-            coroutineContext.ensureActive()
-
-            val propertyValueResult = getPropertyValueById(id, property)
-            if (propertyValueResult is LResult.Failure) {
-                return@withContext propertyValueResult
-            }
-
+            val property = (result as LResult.Success).value
             properties.add(property)
             progress.value += progressIncr
+
+            coroutineContext.ensureActive()
         }
         LResult.Success(properties)
     }
@@ -153,29 +144,52 @@ class BleDeviceApi(
 
     private suspend fun getPropertyInfoById(id: Int): LResult<Property> {
         return doRequest(FunctionId.GetPropertyInfoById, { putInt(id) }) { response ->
-            val buf = response.body
             try {
-                buf.position(4) // skip reading id
-                val typeInt = buf.get().toInt()
-                if (typeInt >= PropertyType.values().size) {
-                    return@doRequest LResult.Failure("Unsupported property type: $typeInt")
-                }
-                val type = PropertyType.values()[typeInt]
-
-                buf.get() // reading groupId
-                val name = buf.getUtf8String()
-
-                propertyDeserializers[type]!!.deserializeInfo(id, name, buf)
+                parsePropertyInfo(id, response.body)
             } catch (ex: BufferUnderflowException) {
                 LResult.Failure("Failed to read property")
             }
         }
     }
 
+    private fun parsePropertyInfo(id: Int, buf: ByteBuffer): LResult<Property> {
+        buf.position(4) // skip reading id
+        val typeInt = buf.get().toInt()
+        if (typeInt >= PropertyType.values().size) {
+            return LResult.Failure("Unsupported property type: $typeInt")
+        }
+        val type = PropertyType.values()[typeInt]
+
+        buf.get() // reading groupId
+        val name = buf.getUtf8String()
+
+        return propertyDeserializers[type]!!.deserializeInfo(id, name, buf)
+    }
+
     private suspend fun getPropertyValueById(id: Int, target: Property): LResult<Unit> {
         return doRequest(FunctionId.GetPropertyValueById, { putInt(id) }) { response ->
             val deserializer = propertyDeserializers[target.type]!!
             deserializer.deserializeValue(response.body, target)
+        }
+    }
+
+    private suspend fun getPropertyById(id: Int): LResult<Property> {
+        return doRequest(FunctionId.GetPropertyById, { putInt(id) }) { res ->
+            val result = parsePropertyInfo(id, res.body)
+            if (result is LResult.Failure) {
+                return@doRequest result
+            }
+
+            val property = (result as LResult.Success).value
+
+            val deserializer = propertyDeserializers[property.type]!!
+            val result2 = deserializer.deserializeValue(res.body, property)
+            if (result2 is LResult.Success) {
+                LResult.Success(property)
+            }
+            else {
+                result2 as LResult.Failure
+            }
         }
     }
 

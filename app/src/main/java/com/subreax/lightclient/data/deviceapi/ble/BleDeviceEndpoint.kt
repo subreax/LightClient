@@ -20,7 +20,6 @@ import java.nio.ByteOrder
 
 data class BleResponseHeader(
     val fnId: Byte,
-    val userId: Int,
     val status: Byte
 ) {
     fun isOk(): Boolean = status.toInt() == 0
@@ -86,7 +85,6 @@ class BleDeviceEndpoint(
 
     private fun ByteBuffer.setHeader(fnId: FunctionId) {
         put(fnId.ordinal.toByte())
-        putInt(System.currentTimeMillis().toInt())
     }
 
     private fun writeAsync(buf: ByteBuffer) {
@@ -162,9 +160,8 @@ class BleDeviceEndpoint(
     private fun parseResponseHeader(data: ByteBuffer): BleResponseHeader? {
         return try {
             val fnId: Byte = data.get()
-            val userId: Int = data.getInt()
             val status: Byte = data.get()
-            BleResponseHeader(fnId, userId, status)
+            BleResponseHeader(fnId, status)
         } catch (ex: BufferUnderflowException) {
             null
         }
