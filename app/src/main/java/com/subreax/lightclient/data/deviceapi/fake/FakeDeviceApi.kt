@@ -63,7 +63,8 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
     }
 
     override suspend fun getProperties(
-        group: DeviceApi.PropertyGroup
+        group: DeviceApi.PropertyGroup,
+        progress: MutableStateFlow<Float>
     ): LResult<List<Property>> = withContext(Dispatchers.IO) {
         delay(1000)
         when (group) {

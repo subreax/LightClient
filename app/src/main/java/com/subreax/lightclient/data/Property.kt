@@ -3,10 +3,17 @@ package com.subreax.lightclient.data
 import kotlinx.coroutines.flow.MutableStateFlow
 
 enum class PropertyType {
-    FloatRange, Color, StringEnum, Toggle
+    FloatRange, Color, StringEnum, Toggle, Special
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
+    class SpecLoading(
+        initialProgress: Float
+    ) : Property(-1, PropertyType.Special, "Loading in progress") {
+        val progress = MutableStateFlow(initialProgress)
+    }
+
+
     class StringEnumProperty(
         id: Int,
         name: String,

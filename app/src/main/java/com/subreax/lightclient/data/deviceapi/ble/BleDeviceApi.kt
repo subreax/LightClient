@@ -1,6 +1,7 @@
 package com.subreax.lightclient.data.deviceapi.ble
 
 import android.content.Context
+import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
@@ -9,10 +10,21 @@ import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.utils.getUtf8String
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
+
+private data class Request(
+    val fnId: FunctionId,
+    val onWriteBody: ByteBuffer.() -> Unit,
+    val onResponse: (LResult<BleResponse>) -> Unit
+)
 
 class BleDeviceApi(
     context: Context,
@@ -39,6 +51,8 @@ class BleDeviceApi(
     override val propertiesChanged: Flow<DeviceApi.PropertyGroup>
         get() = _propertiesChanged
 
+    private val requestChannel = Channel<Request>(capacity = Channel.UNLIMITED)
+
     init {
         coroutineScope.launch {
             connection.status.collect {
@@ -47,6 +61,18 @@ class BleDeviceApi(
                 } else {
                     cancelEventListener()
                 }
+            }
+        }
+
+        coroutineScope.launch(Dispatchers.Default) {
+            while (isActive) {
+                val request = requestChannel.receive()
+                Log.v(TAG, "--> running request ${request.fnId}")
+
+                val response = endpoint?.doRequest(request.fnId, request.onWriteBody)
+                    ?: LResult.Failure("No connection")
+                request.onResponse(response)
+                Log.v(TAG, "<-- finished request ${request.fnId}")
             }
         }
     }
@@ -67,7 +93,8 @@ class BleDeviceApi(
     override fun getDeviceName() = connection.peripheral?.name ?: "unknown"
 
     override suspend fun getProperties(
-        group: DeviceApi.PropertyGroup
+        group: DeviceApi.PropertyGroup,
+        progress: MutableStateFlow<Float>
     ): LResult<List<Property>> = withContext(Dispatchers.IO) {
         val propIdsResult = getPropertiesIds(group)
         if (propIdsResult is LResult.Failure) {
@@ -75,14 +102,24 @@ class BleDeviceApi(
         }
 
         val ids = (propIdsResult as LResult.Success).value
+
+        val totalRequests = 1 + ids.size*2
+        val progressIncr = 1f / totalRequests
+        progress.value += progressIncr
+
         val properties = mutableListOf<Property>()
-        ids.forEach { id ->
+        for (id in ids) {
+            coroutineContext.ensureActive()
+
             val propertyInfoResult = getPropertyInfoById(id)
             if (propertyInfoResult is LResult.Failure) {
                 return@withContext propertyInfoResult
             }
 
             val property = (propertyInfoResult as LResult.Success).value
+            progress.value += progressIncr
+
+            coroutineContext.ensureActive()
 
             val propertyValueResult = getPropertyValueById(id, property)
             if (propertyValueResult is LResult.Failure) {
@@ -90,6 +127,7 @@ class BleDeviceApi(
             }
 
             properties.add(property)
+            progress.value += progressIncr
         }
         LResult.Success(properties)
     }
@@ -179,12 +217,13 @@ class BleDeviceApi(
         value: Int
     ): LResult<Unit> = withContext(Dispatchers.IO) {
         val serializer = propertyDeserializers[PropertyType.StringEnum]!!
-        endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+
+        doRequest(FunctionId.SetPropertyValueById, {
             putInt(property.id)
             serializer.serializeValue(property, this)
+        }) {
+            LResult.Success(Unit)
         }
-        delay(1000 / 15)
-        LResult.Success(Unit)
     }
 
     private suspend fun <T> doRequest(
@@ -192,11 +231,22 @@ class BleDeviceApi(
         onWriteBody: ByteBuffer.() -> Unit,
         onSuccess: (BleResponse) -> LResult<T>
     ): LResult<T> = withContext(Dispatchers.IO) {
-        val result = endpoint?.doRequest(fnId, onWriteBody) ?: LResult.Failure("No connection")
-        if (result is LResult.Success) {
-            onSuccess(result.value)
+        val response = suspendCoroutine { cont ->
+            val request = Request(
+                fnId = fnId,
+                onWriteBody = onWriteBody,
+                onResponse = {
+                    cont.resume(it)
+                }
+            )
+            Log.v(TAG, "+++ enqueue new request $fnId")
+            requestChannel.trySend(request)
+        }
+
+        if (response is LResult.Success) {
+            onSuccess(response.value)
         } else {
-            result as LResult.Failure
+            response as LResult.Failure
         }
     }
 
@@ -215,6 +265,7 @@ class BleDeviceApi(
 
     private suspend fun handleNotification(notification: BleLightEvent) {
         if (notification is BleLightEvent.PropertiesChanged) {
+            Log.v(TAG, "### New event: Properties Changed")
             _propertiesChanged.emit(notification.group)
         }
     }

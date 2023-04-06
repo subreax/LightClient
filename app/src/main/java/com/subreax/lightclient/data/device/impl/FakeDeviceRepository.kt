@@ -4,17 +4,15 @@ import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.DeviceRepository
-import com.subreax.lightclient.data.state.controllers.SynchronizationController
 import com.subreax.lightclient.data.deviceapi.DeviceApi
+import com.subreax.lightclient.data.state.controllers.SynchronizationController
 import com.subreax.lightclient.ui.UiLog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 
 class FakeDeviceRepository @Inject constructor(
     syncController: SynchronizationController,
@@ -30,6 +28,7 @@ class FakeDeviceRepository @Inject constructor(
         get() = _sceneProperties
 
     private val propertyListenerJobs = mutableMapOf<Property, Job>()
+    private var syncScenePropsJob: Job? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     init {
@@ -38,18 +37,17 @@ class FakeDeviceRepository @Inject constructor(
                 it.value.cancel()
             }
 
-            val result1 = deviceApi.getProperties(DeviceApi.PropertyGroup.Global)
+            val progress = MutableStateFlow(0f)
+            val result1 = deviceApi.getProperties(DeviceApi.PropertyGroup.Global, progress)
             if (result1 is LResult.Success) {
                 _globalProperties.value = result1.value
             } else {
                 return@addAction result1 as LResult.Failure
             }
 
-            val result2 = deviceApi.getProperties(DeviceApi.PropertyGroup.Scene)
-            if (result2 is LResult.Success) {
-                _sceneProperties.value = result2.value
-            } else {
-                return@addAction result2 as LResult.Failure
+            val result2 = syncScenePropertiesAction()
+            if (result2 is LResult.Failure) {
+                return@addAction result2
             }
 
             setPropertyListeners()
@@ -58,22 +56,7 @@ class FakeDeviceRepository @Inject constructor(
 
         coroutineScope.launch {
             deviceApi.propertiesChanged.collect {
-                if (it != DeviceApi.PropertyGroup.Scene) {
-                    Log.e("FakeDeviceRepository", "Don't support updating properties other than scene properties")
-                    return@collect
-                }
-
-                cancelScenePropertyListeners()
-
-                val result2 = deviceApi.getProperties(DeviceApi.PropertyGroup.Scene)
-                if (result2 is LResult.Success) {
-                    _sceneProperties.value = result2.value
-                } else {
-                    uiLog.e((result2 as LResult.Failure).message)
-                    // todo: probably we have to disconnect from controller
-                }
-
-                setScenePropertyListeners()
+                syncSceneProperties()
             }
         }
     }
@@ -140,6 +123,9 @@ class FakeDeviceRepository @Inject constructor(
                     }
                 }
             }
+            else -> {
+                scope.launch {  }
+            }
         }
 
         propertyListenerJobs[property] = job
@@ -187,5 +173,55 @@ class FakeDeviceRepository @Inject constructor(
             }
             isFirst = false
         }
+    }
+
+    private suspend fun syncSceneProperties() {
+        syncScenePropsJob?.let {
+            Log.v(TAG, "Cancelling sync job")
+            it.cancel()
+            it.join()
+            Log.v(TAG, "Cancel done")
+        }
+
+        Log.v(TAG, "Starting sync job")
+        syncScenePropsJob = coroutineScope.launch {
+            try {
+                syncScenePropertiesAction()
+            } finally {
+                if (isActive) {
+                    syncScenePropsJob = null
+                }
+            }
+        }
+    }
+
+    private suspend fun syncScenePropertiesAction(): LResult<Unit> {
+        Log.v(TAG, "Sync scene properties...")
+
+        cancelScenePropertyListeners()
+
+        val loadingProperty = Property.SpecLoading(0f)
+        _sceneProperties.value = listOf(loadingProperty)
+
+        val props: List<Property>
+        val result2 = deviceApi.getProperties(DeviceApi.PropertyGroup.Scene, loadingProperty.progress)
+        if (result2 is LResult.Success) {
+            props = result2.value
+        } else {
+            val msg = (result2 as LResult.Failure).message
+            uiLog.e(msg)
+            return LResult.Failure(msg)
+        }
+
+        coroutineContext.ensureActive()
+        _sceneProperties.value = props
+        setScenePropertyListeners()
+
+        Log.v(TAG, "Sync done")
+        return LResult.Success(Unit)
+    }
+
+    companion object {
+        private const val TAG = "FakeDeviceRepository"
     }
 }

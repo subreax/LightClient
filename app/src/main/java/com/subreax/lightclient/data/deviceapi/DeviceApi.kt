@@ -4,6 +4,7 @@ import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 interface DeviceApi {
     enum class PropertyGroup {
@@ -19,7 +20,11 @@ interface DeviceApi {
     fun isConnected(): Boolean
     fun getDeviceName(): String
 
-    suspend fun getProperties(group: PropertyGroup): LResult<List<Property>>
+    suspend fun getProperties(
+        group: PropertyGroup,
+        progress: MutableStateFlow<Float>
+    ): LResult<List<Property>>
+
     suspend fun setPropertyValue(property: Property.FloatRangeProperty, value: Float): LResult<Unit>
     suspend fun setPropertyValue(property: Property.ColorProperty, value: Int): LResult<Unit>
     suspend fun setPropertyValue(property: Property.ToggleProperty, value: Boolean): LResult<Unit>

@@ -190,6 +190,14 @@ fun Property(
                 contentPadding = contentPadding
             )
         }
+
+        is Property.SpecLoading -> {
+            SpecLoadingProperty(
+                progress = property.progress.collectAsState().value,
+                modifier = modifier,
+                contentPadding = contentPadding
+            )
+        }
     }
 }
 

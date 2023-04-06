@@ -18,6 +18,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.subreax.lightclient.ui.colorpicker.ColorDisplay
@@ -57,6 +58,7 @@ private fun RowPropertyWrapper(
     shape: Shape = RectangleShape,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onClick: (() -> Unit)? = null,
+    elevation: Dp = 2.dp,
     content: @Composable RowScope.() -> Unit
 ) {
     var modifier1: Modifier = modifier.clip(shape)
@@ -65,7 +67,7 @@ private fun RowPropertyWrapper(
             .clickable { onClick() }
     }
 
-    Surface(modifier1, elevation = 2.dp) {
+    Surface(modifier1, elevation = elevation) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -222,6 +224,30 @@ fun ColorProperty(
 }
 
 
+@Composable
+fun SpecLoadingProperty(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    RowPropertyWrapper(
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding,
+        elevation = 0.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(progress)
+            Text("${(progress * 100).roundToInt()}%", style = MaterialTheme.typography.caption)
+        }
+        Text(
+            text = "Загрузка...",
+            modifier = Modifier.padding(start = 8.dp)
+        )
+    }
+}
+
 private fun Float.toStringRound2(): String {
     val str = (round(this * 100.0f) / 100.0f).toString()
     if (!str.endsWith(".0")) {
@@ -296,6 +322,17 @@ fun ColorPropertyPreview() {
             name = "Основной цвет",
             color = Color(0xFF0099EF),
             onClick = { /*TODO*/ },
+            contentPadding = PaddingValues(8.dp)
+        )
+    }
+}
+
+@Preview(uiMode = UI_MODE_NIGHT_YES, widthDp = 320)
+@Composable
+fun SpecLoadingPropertyPreview() {
+    LightClientTheme {
+        SpecLoadingProperty(
+            progress = 0.4f,
             contentPadding = PaddingValues(8.dp)
         )
     }
