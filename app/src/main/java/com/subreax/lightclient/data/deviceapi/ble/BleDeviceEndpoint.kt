@@ -44,9 +44,17 @@ class BleDeviceEndpoint(
         order(ByteOrder.LITTLE_ENDIAN)
     }
 
-    init {
-        callback.addEventListener {
+    private var eventListener: OnEventListener? = null
+
+    fun setEventListener() {
+        eventListener = callback.addEventListener {
             handleEvent(it)
+        }
+    }
+
+    fun cancelEventListener() {
+        eventListener?.let {
+            callback.removeEventListener(it)
         }
     }
 
@@ -169,8 +177,8 @@ class BleDeviceEndpoint(
 
     private fun handleEvent(buf: ByteBuffer) {
         try {
-            val notificationId = buf.get().toInt()
-            if (notificationId == 0) {
+            val eventId = buf.get().toInt()
+            if (eventId == 0) {
                 val groupId = buf.get().toInt()
                 val group = DeviceApi.PropertyGroup.values()[groupId]
                 coroutineScope.launch {

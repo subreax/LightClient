@@ -73,6 +73,7 @@ class DeviceConnection(
         }
 
         val endpoint = (endpointRes as LResult.Success).value
+        endpoint.setEventListener()
 
         this@DeviceConnection.peripheral = peripheral
         this@DeviceConnection.endpoint = endpoint
@@ -89,6 +90,7 @@ class DeviceConnection(
 
     /** Disconnects from device without changing connection state **/
     private suspend fun _disconnect() {
+        endpoint?.cancelEventListener()
         endpoint = null
 
         peripheral?.let { prph ->

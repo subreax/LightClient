@@ -246,7 +246,7 @@ class BleDeviceApi(
     private fun listenForEvents() {
         eventListenerJob = coroutineScope.launch {
             endpoint!!.eventFlow.collect {
-                handleNotification(it)
+                handleEvent(it)
             }
         }
     }
@@ -256,7 +256,7 @@ class BleDeviceApi(
         eventListenerJob = null
     }
 
-    private suspend fun handleNotification(notification: BleLightEvent) {
+    private suspend fun handleEvent(notification: BleLightEvent) {
         if (notification is BleLightEvent.PropertiesChanged) {
             Log.v(TAG, "### New event: Properties Changed")
             _propertiesChanged.emit(notification.group)
