@@ -37,8 +37,18 @@ class FakeDeviceRepository @Inject constructor(
                 it.value.cancel()
             }
 
-            val progress = MutableStateFlow(0f)
-            val result1 = deviceApi.getProperties(DeviceApi.PropertyGroup.Global, progress)
+            val globalPropsLoadingProp = Property.SpecLoading(0f)
+            _globalProperties.value = listOf(
+                globalPropsLoadingProp
+            )
+            _sceneProperties.value = listOf(
+                Property.SpecLoading(0f)
+            )
+
+            val result1 = deviceApi.getProperties(
+                DeviceApi.PropertyGroup.Global,
+                globalPropsLoadingProp.progress
+            )
             if (result1 is LResult.Success) {
                 _globalProperties.value = result1.value
             } else {
