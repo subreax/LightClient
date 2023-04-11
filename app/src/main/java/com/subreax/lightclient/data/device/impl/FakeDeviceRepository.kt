@@ -50,7 +50,8 @@ class FakeDeviceRepository @Inject constructor(
                 return@addAction result2
             }
 
-            setPropertyListeners()
+            setGlobalPropertyListeners()
+
             LResult.Success(Unit)
         }
 
@@ -81,6 +82,14 @@ class FakeDeviceRepository @Inject constructor(
         property.current.value = value
     }
 
+    override fun setPropertyValue(property: Property.IntProperty, value: Int) {
+        property.current.value = value
+    }
+
+    override fun setPropertyValue(property: Property.IntSliderProperty, value: Int) {
+        property.current.value = value
+    }
+
     override fun setPropertyValue(property: Property.ColorProperty, value: Int) {
         property.color.value = value
     }
@@ -90,50 +99,62 @@ class FakeDeviceRepository @Inject constructor(
     }
 
     private fun listenPropertyChanges(scope: CoroutineScope, property: Property) {
+        Log.v(TAG, "Listen to changes of ${property.name}")
         val job = when (property) {
             is Property.FloatRangeProperty -> {
                 scope.launch {
-                    property.current.dropFirst().collect { value ->
-                        // todo: handle error
-                        deviceApi.setPropertyValue(property, value)
+                    property.current.dropFirst().collect {
+                        deviceApi.updatePropertyValue(property)
                     }
                 }
             }
 
             is Property.ColorProperty -> {
                 scope.launch {
-                    property.color.dropFirst().collect { value ->
-                        deviceApi.setPropertyValue(property, value)
+                    property.color.dropFirst().collect {
+                        deviceApi.updatePropertyValue(property)
                     }
                 }
             }
 
             is Property.ToggleProperty -> {
                 scope.launch {
-                    property.toggled.dropFirst().collect { value ->
-                        deviceApi.setPropertyValue(property, value)
+                    property.toggled.dropFirst().collect {
+                        deviceApi.updatePropertyValue(property)
                     }
                 }
             }
 
             is Property.StringEnumProperty -> {
                 scope.launch {
-                    property.currentValue.dropFirst().collect { value ->
-                        deviceApi.setPropertyValue(property, value)
+                    property.currentValue.dropFirst().collect {
+                        deviceApi.updatePropertyValue(property)
                     }
                 }
             }
+
+            is Property.IntProperty -> {
+                scope.launch {
+                    property.current.dropFirst().collect {
+                        deviceApi.updatePropertyValue(property)
+                    }
+                }
+            }
+
+            is Property.IntSliderProperty -> {
+                scope.launch {
+                    property.current.dropFirst().collect {
+                        deviceApi.updatePropertyValue(property)
+                    }
+                }
+            }
+
             else -> {
                 scope.launch {  }
             }
         }
 
         propertyListenerJobs[property] = job
-    }
-
-    private fun setPropertyListeners() {
-        setGlobalPropertyListeners()
-        setScenePropertyListeners()
     }
 
     private fun setGlobalPropertyListeners() {

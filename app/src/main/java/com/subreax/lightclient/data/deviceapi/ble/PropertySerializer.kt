@@ -135,3 +135,70 @@ class EnumPropertySerializer : PropertySerializer {
         }
     }
 }
+
+abstract class BaseIntPropertySerializer : PropertySerializer {
+    abstract fun createProperty(
+        id: Int,
+        name: String,
+        value: Int,
+        min: Int,
+        max: Int
+    ): Property.BaseIntProperty
+
+    override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
+        return try {
+            val min = buf.getInt()
+            val max = buf.getInt()
+            LResult.Success(
+                createProperty(id, name, min, min, max)
+            )
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("No info provided for min and max values")
+        }
+    }
+
+    override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
+        return try {
+            val intProp = property as Property.BaseIntProperty
+            out.putInt(intProp.current.value)
+            return LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("Failed to write IntProperty value")
+        }
+    }
+
+    override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
+        return try {
+            val intProp = target as Property.BaseIntProperty
+            intProp.current.value = buf.getInt()
+            LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("No value")
+        }
+    }
+}
+
+class IntPropertySerializer : BaseIntPropertySerializer() {
+    override fun createProperty(
+        id: Int,
+        name: String,
+        value: Int,
+        min: Int,
+        max: Int
+    ): Property.BaseIntProperty {
+        return Property.IntProperty(id, name, value, min, max)
+    }
+}
+
+class IntSliderPropertySerializer : BaseIntPropertySerializer() {
+    override fun createProperty(
+        id: Int,
+        name: String,
+        value: Int,
+        min: Int,
+        max: Int
+    ): Property.BaseIntProperty {
+        return Property.IntSliderProperty(id, name, value, min, max)
+    }
+}
+

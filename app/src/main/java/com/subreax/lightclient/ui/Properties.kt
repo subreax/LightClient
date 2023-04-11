@@ -2,11 +2,14 @@ package com.subreax.lightclient.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -175,31 +178,6 @@ fun FloatRangeProperty(
     }
 }
 
-
-@Composable
-fun IntRangeProperty(
-    name: String,
-    min: Int,
-    max: Int,
-    value: Int,
-    onValueChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
-) {
-    FloatRangeProperty(
-        name = name,
-        min = min.toFloat(),
-        max = max.toFloat(),
-        value = value.toFloat(),
-        onValueChanged = { onValueChanged(it.roundToInt()) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
-    )
-}
-
-
 @Composable
 fun ColorProperty(
     name: String,
@@ -221,6 +199,70 @@ fun ColorProperty(
 
         Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "")
     }
+}
+
+@Composable
+fun IntProperty(
+    name: String,
+    min: Int,
+    max: Int,
+    value: Int,
+    onValueChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    var isTotalScrollInitialized by remember { mutableStateOf(false) }
+    var totalScroll by remember { mutableStateOf(0f) }
+
+    RowPropertyWrapper(
+        modifier = modifier.scrollable(
+            orientation = Orientation.Horizontal,
+            state = rememberScrollableState { delta ->
+                if (!isTotalScrollInitialized) {
+                    isTotalScrollInitialized = true
+                    totalScroll = value.toFloat()
+                }
+
+                val totalScroll0 = totalScroll
+                totalScroll += delta / 24f
+                totalScroll = totalScroll.coerceIn(min.toFloat(), max.toFloat())
+
+                if (totalScroll0.toInt() != totalScroll.toInt()) {
+                    onValueChanged(totalScroll.toInt())
+                }
+                delta
+            }
+        ),
+        shape = shape,
+        contentPadding = contentPadding
+    ) {
+        PropertyInfo(name = name, modifier = Modifier.weight(1f))
+        Text(text = "$value")
+    }
+}
+
+@Composable
+fun IntSliderProperty(
+    name: String,
+    min: Int,
+    max: Int,
+    value: Int,
+    onValueChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    FloatRangeProperty(
+        name = name,
+        min = min.toFloat(),
+        max = max.toFloat(),
+        value = value.toFloat(),
+        onValueChanged = { onValueChanged(it.roundToInt()) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
 }
 
 
@@ -286,9 +328,24 @@ fun TogglePropertyPreview() {
 
 @Preview(uiMode = UI_MODE_NIGHT_YES, widthDp = 320)
 @Composable
+fun IntPropertyPreview() {
+    LightClientTheme {
+        IntProperty(
+            name = "Кол-во светодиодов",
+            min = 2,
+            max = 300,
+            value = 24,
+            onValueChanged = {},
+            contentPadding = PaddingValues(8.dp)
+        )
+    }
+}
+
+@Preview(uiMode = UI_MODE_NIGHT_YES, widthDp = 320)
+@Composable
 fun IntRangePropertyPreivew() {
     LightClientTheme {
-        IntRangeProperty(
+        IntSliderProperty(
             name = "Яркость",
             min = 0,
             max = 100,

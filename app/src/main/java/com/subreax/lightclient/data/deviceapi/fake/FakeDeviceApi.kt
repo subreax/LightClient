@@ -73,45 +73,9 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
         }
     }
 
-    override suspend fun setPropertyValue(
-        property: Property.FloatRangeProperty,
-        value: Float
-    ): LResult<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun updatePropertyValue(property: Property) = withContext(Dispatchers.IO) {
+        Log.d("FakeDeviceApi", "update property: $property")
         delay(100)
-        Log.d("FakeDeviceApi", "${property.name} = $value")
-        LResult.Success(Unit)
-    }
-
-    override suspend fun setPropertyValue(
-        property: Property.ColorProperty,
-        value: Int
-    ): LResult<Unit> = withContext(Dispatchers.IO) {
-        delay(100)
-        Log.d("FakeDeviceApi", "${property.name} = $value")
-        LResult.Success(Unit)
-    }
-
-    override suspend fun setPropertyValue(
-        property: Property.ToggleProperty,
-        value: Boolean
-    ): LResult<Unit> = withContext(Dispatchers.IO) {
-        delay(100)
-        Log.d("FakeDeviceApi", "${property.name} = $value")
-        LResult.Success(Unit)
-    }
-
-    override suspend fun setPropertyValue(
-        property: Property.StringEnumProperty,
-        value: Int
-    ): LResult<Unit> = withContext(Dispatchers.IO) {
-        delay(100)
-        Log.d("FakeDeviceApi", "${property.name} = $value")
-
-        if (property.id == 0) {
-            _propertiesChanged.emit(DeviceApi.PropertyGroup.Scene)
-        }
-
-        LResult.Success(Unit)
     }
 
     private val _flowIsConnected = MutableStateFlow(_isConnected)

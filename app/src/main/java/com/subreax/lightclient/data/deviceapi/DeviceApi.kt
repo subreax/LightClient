@@ -25,10 +25,7 @@ interface DeviceApi {
         progress: MutableStateFlow<Float>
     ): LResult<List<Property>>
 
-    suspend fun setPropertyValue(property: Property.FloatRangeProperty, value: Float): LResult<Unit>
-    suspend fun setPropertyValue(property: Property.ColorProperty, value: Int): LResult<Unit>
-    suspend fun setPropertyValue(property: Property.ToggleProperty, value: Boolean): LResult<Unit>
-    suspend fun setPropertyValue(property: Property.StringEnumProperty, value: Int): LResult<Unit>
+    suspend fun updatePropertyValue(property: Property)
 
     val connectionStatus: Flow<ConnectionStatus>
     val propertiesChanged: Flow<PropertyGroup>

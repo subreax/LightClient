@@ -13,6 +13,8 @@ interface DeviceRepository {
     fun getPropertyById(id: Int): LResult<Property>
     fun setPropertyValue(property: Property.ToggleProperty, value: Boolean)
     fun setPropertyValue(property: Property.FloatRangeProperty, value: Float)
+    fun setPropertyValue(property: Property.IntProperty, value: Int)
+    fun setPropertyValue(property: Property.IntSliderProperty, value: Int)
     fun setPropertyValue(property: Property.ColorProperty, value: Int)
     fun setPropertyValue(property: Property.StringEnumProperty, value: Int)
 }

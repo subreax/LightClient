@@ -59,8 +59,11 @@ class HomeViewModel @Inject constructor(
         deviceRepository.setPropertyValue(property, value)
     }
 
-    fun setNextStringEnumValue(property: Property.StringEnumProperty) {
-        val next = (property.currentValue.value + 1) % property.values.size
-        deviceRepository.setPropertyValue(property, next)
+    fun setPropertyValue(property: Property.IntProperty, value: Int) {
+        deviceRepository.setPropertyValue(property, value)
+    }
+
+    fun setPropertyValue(property: Property.IntSliderProperty, value: Int) {
+        deviceRepository.setPropertyValue(property, value)
     }
 }

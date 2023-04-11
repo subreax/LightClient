@@ -46,6 +46,12 @@ fun HomeScreen(
         },
         toggleChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)
+        },
+        intChanged = { prop, value ->
+            homeViewModel.setPropertyValue(prop, value)
+        },
+        intSliderChanged = { prop, value ->
+            homeViewModel.setPropertyValue(prop, value)
         }
     )
 
@@ -191,6 +197,32 @@ fun Property(
             )
         }
 
+        is Property.IntProperty -> {
+            IntProperty(
+                name = property.name,
+                min = property.min,
+                max = property.max,
+                value = property.current.collectAsState().value,
+                onValueChanged = { callback.intChanged(property, it) },
+                modifier = modifier,
+                shape = shape,
+                contentPadding = contentPadding
+            )
+        }
+
+        is Property.IntSliderProperty -> {
+            IntSliderProperty(
+                name = property.name,
+                min = property.min,
+                max = property.max,
+                value = property.current.collectAsState().value,
+                onValueChanged = { callback.intSliderChanged(property, it) },
+                modifier = modifier,
+                shape = shape,
+                contentPadding = contentPadding
+            )
+        }
+
         is Property.SpecLoading -> {
             SpecLoadingProperty(
                 progress = property.progress.collectAsState().value,
@@ -198,6 +230,8 @@ fun Property(
                 contentPadding = contentPadding
             )
         }
+
+        else -> {}
     }
 }
 
@@ -243,7 +277,7 @@ fun HomeScreenPreview() {
                 Property.ColorProperty(3, "Цвет", -16738049),
                 Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, 1.0f)
             ),
-            propertyCallback = PropertyCallback({}, {}, { _, _ -> }, { _, _ -> })
+            propertyCallback = PropertyCallback({}, {}, { _, _ -> }, { _, _ -> }, { _, _ -> }, {_, _ -> })
         )
     }
 }

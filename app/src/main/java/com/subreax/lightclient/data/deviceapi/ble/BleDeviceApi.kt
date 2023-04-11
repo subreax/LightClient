@@ -41,7 +41,9 @@ class BleDeviceApi(
     private val propertyDeserializers = mapOf(
         PropertyType.FloatRange to FloatRangePropertySerializer(),
         PropertyType.Color to ColorPropertySerializer(),
-        PropertyType.StringEnum to EnumPropertySerializer()
+        PropertyType.StringEnum to EnumPropertySerializer(),
+        PropertyType.Int to IntPropertySerializer(),
+        PropertyType.IntSlider to IntSliderPropertySerializer()
     )
 
     override val connectionStatus: Flow<DeviceApi.ConnectionStatus>
@@ -193,50 +195,27 @@ class BleDeviceApi(
         }
     }
 
-    override suspend fun setPropertyValue(
-        property: Property.FloatRangeProperty,
-        value: Float
-    ): LResult<Unit> = withContext(Dispatchers.IO) {
-        val serializer = propertyDeserializers[PropertyType.FloatRange]!!
-        endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
-            putInt(property.id)
-            serializer.serializeValue(property, this)
+    override suspend fun updatePropertyValue(property: Property) = withContext(Dispatchers.IO) {
+        val serializer = propertyDeserializers[property.type]
+        if (serializer == null) {
+            Log.e(TAG, "No serializer found for property type ${property.type}")
+            return@withContext
         }
-        delay(1000 / 15)
-        LResult.Success(Unit)
-    }
 
-    override suspend fun setPropertyValue(
-        property: Property.ColorProperty,
-        value: Int
-    ): LResult<Unit> = withContext(Dispatchers.IO) {
-        val serializer = propertyDeserializers[PropertyType.Color]!!
-        endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
-            putInt(property.id)
-            serializer.serializeValue(property, this)
+        if (property.type == PropertyType.StringEnum) {
+            doRequest(FunctionId.SetPropertyValueById, {
+                putInt(property.id)
+                serializer.serializeValue(property, this)
+            }) {
+                LResult.Success(Unit)
+            }
         }
-        delay(1000 / 15)
-        LResult.Success(Unit)
-    }
-
-    override suspend fun setPropertyValue(
-        property: Property.ToggleProperty,
-        value: Boolean
-    ): LResult<Unit> {
-        return LResult.Success(Unit)
-    }
-
-    override suspend fun setPropertyValue(
-        property: Property.StringEnumProperty,
-        value: Int
-    ): LResult<Unit> = withContext(Dispatchers.IO) {
-        val serializer = propertyDeserializers[PropertyType.StringEnum]!!
-
-        doRequest(FunctionId.SetPropertyValueById, {
-            putInt(property.id)
-            serializer.serializeValue(property, this)
-        }) {
-            LResult.Success(Unit)
+        else {
+            endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+                putInt(property.id)
+                serializer.serializeValue(property, this)
+            }
+            delay(1000 / 15)
         }
     }
 

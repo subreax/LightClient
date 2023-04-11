@@ -5,7 +5,8 @@ import java.nio.ByteBuffer
 fun ByteBuffer.toPrettyString(): String {
     val sb = StringBuilder()
     val arr = array()
-    for (b in arr) {
+    for (i in 0 until position()) {
+        val b = arr[i]
         val b1 = (b.toInt() + 256) and 0xff
         val byteStr = b1.toString(16)
         if (byteStr.length == 1) {

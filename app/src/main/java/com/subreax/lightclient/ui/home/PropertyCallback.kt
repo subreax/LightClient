@@ -6,5 +6,7 @@ data class PropertyCallback(
     val colorPropertyClicked: (Property.ColorProperty) -> Unit,
     val stringEnumClicked: (Property.StringEnumProperty) -> Unit,
     val floatRangeChanged: (Property.FloatRangeProperty, Float) -> Unit,
-    val toggleChanged: (Property.ToggleProperty, Boolean) -> Unit
+    val toggleChanged: (Property.ToggleProperty, Boolean) -> Unit,
+    val intChanged: (Property.IntProperty, Int) -> Unit,
+    val intSliderChanged: (Property.IntSliderProperty, Int) -> Unit
 )
