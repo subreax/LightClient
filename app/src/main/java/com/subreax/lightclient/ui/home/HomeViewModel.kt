@@ -55,15 +55,15 @@ class HomeViewModel @Inject constructor(
         deviceRepository.setPropertyValue(property, value)
     }
 
-    fun setPropertyValue(property: Property.FloatRangeProperty, value: Float) {
+    fun setPropertyValue(property: Property.FloatSlider, value: Float) {
         deviceRepository.setPropertyValue(property, value)
     }
 
-    fun setPropertyValue(property: Property.IntProperty, value: Int) {
+    fun setPropertyValue(property: Property.IntNumber, value: Int) {
         deviceRepository.setPropertyValue(property, value)
     }
 
-    fun setPropertyValue(property: Property.IntSliderProperty, value: Int) {
+    fun setPropertyValue(property: Property.IntSlider, value: Int) {
         deviceRepository.setPropertyValue(property, value)
     }
 }

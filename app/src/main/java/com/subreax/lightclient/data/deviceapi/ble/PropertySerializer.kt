@@ -20,7 +20,7 @@ class FloatRangePropertySerializer : PropertySerializer {
             val min = buf.getInt() / 32768.0f
             val max = buf.getInt() / 32768.0f
             LResult.Success(
-                Property.FloatRangeProperty(id, name, min, max, min)
+                Property.FloatSlider(id, name, min, max, min)
             )
         } catch (ex: BufferUnderflowException) {
             LResult.Failure("No info provided for min and max values")
@@ -28,7 +28,7 @@ class FloatRangePropertySerializer : PropertySerializer {
     }
 
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
-        val frp = property as Property.FloatRangeProperty
+        val frp = property as Property.FloatSlider
         val value = frp.current.value
         val q15 = (value * 32768).roundToInt()
 
@@ -41,7 +41,7 @@ class FloatRangePropertySerializer : PropertySerializer {
     }
 
     override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
-        val frp = target as Property.FloatRangeProperty
+        val frp = target as Property.FloatSlider
 
         return try {
             val value = buf.getInt() / 32768.0f
@@ -57,12 +57,12 @@ class FloatRangePropertySerializer : PropertySerializer {
 class ColorPropertySerializer : PropertySerializer {
     override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
         return LResult.Success(
-            Property.ColorProperty(id, name, Color.BLACK)
+            Property.Color(id, name, Color.BLACK)
         )
     }
 
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
-        val colorProperty = property as Property.ColorProperty
+        val colorProperty = property as Property.Color
         val color = colorProperty.color.value
 
         return try {
@@ -74,7 +74,7 @@ class ColorPropertySerializer : PropertySerializer {
     }
 
     override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
-        val colorProp = target as Property.ColorProperty
+        val colorProp = target as Property.Color
 
         return try {
             colorProp.color.value = buf.getInt()
@@ -100,14 +100,14 @@ class EnumPropertySerializer : PropertySerializer {
                 values.add(buf.getUtf8String())
             }
 
-            return LResult.Success(Property.StringEnumProperty(id, name, values, 0))
+            return LResult.Success(Property.Enum(id, name, values, 0))
         } catch (ex: BufferUnderflowException) {
             return LResult.Failure("Failed to read enum property")
         }
     }
 
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
-        val enumProp = property as Property.StringEnumProperty
+        val enumProp = property as Property.Enum
         val value = enumProp.currentValue.value
 
         return try {
@@ -119,7 +119,7 @@ class EnumPropertySerializer : PropertySerializer {
     }
 
     override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
-        val enumProp = target as Property.StringEnumProperty
+        val enumProp = target as Property.Enum
 
         try {
             val value = buf.getShort().toInt()
@@ -186,7 +186,7 @@ class IntPropertySerializer : BaseIntPropertySerializer() {
         min: Int,
         max: Int
     ): Property.BaseIntProperty {
-        return Property.IntProperty(id, name, value, min, max)
+        return Property.IntNumber(id, name, value, min, max)
     }
 }
 
@@ -198,7 +198,7 @@ class IntSliderPropertySerializer : BaseIntPropertySerializer() {
         min: Int,
         max: Int
     ): Property.BaseIntProperty {
-        return Property.IntSliderProperty(id, name, value, min, max)
+        return Property.IntSlider(id, name, value, min, max)
     }
 }
 

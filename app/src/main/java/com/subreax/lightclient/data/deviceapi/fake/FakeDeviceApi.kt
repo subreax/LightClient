@@ -24,14 +24,14 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
 
 
     private val _globalProps = listOf(
-        Property.StringEnumProperty(0, "Сцена", listOf("Smoke"), 0),
-        Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f,42.0f),
+        Property.Enum(0, "Сцена", listOf("Smoke"), 0),
+        Property.FloatSlider(1, "Яркость", 0.0f, 100.0f,42.0f),
         Property.ToggleProperty(2, "Датчик движения", true)
     )
 
     private val _smokeSceneProps = listOf(
-        Property.ColorProperty(3, "Цвет", -16738049),
-        Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, 1.0f)
+        Property.Color(3, "Цвет", -16738049),
+        Property.FloatSlider(4, "Скорость", 0.0f, 5.0f, 1.0f)
     )
 
     private var _sceneProps = _smokeSceneProps

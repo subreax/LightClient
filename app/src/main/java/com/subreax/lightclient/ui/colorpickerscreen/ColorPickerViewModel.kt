@@ -16,7 +16,7 @@ class ColorPickerViewModel @Inject constructor(
     private val deviceRepository: DeviceRepository,
     state: SavedStateHandle
 ) : ViewModel() {
-    private val property: Property.ColorProperty
+    private val property: Property.Color
 
     val propertyName: String
     val propertyColor: Color
@@ -25,7 +25,7 @@ class ColorPickerViewModel @Inject constructor(
         val propId: Int = state[Screen.ColorPicker.propertyIdArg]!!
         val propertyResult = deviceRepository.getPropertyById(propId)
         if (propertyResult is LResult.Success) {
-            property = propertyResult.value as Property.ColorProperty
+            property = propertyResult.value as Property.Color
             propertyName = property.name
         }
         else {

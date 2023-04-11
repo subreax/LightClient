@@ -15,7 +15,7 @@ class EnumPickerViewModel @Inject constructor(
     private val deviceRepository: DeviceRepository,
     state: SavedStateHandle
 ) : ViewModel() {
-    private val property: Property.StringEnumProperty
+    private val property: Property.Enum
 
     val propertyName: String
         get() = property.name
@@ -29,7 +29,7 @@ class EnumPickerViewModel @Inject constructor(
     init {
         val propId: Int = state[Screen.EnumPicker.propertyIdArg]!!
         val rawProp = (deviceRepository.getPropertyById(propId) as LResult.Success).value
-        property = rawProp as Property.StringEnumProperty
+        property = rawProp as Property.Enum
     }
 
     fun select(index: Int) {

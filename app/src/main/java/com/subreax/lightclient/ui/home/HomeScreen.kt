@@ -10,9 +10,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +39,7 @@ fun HomeScreen(
         stringEnumClicked = { prop ->
             navToEnumPicker(prop.id)
         },
-        floatRangeChanged = { prop, value ->
+        floatSliderChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)
         },
         toggleChanged = { prop, value ->
@@ -150,85 +148,32 @@ fun Property(
     val contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp)
 
     when (property) {
-        is Property.StringEnumProperty -> {
-            StringEnumProperty(
-                name = property.name,
-                values = property.values,
-                pickedValue = property.currentValue.collectAsState().value,
-                onClick = { callback.stringEnumClicked(property) },
-                modifier = modifier,
-                shape = shape,
-                contentPadding = contentPadding
-            )
+        is Property.Enum -> {
+            EnumProperty(property, callback, modifier, shape, contentPadding)
         }
 
-        is Property.ColorProperty -> {
-            ColorProperty(
-                name = property.name,
-                color = Color(property.color.collectAsState().value),
-                onClick = { callback.colorPropertyClicked(property) },
-                modifier = modifier,
-                shape = shape,
-                contentPadding = contentPadding
-            )
+        is Property.Color -> {
+            ColorProperty(property, callback, modifier, shape, contentPadding)
         }
 
-        is Property.FloatRangeProperty -> {
-            FloatRangeProperty(
-                name = property.name,
-                min = property.min,
-                max = property.max,
-                value = property.current.collectAsState().value,
-                onValueChanged = { callback.floatRangeChanged(property, it) },
-                modifier = modifier,
-                shape = shape,
-                contentPadding = contentPadding
-            )
+        is Property.FloatSlider -> {
+            FloatSliderProperty(property, callback, modifier, shape, contentPadding)
         }
 
         is Property.ToggleProperty -> {
-            ToggleProperty(
-                name = property.name,
-                checked = property.toggled.collectAsState().value,
-                onCheckedChange = { callback.toggleChanged(property, it) },
-                modifier = modifier,
-                shape = shape,
-                contentPadding = contentPadding
-            )
+            ToggleProperty(property, callback, modifier, shape, contentPadding)
         }
 
-        is Property.IntProperty -> {
-            IntProperty(
-                name = property.name,
-                min = property.min,
-                max = property.max,
-                value = property.current.collectAsState().value,
-                onValueChanged = { callback.intChanged(property, it) },
-                modifier = modifier,
-                shape = shape,
-                contentPadding = contentPadding
-            )
+        is Property.IntNumber -> {
+            IntProperty(property, callback, modifier, shape, contentPadding)
         }
 
-        is Property.IntSliderProperty -> {
-            IntSliderProperty(
-                name = property.name,
-                min = property.min,
-                max = property.max,
-                value = property.current.collectAsState().value,
-                onValueChanged = { callback.intSliderChanged(property, it) },
-                modifier = modifier,
-                shape = shape,
-                contentPadding = contentPadding
-            )
+        is Property.IntSlider -> {
+            IntSliderProperty(property, callback, modifier, shape, contentPadding)
         }
 
         is Property.SpecLoading -> {
-            SpecLoadingProperty(
-                progress = property.progress.collectAsState().value,
-                modifier = modifier,
-                contentPadding = contentPadding
-            )
+            SpecLoadingProperty(property, callback, modifier, shape, contentPadding)
         }
 
         else -> {}
@@ -269,15 +214,21 @@ fun HomeScreenPreview() {
             appState = AppStateId.Ready,
             deviceName = "ESP32-Home",
             globalProperties = listOf(
-                Property.StringEnumProperty(0, "Сцена", listOf("Smoke"), 0),
-                Property.FloatRangeProperty(1, "Яркость", 0.0f, 100.0f, 42.0f),
+                Property.Enum(0, "Сцена", listOf("Smoke"), 0),
+                Property.FloatSlider(1, "Яркость", 0.0f, 100.0f, 42.0f),
                 Property.ToggleProperty(2, "Датчик движения", true)
             ),
             sceneProperties = listOf(
-                Property.ColorProperty(3, "Цвет", -16738049),
-                Property.FloatRangeProperty(4, "Скорость", 0.0f, 5.0f, 1.0f)
+                Property.Color(3, "Цвет", -16738049),
+                Property.FloatSlider(4, "Скорость", 0.0f, 5.0f, 1.0f)
             ),
-            propertyCallback = PropertyCallback({}, {}, { _, _ -> }, { _, _ -> }, { _, _ -> }, {_, _ -> })
+            propertyCallback = PropertyCallback(
+                {},
+                {},
+                { _, _ -> },
+                { _, _ -> },
+                { _, _ -> },
+                { _, _ -> })
         )
     }
 }

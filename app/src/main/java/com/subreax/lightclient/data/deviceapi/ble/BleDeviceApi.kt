@@ -38,10 +38,10 @@ class BleDeviceApi(
 
     private var eventListenerJob: Job? = null
 
-    private val propertyDeserializers = mapOf(
-        PropertyType.FloatRange to FloatRangePropertySerializer(),
+    private val propertySerializers = mapOf(
+        PropertyType.FloatSlider to FloatRangePropertySerializer(),
         PropertyType.Color to ColorPropertySerializer(),
-        PropertyType.StringEnum to EnumPropertySerializer(),
+        PropertyType.Enum to EnumPropertySerializer(),
         PropertyType.Int to IntPropertySerializer(),
         PropertyType.IntSlider to IntSliderPropertySerializer()
     )
@@ -165,12 +165,12 @@ class BleDeviceApi(
         buf.get() // reading groupId
         val name = buf.getUtf8String()
 
-        return propertyDeserializers[type]!!.deserializeInfo(id, name, buf)
+        return propertySerializers[type]!!.deserializeInfo(id, name, buf)
     }
 
     private suspend fun getPropertyValueById(id: Int, target: Property): LResult<Unit> {
         return doRequest(FunctionId.GetPropertyValueById, { putInt(id) }) { response ->
-            val deserializer = propertyDeserializers[target.type]!!
+            val deserializer = propertySerializers[target.type]!!
             deserializer.deserializeValue(response.body, target)
         }
     }
@@ -184,7 +184,7 @@ class BleDeviceApi(
 
             val property = (result as LResult.Success).value
 
-            val deserializer = propertyDeserializers[property.type]!!
+            val deserializer = propertySerializers[property.type]!!
             val result2 = deserializer.deserializeValue(res.body, property)
             if (result2 is LResult.Success) {
                 LResult.Success(property)
@@ -196,13 +196,13 @@ class BleDeviceApi(
     }
 
     override suspend fun updatePropertyValue(property: Property) = withContext(Dispatchers.IO) {
-        val serializer = propertyDeserializers[property.type]
+        val serializer = propertySerializers[property.type]
         if (serializer == null) {
             Log.e(TAG, "No serializer found for property type ${property.type}")
             return@withContext
         }
 
-        if (property.type == PropertyType.StringEnum) {
+        if (property.type == PropertyType.Enum) {
             doRequest(FunctionId.SetPropertyValueById, {
                 putInt(property.id)
                 serializer.serializeValue(property, this)

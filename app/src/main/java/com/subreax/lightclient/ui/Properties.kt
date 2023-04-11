@@ -24,7 +24,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.ui.colorpicker.ColorDisplay
+import com.subreax.lightclient.ui.home.PropertyCallback
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -83,7 +85,7 @@ private fun RowPropertyWrapper(
 }
 
 @Composable
-fun StringEnumProperty(
+fun EnumProperty(
     name: String,
     values: List<String>,
     pickedValue: Int,
@@ -106,6 +108,28 @@ fun StringEnumProperty(
         Text(text = value)
         Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "")
     }
+}
+
+@Composable
+fun EnumProperty(
+    baseProperty: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val property = baseProperty as Property.Enum
+    val pickedValue by property.currentValue.collectAsState()
+
+    EnumProperty(
+        name = property.name,
+        values = property.values,
+        pickedValue = pickedValue,
+        onClick = { callback.stringEnumClicked(property) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
 }
 
 
@@ -133,9 +157,30 @@ fun ToggleProperty(
     }
 }
 
+@Composable
+fun ToggleProperty(
+    baseProperty: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val property = baseProperty as Property.ToggleProperty
+    val checked by property.toggled.collectAsState()
+
+    ToggleProperty(
+        name = property.name,
+        checked = checked,
+        onCheckedChange = { callback.toggleChanged(property, it) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
+}
+
 
 @Composable
-fun FloatRangeProperty(
+fun FloatSliderProperty(
     name: String,
     min: Float,
     max: Float,
@@ -179,6 +224,29 @@ fun FloatRangeProperty(
 }
 
 @Composable
+fun FloatSliderProperty(
+    baseProperty: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val property = baseProperty as Property.FloatSlider
+    val value by property.current.collectAsState()
+
+    FloatSliderProperty(
+        name = property.name,
+        min = property.min,
+        max = property.max,
+        value = value,
+        onValueChanged = { callback.floatSliderChanged(property, it) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
+}
+
+@Composable
 fun ColorProperty(
     name: String,
     color: Color,
@@ -199,6 +267,27 @@ fun ColorProperty(
 
         Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "")
     }
+}
+
+@Composable
+fun ColorProperty(
+    baseProperty: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val property = baseProperty as Property.Color
+    val intColor by property.color.collectAsState()
+
+    ColorProperty(
+        name = property.name,
+        color = Color(intColor),
+        onClick = { callback.colorPropertyClicked(property) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
 }
 
 @Composable
@@ -243,6 +332,29 @@ fun IntProperty(
 }
 
 @Composable
+fun IntProperty(
+    baseProperty: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val property = baseProperty as Property.IntNumber
+    val value by property.current.collectAsState()
+
+    IntProperty(
+        name = property.name,
+        min = property.min,
+        max = property.max,
+        value = value,
+        onValueChanged = { callback.intChanged(property, it) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
+}
+
+@Composable
 fun IntSliderProperty(
     name: String,
     min: Int,
@@ -253,7 +365,7 @@ fun IntSliderProperty(
     shape: Shape = RectangleShape,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    FloatRangeProperty(
+    FloatSliderProperty(
         name = name,
         min = min.toFloat(),
         max = max.toFloat(),
@@ -265,6 +377,28 @@ fun IntSliderProperty(
     )
 }
 
+@Composable
+fun IntSliderProperty(
+    baseProperty: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val property = baseProperty as Property.IntSlider
+    val value by property.current.collectAsState()
+
+    IntSliderProperty(
+        name = property.name,
+        min = property.min,
+        max = property.max,
+        value = value,
+        onValueChanged = { callback.intSliderChanged(property, it) },
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
+}
 
 @Composable
 fun SpecLoadingProperty(
@@ -290,6 +424,25 @@ fun SpecLoadingProperty(
     }
 }
 
+@Composable
+fun SpecLoadingProperty(
+    baseProperty: Property,
+    callback: PropertyCallback,
+    modifier: Modifier = Modifier,
+    shape: Shape = RectangleShape,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val property = baseProperty as Property.SpecLoading
+    val progress by property.progress.collectAsState()
+
+    SpecLoadingProperty(
+        progress = progress,
+        modifier = modifier,
+        shape = shape,
+        contentPadding = contentPadding
+    )
+}
+
 private fun Float.toStringRound2(): String {
     val str = (round(this * 100.0f) / 100.0f).toString()
     if (!str.endsWith(".0")) {
@@ -301,9 +454,9 @@ private fun Float.toStringRound2(): String {
 
 @Preview(uiMode = UI_MODE_NIGHT_YES, widthDp = 320)
 @Composable
-fun StringEnumPropertyPreview() {
+fun EnumPropertyPreview() {
     LightClientTheme {
-        StringEnumProperty(
+        EnumProperty(
             name = "Сцена",
             values = listOf("Smoke"),
             pickedValue = 0,
@@ -360,7 +513,7 @@ fun IntRangePropertyPreivew() {
 @Composable
 fun FloatRangePropertyPreivew() {
     LightClientTheme {
-        FloatRangeProperty(
+        FloatSliderProperty(
             name = "Скорость",
             min = 0.0f,
             max = 5.0f,

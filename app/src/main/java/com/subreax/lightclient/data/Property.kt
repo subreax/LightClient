@@ -3,7 +3,7 @@ package com.subreax.lightclient.data
 import kotlinx.coroutines.flow.MutableStateFlow
 
 enum class PropertyType {
-    FloatRange, Color, StringEnum, Int, IntSlider, Toggle, Special
+    FloatSlider, Color, Enum, Int, IntSlider, Toggle, Special
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
@@ -14,26 +14,26 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     }
 
 
-    class StringEnumProperty(
+    class Enum(
         id: Int,
         name: String,
         val values: List<String>,
         initialValue: Int,
-    ) : Property(id, PropertyType.StringEnum, name) {
+    ) : Property(id, PropertyType.Enum, name) {
         val currentValue = MutableStateFlow(initialValue)
     }
 
-    class FloatRangeProperty(
+    class FloatSlider(
         id: Int,
         name: String,
         val min: Float,
         val max: Float,
         initialValue: Float
-    ) : Property(id, PropertyType.FloatRange, name) {
+    ) : Property(id, PropertyType.FloatSlider, name) {
         val current = MutableStateFlow(initialValue)
     }
 
-    class ColorProperty(
+    class Color(
         id: Int,
         name: String,
         initialValue: Int
@@ -60,7 +60,7 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         val current = MutableStateFlow(initialValue)
     }
 
-    class IntProperty(
+    class IntNumber(
         id: Int,
         name: String,
         initialValue: Int,
@@ -68,7 +68,7 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         max: Int
     ) : BaseIntProperty(id, PropertyType.Int, name, initialValue, min, max)
 
-    class IntSliderProperty(
+    class IntSlider(
         id: Int,
         name: String,
         initialValue: Int,

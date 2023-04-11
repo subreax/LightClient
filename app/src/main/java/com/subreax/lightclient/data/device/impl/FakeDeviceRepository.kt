@@ -78,30 +78,30 @@ class FakeDeviceRepository @Inject constructor(
         property.toggled.value = value
     }
 
-    override fun setPropertyValue(property: Property.FloatRangeProperty, value: Float) {
+    override fun setPropertyValue(property: Property.FloatSlider, value: Float) {
         property.current.value = value
     }
 
-    override fun setPropertyValue(property: Property.IntProperty, value: Int) {
+    override fun setPropertyValue(property: Property.IntNumber, value: Int) {
         property.current.value = value
     }
 
-    override fun setPropertyValue(property: Property.IntSliderProperty, value: Int) {
+    override fun setPropertyValue(property: Property.IntSlider, value: Int) {
         property.current.value = value
     }
 
-    override fun setPropertyValue(property: Property.ColorProperty, value: Int) {
+    override fun setPropertyValue(property: Property.Color, value: Int) {
         property.color.value = value
     }
 
-    override fun setPropertyValue(property: Property.StringEnumProperty, value: Int) {
+    override fun setPropertyValue(property: Property.Enum, value: Int) {
         property.currentValue.value = value
     }
 
     private fun listenPropertyChanges(scope: CoroutineScope, property: Property) {
         Log.v(TAG, "Listen to changes of ${property.name}")
         val job = when (property) {
-            is Property.FloatRangeProperty -> {
+            is Property.FloatSlider -> {
                 scope.launch {
                     property.current.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)
@@ -109,7 +109,7 @@ class FakeDeviceRepository @Inject constructor(
                 }
             }
 
-            is Property.ColorProperty -> {
+            is Property.Color -> {
                 scope.launch {
                     property.color.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)
@@ -125,7 +125,7 @@ class FakeDeviceRepository @Inject constructor(
                 }
             }
 
-            is Property.StringEnumProperty -> {
+            is Property.Enum -> {
                 scope.launch {
                     property.currentValue.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)
@@ -133,7 +133,7 @@ class FakeDeviceRepository @Inject constructor(
                 }
             }
 
-            is Property.IntProperty -> {
+            is Property.IntNumber -> {
                 scope.launch {
                     property.current.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)
@@ -141,7 +141,7 @@ class FakeDeviceRepository @Inject constructor(
                 }
             }
 
-            is Property.IntSliderProperty -> {
+            is Property.IntSlider -> {
                 scope.launch {
                     property.current.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)
