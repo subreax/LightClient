@@ -202,3 +202,30 @@ class IntSliderPropertySerializer : BaseIntPropertySerializer() {
     }
 }
 
+class BoolPropertySerializer : PropertySerializer {
+    override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
+        return LResult.Success(Property.Bool(id, name, false))
+    }
+
+    override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
+        return try {
+            val prop = property as Property.Bool
+            val value = if (prop.toggled.value) 1 else 0
+            out.put(value.toByte())
+            LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("Failed to write bool value")
+        }
+    }
+
+    override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
+        return try {
+            val value = buf.get().toInt() > 0
+            (target as Property.Bool).toggled.value = value
+            LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("Failed to read bool value")
+        }
+    }
+
+}

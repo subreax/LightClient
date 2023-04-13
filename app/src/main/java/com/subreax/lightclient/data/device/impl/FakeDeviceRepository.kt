@@ -84,7 +84,7 @@ class FakeDeviceRepository @Inject constructor(
             LResult.Failure("Property #$id not found")
     }
 
-    override fun setPropertyValue(property: Property.ToggleProperty, value: Boolean) {
+    override fun setPropertyValue(property: Property.Bool, value: Boolean) {
         property.toggled.value = value
     }
 
@@ -127,7 +127,7 @@ class FakeDeviceRepository @Inject constructor(
                 }
             }
 
-            is Property.ToggleProperty -> {
+            is Property.Bool -> {
                 scope.launch {
                     property.toggled.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)

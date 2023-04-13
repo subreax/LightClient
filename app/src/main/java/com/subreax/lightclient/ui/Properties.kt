@@ -165,7 +165,7 @@ fun ToggleProperty(
     shape: Shape = RectangleShape,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    val property = baseProperty as Property.ToggleProperty
+    val property = baseProperty as Property.Bool
     val checked by property.toggled.collectAsState()
 
     ToggleProperty(

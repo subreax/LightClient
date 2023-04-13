@@ -160,7 +160,7 @@ fun Property(
             FloatSliderProperty(property, callback, modifier, shape, contentPadding)
         }
 
-        is Property.ToggleProperty -> {
+        is Property.Bool -> {
             ToggleProperty(property, callback, modifier, shape, contentPadding)
         }
 
@@ -216,7 +216,7 @@ fun HomeScreenPreview() {
             globalProperties = listOf(
                 Property.Enum(0, "Сцена", listOf("Smoke"), 0),
                 Property.FloatSlider(1, "Яркость", 0.0f, 100.0f, 42.0f),
-                Property.ToggleProperty(2, "Датчик движения", true)
+                Property.Bool(2, "Датчик движения", true)
             ),
             sceneProperties = listOf(
                 Property.Color(3, "Цвет", -16738049),

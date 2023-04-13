@@ -51,7 +51,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun setPropertyValue(property: Property.ToggleProperty, value: Boolean) {
+    fun setPropertyValue(property: Property.Bool, value: Boolean) {
         deviceRepository.setPropertyValue(property, value)
     }
 

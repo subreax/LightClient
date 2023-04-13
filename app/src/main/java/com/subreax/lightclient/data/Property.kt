@@ -3,7 +3,7 @@ package com.subreax.lightclient.data
 import kotlinx.coroutines.flow.MutableStateFlow
 
 enum class PropertyType {
-    FloatSlider, Color, Enum, Int, IntSlider, Toggle, Special
+    FloatSlider, Color, Enum, Int, IntSlider, Bool, Special
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
@@ -41,11 +41,11 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         val color = MutableStateFlow(initialValue)
     }
 
-    class ToggleProperty(
+    class Bool(
         id: Int,
         name: String,
         initialValue: Boolean
-    ) : Property(id, PropertyType.Toggle, name) {
+    ) : Property(id, PropertyType.Bool, name) {
         val toggled = MutableStateFlow(initialValue)
     }
 

@@ -43,7 +43,8 @@ class BleDeviceApi(
         PropertyType.Color to ColorPropertySerializer(),
         PropertyType.Enum to EnumPropertySerializer(),
         PropertyType.Int to IntPropertySerializer(),
-        PropertyType.IntSlider to IntSliderPropertySerializer()
+        PropertyType.IntSlider to IntSliderPropertySerializer(),
+        PropertyType.Bool to BoolPropertySerializer()
     )
 
     override val connectionStatus: Flow<DeviceApi.ConnectionStatus>
