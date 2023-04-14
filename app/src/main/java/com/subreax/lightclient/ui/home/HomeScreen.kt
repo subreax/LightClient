@@ -2,6 +2,7 @@ package com.subreax.lightclient.ui.home
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,7 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -42,15 +43,18 @@ fun HomeScreen(
         floatSliderChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)
         },
+        floatSliderClicked = { prop ->
+            homeViewModel.showEditDialog(prop)
+        },
         toggleChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)
         },
         intChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)
         },
-        intSliderChanged = { prop, value ->
-            homeViewModel.setPropertyValue(prop, value)
-        }
+        intClicked = { prop ->
+            homeViewModel.showEditDialog(prop)
+        },
     )
 
     HomeScreen(
@@ -60,6 +64,14 @@ fun HomeScreen(
         sceneProperties = uiState.sceneProperties,
         propertyCallback = propertyCallback
     )
+
+    if (uiState.dialogEditProperty != null) {
+        PropertyEditorDialog(
+            property = uiState.dialogEditProperty,
+            callback = propertyCallback,
+            onClose = homeViewModel::closeDialog
+        )
+    }
 }
 
 
@@ -200,6 +212,41 @@ fun PropertiesSection(
     }
 }
 
+@Composable
+fun PropertyEditorDialog(
+    property: Property,
+    callback: PropertyCallback,
+    onClose: () -> Unit
+) {
+    when (property) {
+        is Property.BaseInt -> {
+            IntPropertyEditorDialog(
+                propertyName = property.name,
+                value = property.current.collectAsState().value,
+                min = property.min,
+                max = property.max,
+                onSubmit = { callback.intChanged(property, it) },
+                onClose = onClose
+            )
+        }
+
+        is Property.FloatSlider -> {
+            FloatPropertyEditorDialog(
+                propertyName = property.name,
+                value = property.current.collectAsState().value,
+                min = property.min,
+                max = property.max,
+                onSubmit = { callback.floatSliderChanged(property, it) },
+                onClose = onClose
+            )
+        }
+
+        else -> {
+            Log.d("HomeScreen", "PropertyEditorDialog unsupported property type: ${property.type}")
+        }
+    }
+}
+
 @SuppressLint("UnrememberedMutableState")
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
@@ -226,9 +273,11 @@ fun HomeScreenPreview() {
                 {},
                 {},
                 { _, _ -> },
+                {},
                 { _, _ -> },
                 { _, _ -> },
-                { _, _ -> })
+                {},
+            )
         )
     }
 }

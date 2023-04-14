@@ -143,7 +143,7 @@ abstract class BaseIntPropertySerializer : PropertySerializer {
         value: Int,
         min: Int,
         max: Int
-    ): Property.BaseIntProperty
+    ): Property.BaseInt
 
     override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
         return try {
@@ -159,7 +159,7 @@ abstract class BaseIntPropertySerializer : PropertySerializer {
 
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
         return try {
-            val intProp = property as Property.BaseIntProperty
+            val intProp = property as Property.BaseInt
             out.putInt(intProp.current.value)
             return LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
@@ -169,7 +169,7 @@ abstract class BaseIntPropertySerializer : PropertySerializer {
 
     override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
         return try {
-            val intProp = target as Property.BaseIntProperty
+            val intProp = target as Property.BaseInt
             intProp.current.value = buf.getInt()
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
@@ -185,7 +185,7 @@ class IntPropertySerializer : BaseIntPropertySerializer() {
         value: Int,
         min: Int,
         max: Int
-    ): Property.BaseIntProperty {
+    ): Property.BaseInt {
         return Property.IntNumber(id, name, value, min, max)
     }
 }
@@ -197,7 +197,7 @@ class IntSliderPropertySerializer : BaseIntPropertySerializer() {
         value: Int,
         min: Int,
         max: Int
-    ): Property.BaseIntProperty {
+    ): Property.BaseInt {
         return Property.IntSlider(id, name, value, min, max)
     }
 }

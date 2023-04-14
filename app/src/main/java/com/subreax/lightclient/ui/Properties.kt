@@ -186,11 +186,13 @@ fun FloatSliderProperty(
     max: Float,
     value: Float,
     onValueChanged: (Float) -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = RectangleShape,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     RowPropertyWrapper(
+        onClick = onClick,
         modifier = modifier,
         shape = shape,
         contentPadding = contentPadding
@@ -240,6 +242,7 @@ fun FloatSliderProperty(
         max = property.max,
         value = value,
         onValueChanged = { callback.floatSliderChanged(property, it) },
+        onClick = { callback.floatSliderClicked(property) },
         modifier = modifier,
         shape = shape,
         contentPadding = contentPadding
@@ -297,6 +300,7 @@ fun IntProperty(
     max: Int,
     value: Int,
     onValueChanged: (Int) -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = RectangleShape,
     contentPadding: PaddingValues = PaddingValues(0.dp)
@@ -323,6 +327,7 @@ fun IntProperty(
                 delta
             }
         ),
+        onClick = onClick,
         shape = shape,
         contentPadding = contentPadding
     ) {
@@ -348,6 +353,7 @@ fun IntProperty(
         max = property.max,
         value = value,
         onValueChanged = { callback.intChanged(property, it) },
+        onClick = { callback.intClicked(property) },
         modifier = modifier,
         shape = shape,
         contentPadding = contentPadding
@@ -361,6 +367,7 @@ fun IntSliderProperty(
     max: Int,
     value: Int,
     onValueChanged: (Int) -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = RectangleShape,
     contentPadding: PaddingValues = PaddingValues(0.dp)
@@ -371,6 +378,7 @@ fun IntSliderProperty(
         max = max.toFloat(),
         value = value.toFloat(),
         onValueChanged = { onValueChanged(it.roundToInt()) },
+        onClick = onClick,
         modifier = modifier,
         shape = shape,
         contentPadding = contentPadding
@@ -393,7 +401,8 @@ fun IntSliderProperty(
         min = property.min,
         max = property.max,
         value = value,
-        onValueChanged = { callback.intSliderChanged(property, it) },
+        onValueChanged = { callback.intChanged(property, it) },
+        onClick = { callback.intClicked(property) },
         modifier = modifier,
         shape = shape,
         contentPadding = contentPadding
@@ -489,6 +498,7 @@ fun IntPropertyPreview() {
             max = 300,
             value = 24,
             onValueChanged = {},
+            onClick = {},
             contentPadding = PaddingValues(8.dp)
         )
     }
@@ -504,6 +514,7 @@ fun IntRangePropertyPreivew() {
             max = 100,
             value = 63,
             onValueChanged = {},
+            onClick = {},
             contentPadding = PaddingValues(8.dp)
         )
     }
@@ -519,6 +530,7 @@ fun FloatRangePropertyPreivew() {
             max = 5.0f,
             value = 1.0f,
             onValueChanged = {},
+            onClick = {},
             contentPadding = PaddingValues(8.dp)
         )
     }

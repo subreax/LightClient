@@ -49,7 +49,7 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         val toggled = MutableStateFlow(initialValue)
     }
 
-    open class BaseIntProperty(
+    open class BaseInt(
         id: Int,
         type: PropertyType,
         name: String,
@@ -66,7 +66,7 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         initialValue: Int,
         min: Int,
         max: Int
-    ) : BaseIntProperty(id, PropertyType.Int, name, initialValue, min, max)
+    ) : BaseInt(id, PropertyType.Int, name, initialValue, min, max)
 
     class IntSlider(
         id: Int,
@@ -74,5 +74,5 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         initialValue: Int,
         min: Int,
         max: Int
-    ) : BaseIntProperty(id, PropertyType.IntSlider, name, initialValue, min, max)
+    ) : BaseInt(id, PropertyType.IntSlider, name, initialValue, min, max)
 }

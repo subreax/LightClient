@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.data.device.DeviceRepository
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +23,8 @@ class HomeViewModel @Inject constructor(
         val appState: AppStateId,
         val deviceName: String,
         val globalProperties: List<Property>,
-        val sceneProperties: List<Property>
+        val sceneProperties: List<Property>,
+        val dialogEditProperty: Property? = null
     )
 
     private var _uiState by mutableStateOf(UiState(AppStateId.Ready, "", emptyList(), emptyList()))
@@ -59,11 +61,20 @@ class HomeViewModel @Inject constructor(
         deviceRepository.setPropertyValue(property, value)
     }
 
-    fun setPropertyValue(property: Property.IntNumber, value: Int) {
-        deviceRepository.setPropertyValue(property, value)
+    fun setPropertyValue(property: Property.BaseInt, value: Int) {
+        if (property.type == PropertyType.Int) {
+            deviceRepository.setPropertyValue(property as Property.IntNumber, value)
+        }
+        else {
+            deviceRepository.setPropertyValue(property as Property.IntSlider, value)
+        }
     }
 
-    fun setPropertyValue(property: Property.IntSlider, value: Int) {
-        deviceRepository.setPropertyValue(property, value)
+    fun showEditDialog(property: Property) {
+        _uiState = _uiState.copy(dialogEditProperty = property)
+    }
+
+    fun closeDialog() {
+        _uiState = _uiState.copy(dialogEditProperty = null)
     }
 }
