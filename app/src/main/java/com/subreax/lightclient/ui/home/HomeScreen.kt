@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -21,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
@@ -105,8 +105,6 @@ fun HomeScreen(
         }
     }
 
-    val propertyModifier = Modifier.padding(horizontal = 8.dp)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -126,70 +124,70 @@ fun HomeScreen(
         PropertiesSection(
             name = "Глобальные параметры",
             modifier = Modifier
+                .padding(horizontal = 8.dp)
                 .fillMaxWidth(),
-            spacing = 8.dp
-        ) {
-            globalProperties.forEach {
-                Property(it, propertyCallback, propertyModifier)
-            }
-        }
+            spacing = 8.dp,
+            properties = globalProperties,
+            callback = propertyCallback
+        )
 
         PropertiesSection(
             name = "Параметры сцены",
             modifier = Modifier
-                .padding(top = 8.dp)
+                .padding(top = 8.dp, start = 8.dp, end = 8.dp)
                 .fillMaxWidth(),
-            spacing = 8.dp
-        ) {
-            sceneProperties.forEach {
-                Property(it, propertyCallback, propertyModifier)
-            }
-        }
+            spacing = 8.dp,
+            properties = sceneProperties,
+            callback = propertyCallback
+        )
 
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+
+typealias PropertyComposableFactory = @Composable (prop: Property, callback: PropertyCallback) -> Unit
+
+val PCF = Array<PropertyComposableFactory>(7) {
+    when (it) {
+        PropertyType.FloatSlider.ordinal -> { prop, callback ->
+            FloatSliderProperty(prop, callback)
+        }
+
+        PropertyType.Color.ordinal -> { prop, callback ->
+            ColorProperty(prop, callback)
+        }
+
+        PropertyType.Enum.ordinal -> { prop, callback ->
+            EnumProperty(prop, callback)
+        }
+
+        PropertyType.Int.ordinal -> { prop, callback ->
+            IntProperty(prop, callback)
+        }
+
+        PropertyType.IntSlider.ordinal -> { prop, callback ->
+            IntSliderProperty(prop, callback)
+        }
+
+        PropertyType.Bool.ordinal -> { prop, callback ->
+            ToggleProperty(prop, callback)
+        }
+
+        PropertyType.Special.ordinal -> { prop, callback ->
+            SpecLoadingProperty(prop, callback)
+        }
+
+        else -> { _, _ -> }
     }
 }
 
 @Composable
 fun Property(
     property: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier
+    callback: PropertyCallback
 ) {
-    val shape = RoundedCornerShape(16.dp)
-    val contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp)
-
-    when (property) {
-        is Property.Enum -> {
-            EnumProperty(property, callback, modifier, shape, contentPadding)
-        }
-
-        is Property.Color -> {
-            ColorProperty(property, callback, modifier, shape, contentPadding)
-        }
-
-        is Property.FloatSlider -> {
-            FloatSliderProperty(property, callback, modifier, shape, contentPadding)
-        }
-
-        is Property.Bool -> {
-            ToggleProperty(property, callback, modifier, shape, contentPadding)
-        }
-
-        is Property.IntNumber -> {
-            IntProperty(property, callback, modifier, shape, contentPadding)
-        }
-
-        is Property.IntSlider -> {
-            IntSliderProperty(property, callback, modifier, shape, contentPadding)
-        }
-
-        is Property.SpecLoading -> {
-            SpecLoadingProperty(property, callback, modifier, shape, contentPadding)
-        }
-
-        else -> {}
-    }
+    PCF[property.type.ordinal](property, callback)
 }
 
 @Composable
@@ -197,17 +195,20 @@ fun PropertiesSection(
     name: String,
     modifier: Modifier = Modifier,
     spacing: Dp = 8.dp,
-    content: @Composable ColumnScope.() -> Unit
+    properties: List<Property>,
+    callback: PropertyCallback
 ) {
     Column(modifier) {
         Text(
             text = name,
             style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colors.primary,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 8.dp)
         )
         Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
-            content()
+            for (prop in properties) {
+                Property(property = prop, callback = callback)
+            }
         }
     }
 }

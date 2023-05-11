@@ -5,17 +5,33 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Slider
+import androidx.compose.material.Surface
+import androidx.compose.material.Switch
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +46,14 @@ import com.subreax.lightclient.ui.home.PropertyCallback
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlin.math.round
 import kotlin.math.roundToInt
+
+
+val PropertyContentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
+val PropertyShape = RoundedCornerShape(16.dp)
+
+val PropertyContentPaddingMod = Modifier.padding(PropertyContentPadding)
+val PropertyClipMod = Modifier.clip(PropertyShape)
+val HorizontalArrangement = Arrangement.spacedBy(8.dp)
 
 @Composable
 private fun PropertyInfo(
@@ -60,13 +84,11 @@ private fun PropertyInfo(
 @Composable
 private fun RowPropertyWrapper(
     modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp),
     onClick: (() -> Unit)? = null,
     elevation: Dp = 2.dp,
     content: @Composable RowScope.() -> Unit
 ) {
-    var modifier1: Modifier = modifier.clip(shape)
+    var modifier1: Modifier = modifier.then(PropertyClipMod)
     if (onClick != null) {
         modifier1 = modifier1
             .clickable { onClick() }
@@ -75,8 +97,8 @@ private fun RowPropertyWrapper(
     Surface(modifier1, elevation = elevation) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(contentPadding)
+            horizontalArrangement = HorizontalArrangement,
+            modifier = PropertyContentPaddingMod
         ) {
             content()
         }
@@ -89,20 +111,14 @@ fun EnumProperty(
     name: String,
     values: List<String>,
     pickedValue: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    onClick: () -> Unit
 ) {
     val value = if (values.isNotEmpty() && pickedValue < values.size) {
         values[pickedValue]
     } else "E_OUT_OF_BOUNDS"
 
     RowPropertyWrapper(
-        onClick = onClick,
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = onClick
     ) {
         PropertyInfo(name = name, Modifier.weight(1.0f))
         Text(text = value)
@@ -113,10 +129,7 @@ fun EnumProperty(
 @Composable
 fun EnumProperty(
     baseProperty: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    callback: PropertyCallback
 ) {
     val property = baseProperty as Property.Enum
     val pickedValue by property.currentValue.collectAsState()
@@ -125,10 +138,7 @@ fun EnumProperty(
         name = property.name,
         values = property.values,
         pickedValue = pickedValue,
-        onClick = { callback.stringEnumClicked(property) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = { callback.stringEnumClicked(property) }
     )
 }
 
@@ -137,16 +147,10 @@ fun EnumProperty(
 fun ToggleProperty(
     name: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    onCheckedChange: (Boolean) -> Unit
 ) {
     RowPropertyWrapper(
-        onClick = { onCheckedChange(!checked) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = { onCheckedChange(!checked) }
     ) {
         PropertyInfo(name = name, Modifier.weight(1.0f))
         Switch(
@@ -160,10 +164,7 @@ fun ToggleProperty(
 @Composable
 fun ToggleProperty(
     baseProperty: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    callback: PropertyCallback
 ) {
     val property = baseProperty as Property.Bool
     val checked by property.toggled.collectAsState()
@@ -171,10 +172,7 @@ fun ToggleProperty(
     ToggleProperty(
         name = property.name,
         checked = checked,
-        onCheckedChange = { callback.toggleChanged(property, it) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onCheckedChange = { callback.toggleChanged(property, it) }
     )
 }
 
@@ -186,16 +184,10 @@ fun FloatSliderProperty(
     max: Float,
     value: Float,
     onValueChanged: (Float) -> Unit,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    onClick: () -> Unit
 ) {
     RowPropertyWrapper(
-        onClick = onClick,
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = onClick
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -228,10 +220,7 @@ fun FloatSliderProperty(
 @Composable
 fun FloatSliderProperty(
     baseProperty: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    callback: PropertyCallback
 ) {
     val property = baseProperty as Property.FloatSlider
     val value by property.current.collectAsState()
@@ -242,10 +231,7 @@ fun FloatSliderProperty(
         max = property.max,
         value = value,
         onValueChanged = { callback.floatSliderChanged(property, it) },
-        onClick = { callback.floatSliderClicked(property) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = { callback.floatSliderClicked(property) }
     )
 }
 
@@ -253,16 +239,10 @@ fun FloatSliderProperty(
 fun ColorProperty(
     name: String,
     color: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    onClick: () -> Unit
 ) {
     RowPropertyWrapper(
-        onClick = onClick,
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = onClick
     ) {
         PropertyInfo(name = name, modifier = Modifier.weight(1.0f))
 
@@ -275,10 +255,7 @@ fun ColorProperty(
 @Composable
 fun ColorProperty(
     baseProperty: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    callback: PropertyCallback
 ) {
     val property = baseProperty as Property.Color
     val intColor by property.color.collectAsState()
@@ -286,10 +263,7 @@ fun ColorProperty(
     ColorProperty(
         name = property.name,
         color = Color(intColor),
-        onClick = { callback.colorPropertyClicked(property) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = { callback.colorPropertyClicked(property) }
     )
 }
 
@@ -300,16 +274,13 @@ fun IntProperty(
     max: Int,
     value: Int,
     onValueChanged: (Int) -> Unit,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    onClick: () -> Unit
 ) {
     var isTotalScrollInitialized by remember { mutableStateOf(false) }
     var totalScroll by remember { mutableStateOf(0f) }
 
     RowPropertyWrapper(
-        modifier = modifier.scrollable(
+        modifier = Modifier.scrollable(
             orientation = Orientation.Horizontal,
             state = rememberScrollableState { delta ->
                 if (!isTotalScrollInitialized) {
@@ -327,9 +298,7 @@ fun IntProperty(
                 delta
             }
         ),
-        onClick = onClick,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = onClick
     ) {
         PropertyInfo(name = name, modifier = Modifier.weight(1f))
         Text(text = "$value")
@@ -339,10 +308,7 @@ fun IntProperty(
 @Composable
 fun IntProperty(
     baseProperty: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    callback: PropertyCallback
 ) {
     val property = baseProperty as Property.IntNumber
     val value by property.current.collectAsState()
@@ -353,10 +319,7 @@ fun IntProperty(
         max = property.max,
         value = value,
         onValueChanged = { callback.intChanged(property, it) },
-        onClick = { callback.intClicked(property) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = { callback.intClicked(property) }
     )
 }
 
@@ -367,10 +330,7 @@ fun IntSliderProperty(
     max: Int,
     value: Int,
     onValueChanged: (Int) -> Unit,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    onClick: () -> Unit
 ) {
     FloatSliderProperty(
         name = name,
@@ -378,20 +338,14 @@ fun IntSliderProperty(
         max = max.toFloat(),
         value = value.toFloat(),
         onValueChanged = { onValueChanged(it.roundToInt()) },
-        onClick = onClick,
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = onClick
     )
 }
 
 @Composable
 fun IntSliderProperty(
     baseProperty: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    callback: PropertyCallback
 ) {
     val property = baseProperty as Property.IntSlider
     val value by property.current.collectAsState()
@@ -402,24 +356,15 @@ fun IntSliderProperty(
         max = property.max,
         value = value,
         onValueChanged = { callback.intChanged(property, it) },
-        onClick = { callback.intClicked(property) },
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        onClick = { callback.intClicked(property) }
     )
 }
 
 @Composable
 fun SpecLoadingProperty(
-    progress: Float,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    progress: Float
 ) {
     RowPropertyWrapper(
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding,
         elevation = 0.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -436,19 +381,13 @@ fun SpecLoadingProperty(
 @Composable
 fun SpecLoadingProperty(
     baseProperty: Property,
-    callback: PropertyCallback,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    callback: PropertyCallback
 ) {
     val property = baseProperty as Property.SpecLoading
     val progress by property.progress.collectAsState()
 
     SpecLoadingProperty(
-        progress = progress,
-        modifier = modifier,
-        shape = shape,
-        contentPadding = contentPadding
+        progress = progress
     )
 }
 
@@ -469,8 +408,7 @@ fun EnumPropertyPreview() {
             name = "Сцена",
             values = listOf("Smoke"),
             pickedValue = 0,
-            onClick = {},
-            contentPadding = PaddingValues(8.dp)
+            onClick = {}
         )
     }
 }
@@ -482,8 +420,7 @@ fun TogglePropertyPreview() {
         ToggleProperty(
             name = "Датчик движения",
             checked = true,
-            onCheckedChange = { },
-            contentPadding = PaddingValues(8.dp)
+            onCheckedChange = { }
         )
     }
 }
@@ -498,8 +435,7 @@ fun IntPropertyPreview() {
             max = 300,
             value = 24,
             onValueChanged = {},
-            onClick = {},
-            contentPadding = PaddingValues(8.dp)
+            onClick = {}
         )
     }
 }
@@ -514,8 +450,7 @@ fun IntRangePropertyPreivew() {
             max = 100,
             value = 63,
             onValueChanged = {},
-            onClick = {},
-            contentPadding = PaddingValues(8.dp)
+            onClick = {}
         )
     }
 }
@@ -530,8 +465,7 @@ fun FloatRangePropertyPreivew() {
             max = 5.0f,
             value = 1.0f,
             onValueChanged = {},
-            onClick = {},
-            contentPadding = PaddingValues(8.dp)
+            onClick = {}
         )
     }
 }
@@ -543,8 +477,7 @@ fun ColorPropertyPreview() {
         ColorProperty(
             name = "Основной цвет",
             color = Color(0xFF0099EF),
-            onClick = { /*TODO*/ },
-            contentPadding = PaddingValues(8.dp)
+            onClick = { /*TODO*/ }
         )
     }
 }
@@ -554,8 +487,7 @@ fun ColorPropertyPreview() {
 fun SpecLoadingPropertyPreview() {
     LightClientTheme {
         SpecLoadingProperty(
-            progress = 0.4f,
-            contentPadding = PaddingValues(8.dp)
+            progress = 0.4f
         )
     }
 }

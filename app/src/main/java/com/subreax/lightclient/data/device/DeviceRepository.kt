@@ -2,12 +2,12 @@ package com.subreax.lightclient.data.device
 
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.Property
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 
 interface DeviceRepository {
-    val globalProperties: Flow<List<Property>>
-    val sceneProperties: Flow<List<Property>>
+    val globalProperties: StateFlow<List<Property>>
+    val sceneProperties: StateFlow<List<Property>>
 
     suspend fun getDeviceName(): String
     fun getPropertyById(id: Int): LResult<Property>

@@ -10,6 +10,7 @@ import com.subreax.lightclient.ui.UiLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.transform
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
@@ -20,11 +21,11 @@ class FakeDeviceRepository @Inject constructor(
     private val uiLog: UiLog
 ) : DeviceRepository {
     private val _globalProperties = MutableStateFlow<List<Property>>(emptyList())
-    override val globalProperties: Flow<List<Property>>
+    override val globalProperties: StateFlow<List<Property>>
         get() = _globalProperties
 
     private val _sceneProperties = MutableStateFlow<List<Property>>(emptyList())
-    override val sceneProperties: Flow<List<Property>>
+    override val sceneProperties: StateFlow<List<Property>>
         get() = _sceneProperties
 
     private val propertyListenerJobs = mutableMapOf<Property, Job>()
@@ -32,6 +33,7 @@ class FakeDeviceRepository @Inject constructor(
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     init {
+        Log.d(TAG, "FakeDeviceRepository init")
         syncController.addAction {
             propertyListenerJobs.forEach {
                 it.value.cancel()
