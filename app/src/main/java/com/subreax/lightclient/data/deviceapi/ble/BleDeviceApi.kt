@@ -39,10 +39,11 @@ class BleDeviceApi(
     private var eventListenerJob: Job? = null
 
     private val propertySerializers = mapOf(
-        PropertyType.FloatSlider to FloatRangePropertySerializer(),
+        PropertyType.FloatNumber to FloatNumberSerializer(),
+        PropertyType.FloatSlider to FloatSliderSerializer(),
         PropertyType.Color to ColorPropertySerializer(),
         PropertyType.Enum to EnumPropertySerializer(),
-        PropertyType.Int to IntPropertySerializer(),
+        PropertyType.IntNumber to IntPropertySerializer(),
         PropertyType.IntSlider to IntSliderPropertySerializer(),
         PropertyType.Bool to BoolPropertySerializer()
     )

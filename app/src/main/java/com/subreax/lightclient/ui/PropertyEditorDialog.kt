@@ -1,68 +1,88 @@
 package com.subreax.lightclient.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.subreax.lightclient.round4
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlinx.coroutines.delay
 
 @Composable
 fun BasePropertyEditorDialog(
     propertyName: String,
-    value: String,
-    onValueChanged: (String) -> Unit,
+    initialValue: String,
+    onValueChanged: (String) -> String,
     onSubmit: (String) -> Unit,
     onClose: () -> Unit,
     hint: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
+    var tfvKey by remember { mutableStateOf(0) }
+    val focusRequester = remember { FocusRequester() }
+    var tfv by remember(tfvKey) {
+        val selection = TextRange(0, initialValue.length)
+        val textFieldValue = TextFieldValue(text = initialValue, selection = selection)
+        mutableStateOf(textFieldValue)
+    }
+
+    val submitAction = {
+        onSubmit(tfv.text)
+        ++tfvKey
+    }
+
     Dialog(onDismissRequest = onClose) {
-        Surface(elevation = 2.dp, shape = RoundedCornerShape(16.dp)) {
+        Surface(shape = RoundedCornerShape(16.dp)) {
             PropertyEditorDialogLayout(
                 title = propertyName,
                 subtitle = "Редактирование значения",
                 submitButton = {
-                    TextButton(onClick = { onSubmit(value) }) {
+                    TextButton(
+                        onClick = {
+                            submitAction()
+                        }
+                    ) {
                         Text("Установить")
                     }
                 },
                 onClose = onClose
             ) {
-                val focusRequester = remember { FocusRequester() }
-                val direction = LocalLayoutDirection.current
-                var tfv by remember {
-                    val selection =
-                        if (direction == LayoutDirection.Ltr)
-                            TextRange(value.length)
-                        else
-                            TextRange.Zero
-
-                    val textFieldValue = TextFieldValue(text = value, selection = selection)
-                    mutableStateOf(textFieldValue)
-                }
-
                 OutlinedTextField(
                     value = tfv,
                     onValueChange = {
-                        tfv = it
-                        onValueChanged(it.text)
+                        tfv = it.copy(text = onValueChanged(it.text))
                     },
                     modifier = Modifier
                         .focusRequester(focusRequester)
@@ -71,7 +91,9 @@ fun BasePropertyEditorDialog(
                         if (hint != null)
                             Text(hint)
                     },
-                    keyboardOptions = keyboardOptions
+                    keyboardOptions = keyboardOptions.copy(imeAction = ImeAction.Go),
+                    maxLines = 1,
+                    keyboardActions = KeyboardActions(onGo = { submitAction() })
                 )
 
                 LaunchedEffect(Unit) {
@@ -134,13 +156,13 @@ fun IntPropertyEditorDialog(
 ) {
     val min1 = minOf(min, max)
     val max1 = maxOf(min, max)
-    var value1 by remember(Unit) { mutableStateOf(value.toString()) }
+    var value1 by remember { mutableStateOf(value.toString()) }
 
     BasePropertyEditorDialog(
         propertyName = propertyName,
-        value = value1,
+        initialValue = value1,
         onValueChanged = {
-            value1 = it.filter { ch -> ch.isDigit() }
+            it.filter { ch -> ch.isDigit() }
         },
         onSubmit = {
             val i = (it.toIntOrNull() ?: min1).coerceIn(min1, max1)
@@ -171,9 +193,9 @@ fun FloatPropertyEditorDialog(
 
     BasePropertyEditorDialog(
         propertyName = propertyName,
-        value = value1,
+        initialValue = value1,
         onValueChanged = {
-            value1 = it.filterFloat()
+            it.filterFloat()
         },
         onSubmit = {
             val i = (it.replace(',', '.').toFloatOrNull() ?: min1)
@@ -182,7 +204,7 @@ fun FloatPropertyEditorDialog(
             onSubmit(i)
         },
         onClose = onClose,
-        hint = "$min .. $max",
+        hint = "${round4(min)} .. ${round4(max)}",
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal)
     )
 }
@@ -206,8 +228,8 @@ fun PropertyEditorDialogPreview() {
     LightClientTheme {
         BasePropertyEditorDialog(
             propertyName = "Speed",
-            value = "0.4",
-            onValueChanged = { },
+            initialValue = "0.4",
+            onValueChanged = { "" },
             onSubmit = { },
             onClose = { }
         )

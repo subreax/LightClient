@@ -14,13 +14,21 @@ interface PropertySerializer {
     fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit>
 }
 
-class FloatRangePropertySerializer : PropertySerializer {
+abstract class BaseFloatSerializer : PropertySerializer {
+    abstract fun createProperty(
+        id: Int,
+        name: String,
+        value: Float,
+        min: Float,
+        max: Float
+    ) : Property.BaseFloat
+
     override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
         return try {
             val min = buf.getInt() / 32768.0f
             val max = buf.getInt() / 32768.0f
             LResult.Success(
-                Property.FloatSlider(id, name, min, max, min)
+                createProperty(id, name, min, min, max)
             )
         } catch (ex: BufferUnderflowException) {
             LResult.Failure("No info provided for min and max values")
@@ -28,7 +36,7 @@ class FloatRangePropertySerializer : PropertySerializer {
     }
 
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
-        val frp = property as Property.FloatSlider
+        val frp = property as Property.BaseFloat
         val value = frp.current.value
         val q15 = (value * 32768).roundToInt()
 
@@ -41,7 +49,7 @@ class FloatRangePropertySerializer : PropertySerializer {
     }
 
     override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
-        val frp = target as Property.FloatSlider
+        val frp = target as Property.BaseFloat
 
         return try {
             val value = buf.getInt() / 32768.0f
@@ -53,6 +61,25 @@ class FloatRangePropertySerializer : PropertySerializer {
     }
 }
 
+class FloatNumberSerializer : BaseFloatSerializer() {
+    override fun createProperty(
+        id: Int,
+        name: String,
+        value: Float,
+        min: Float,
+        max: Float
+    ): Property.BaseFloat = Property.FloatNumber(id, name, value, min, max)
+}
+
+class FloatSliderSerializer : BaseFloatSerializer() {
+    override fun createProperty(
+        id: Int,
+        name: String,
+        value: Float,
+        min: Float,
+        max: Float
+    ): Property.BaseFloat = Property.FloatSlider(id, name, value, min, max)
+}
 
 class ColorPropertySerializer : PropertySerializer {
     override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {

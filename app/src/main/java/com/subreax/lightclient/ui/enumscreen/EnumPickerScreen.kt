@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -76,29 +75,26 @@ private fun EnumItem(
     val unselectedColor = MaterialTheme.colors.onSurface.copy(alpha = 0.1f)
 
     val color = if (selected) selectedColor else unselectedColor
-    val elevation = if (selected) 2.dp else 0.dp
 
-    Surface(
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .height(48.dp)
             .clickable { onClick() }
-            .then(modifier),
-        elevation = elevation
+            .then(modifier)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .background(color)
-                    .fillMaxHeight(0.66f)
-                    .width(4.dp)
-            )
-            Text(
-                text, modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .weight(1.0f)
-            )
-        }
+        Box(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .background(color)
+                .fillMaxHeight(0.66f)
+                .width(4.dp)
+        )
+        Text(
+            text, modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .weight(1.0f)
+        )
     }
 }
 

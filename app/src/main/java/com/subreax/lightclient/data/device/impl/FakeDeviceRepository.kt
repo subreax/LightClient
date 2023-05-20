@@ -90,15 +90,11 @@ class FakeDeviceRepository @Inject constructor(
         property.toggled.value = value
     }
 
-    override fun setPropertyValue(property: Property.FloatSlider, value: Float) {
+    override fun setPropertyValue(property: Property.BaseFloat, value: Float) {
         property.current.value = value
     }
 
-    override fun setPropertyValue(property: Property.IntNumber, value: Int) {
-        property.current.value = value
-    }
-
-    override fun setPropertyValue(property: Property.IntSlider, value: Int) {
+    override fun setPropertyValue(property: Property.BaseInt, value: Int) {
         property.current.value = value
     }
 
@@ -113,7 +109,7 @@ class FakeDeviceRepository @Inject constructor(
     private fun listenPropertyChanges(scope: CoroutineScope, property: Property) {
         Log.v(TAG, "Listen to changes of ${property.name}")
         val job = when (property) {
-            is Property.FloatSlider -> {
+            is Property.BaseFloat -> {
                 scope.launch {
                     property.current.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)
@@ -145,15 +141,7 @@ class FakeDeviceRepository @Inject constructor(
                 }
             }
 
-            is Property.IntNumber -> {
-                scope.launch {
-                    property.current.dropFirst().collect {
-                        deviceApi.updatePropertyValue(property)
-                    }
-                }
-            }
-
-            is Property.IntSlider -> {
+            is Property.BaseInt -> {
                 scope.launch {
                     property.current.dropFirst().collect {
                         deviceApi.updatePropertyValue(property)

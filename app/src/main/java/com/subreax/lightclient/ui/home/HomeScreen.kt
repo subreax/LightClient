@@ -37,13 +37,13 @@ fun HomeScreen(
         colorPropertyClicked = { prop ->
             navToColorPicker(prop.id)
         },
-        stringEnumClicked = { prop ->
+        enumClicked = { prop ->
             navToEnumPicker(prop.id)
         },
-        floatSliderChanged = { prop, value ->
+        floatChanged = { prop, value ->
             homeViewModel.setPropertyValue(prop, value)
         },
-        floatSliderClicked = { prop ->
+        floatClicked = { prop ->
             homeViewModel.showEditDialog(prop)
         },
         toggleChanged = { prop, value ->
@@ -148,8 +148,12 @@ fun HomeScreen(
 
 typealias PropertyComposableFactory = @Composable (prop: Property, callback: PropertyCallback) -> Unit
 
-val PCF = Array<PropertyComposableFactory>(7) {
+val PCF = Array<PropertyComposableFactory>(PropertyType.Count.ordinal) {
     when (it) {
+        PropertyType.FloatNumber.ordinal -> { prop, callback ->
+            FloatProperty(prop, callback)
+        }
+
         PropertyType.FloatSlider.ordinal -> { prop, callback ->
             FloatSliderProperty(prop, callback)
         }
@@ -162,7 +166,7 @@ val PCF = Array<PropertyComposableFactory>(7) {
             EnumProperty(prop, callback)
         }
 
-        PropertyType.Int.ordinal -> { prop, callback ->
+        PropertyType.IntNumber.ordinal -> { prop, callback ->
             IntProperty(prop, callback)
         }
 
@@ -237,7 +241,7 @@ fun PropertyEditorDialog(
                 value = property.current.collectAsState().value,
                 min = property.min,
                 max = property.max,
-                onSubmit = { callback.floatSliderChanged(property, it) },
+                onSubmit = { callback.floatChanged(property, it) },
                 onClose = onClose
             )
         }

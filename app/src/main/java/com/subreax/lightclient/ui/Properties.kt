@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.round3
 import com.subreax.lightclient.ui.colorpicker.ColorDisplay
 import com.subreax.lightclient.ui.home.PropertyCallback
 import com.subreax.lightclient.ui.theme.LightClientTheme
@@ -85,7 +87,7 @@ private fun PropertyInfo(
 private fun RowPropertyWrapper(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    elevation: Dp = 2.dp,
+    elevation: Dp = 0.dp,
     content: @Composable RowScope.() -> Unit
 ) {
     var modifier1: Modifier = modifier.then(PropertyClipMod)
@@ -138,7 +140,7 @@ fun EnumProperty(
         name = property.name,
         values = property.values,
         pickedValue = pickedValue,
-        onClick = { callback.stringEnumClicked(property) }
+        onClick = { callback.enumClicked(property) }
     )
 }
 
@@ -176,6 +178,31 @@ fun ToggleProperty(
     )
 }
 
+@Composable
+fun FloatProperty(
+    name: String,
+    value: Float,
+    onClick: () -> Unit
+) {
+    RowPropertyWrapper(
+        onClick = onClick
+    ) {
+        PropertyInfo(name = name, modifier = Modifier.weight(1f))
+        Text(text = "${round3(value)}")
+    }
+}
+
+@Composable
+fun FloatProperty(baseProperty: Property, callback: PropertyCallback) {
+    val prop = baseProperty as Property.BaseFloat
+    val value by prop.current.collectAsState()
+
+    FloatProperty(
+        name = prop.name,
+        value = value,
+        onClick = { callback.floatClicked(prop) }
+    )
+}
 
 @Composable
 fun FloatSliderProperty(
@@ -196,13 +223,15 @@ fun FloatSliderProperty(
         ) {
             PropertyInfo(
                 name = name,
-                additionalInfo = "${min.toStringRound2()} .. ${max.toStringRound2()}"
+                additionalInfo = "${min.toStringRound2()} .. ${max.toStringRound2()}",
+                modifier = Modifier.weight(1f)
             )
 
             Text(
                 text = value.toStringRound2(),
                 textAlign = TextAlign.End,
-                style = MaterialTheme.typography.body2
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.widthIn(48.dp)
             )
         }
 
@@ -230,8 +259,8 @@ fun FloatSliderProperty(
         min = property.min,
         max = property.max,
         value = value,
-        onValueChanged = { callback.floatSliderChanged(property, it) },
-        onClick = { callback.floatSliderClicked(property) }
+        onValueChanged = { callback.floatChanged(property, it) },
+        onClick = { callback.floatClicked(property) }
     )
 }
 
@@ -364,9 +393,7 @@ fun IntSliderProperty(
 fun SpecLoadingProperty(
     progress: Float
 ) {
-    RowPropertyWrapper(
-        elevation = 0.dp
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
         Box(contentAlignment = Alignment.Center) {
             CircularProgressIndicator(progress)
             Text("${(progress * 100).roundToInt()}%", style = MaterialTheme.typography.caption)

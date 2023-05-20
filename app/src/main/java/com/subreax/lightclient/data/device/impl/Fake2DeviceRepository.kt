@@ -45,15 +45,11 @@ class Fake2DeviceRepository : DeviceRepository {
         property.toggled.value = value
     }
 
-    override fun setPropertyValue(property: Property.FloatSlider, value: Float) {
+    override fun setPropertyValue(property: Property.BaseFloat, value: Float) {
         property.current.value = value
     }
 
-    override fun setPropertyValue(property: Property.IntNumber, value: Int) {
-        property.current.value = value
-    }
-
-    override fun setPropertyValue(property: Property.IntSlider, value: Int) {
+    override fun setPropertyValue(property: Property.BaseInt, value: Int) {
         property.current.value = value
     }
 

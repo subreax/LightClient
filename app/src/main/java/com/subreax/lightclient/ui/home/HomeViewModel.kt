@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.device.DeviceRepository
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.data.state.ApplicationState
@@ -63,16 +62,12 @@ class HomeViewModel @Inject constructor(
         deviceRepository.setPropertyValue(property, value)
     }
 
-    fun setPropertyValue(property: Property.FloatSlider, value: Float) {
+    fun setPropertyValue(property: Property.BaseFloat, value: Float) {
         deviceRepository.setPropertyValue(property, value)
     }
 
     fun setPropertyValue(property: Property.BaseInt, value: Int) {
-        if (property.type == PropertyType.Int) {
-            deviceRepository.setPropertyValue(property as Property.IntNumber, value)
-        } else {
-            deviceRepository.setPropertyValue(property as Property.IntSlider, value)
-        }
+        deviceRepository.setPropertyValue(property as Property.IntSlider, value)
     }
 
     fun showEditDialog(property: Property) {
