@@ -130,13 +130,8 @@ class DeviceConnection(
         }
 
         peripheral.setNotify(bleResHeaderCharacteristic, true)
-        delay(200)
-
         peripheral.setNotify(bleEventCharacteristic, true)
-        delay(200)
-
         peripheral.requestMtu(BluetoothPeripheral.MAX_MTU)
-        delay(1000)
 
         return LResult.Success(
             BleDeviceEndpoint(
