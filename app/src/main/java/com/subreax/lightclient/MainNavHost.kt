@@ -11,7 +11,7 @@ import com.subreax.lightclient.ui.ExploreScreen
 import com.subreax.lightclient.ui.colorpickerscreen.ColorPickerScreen
 import com.subreax.lightclient.ui.connection.ConnectionScreen
 import com.subreax.lightclient.ui.enumscreen.EnumScreen
-import com.subreax.lightclient.ui.home.HomeScreen
+import com.subreax.lightclient.ui.home2.HomeScreen2
 
 
 sealed class Screen(val route: String) {
@@ -46,7 +46,7 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
         }
 
         composable(Screen.Home.route) {
-            HomeScreen(
+            HomeScreen2(
                 navToColorPicker = {
                     navController.navigate("${Screen.ColorPicker.route}/$it")
                 },
