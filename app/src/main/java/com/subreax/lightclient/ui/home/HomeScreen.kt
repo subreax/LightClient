@@ -235,7 +235,7 @@ fun PropertyEditorDialog(
             )
         }
 
-        is Property.FloatSlider -> {
+        is Property.BaseFloat -> {
             FloatPropertyEditorDialog(
                 propertyName = property.name,
                 value = property.current.collectAsState().value,

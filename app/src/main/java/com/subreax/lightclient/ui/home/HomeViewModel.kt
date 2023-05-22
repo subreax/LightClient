@@ -67,7 +67,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun setPropertyValue(property: Property.BaseInt, value: Int) {
-        deviceRepository.setPropertyValue(property as Property.IntSlider, value)
+        deviceRepository.setPropertyValue(property, value)
     }
 
     fun showEditDialog(property: Property) {
