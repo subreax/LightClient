@@ -6,4 +6,5 @@ enum class FunctionId {
     GetPropertiesIdsByGroup,
     GetPropertyById,
     SetPropertyValueById,
+    GetPropertiesFromGroup
 }

@@ -9,12 +9,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 
-typealias OnReadListener = (status: GattStatus, data: ByteBuffer) -> Unit
 typealias OnResponseListener = (data: ByteBuffer) -> Unit
 typealias OnEventListener = (data: ByteBuffer) -> Unit
 
 class BleDeviceCallback : BluetoothPeripheralCallback() {
-    private val readListeners = mutableListOf<OnReadListener>()
     private val responseListeners = mutableListOf<OnResponseListener>()
     private val eventListeners = mutableListOf<OnEventListener>()
 
@@ -32,10 +30,7 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
         buf.order(ByteOrder.LITTLE_ENDIAN)
 
         when (characteristic.uuid) {
-            DeviceConnection.RW_CHARACTERISTIC_UUID -> {
-                emitOnRead(status, buf)
-            }
-            DeviceConnection.RESPONSE_HEADER_CHARACTERISTIC_UUID -> {
+            DeviceConnection.RESPONSE_CHARACTERISTIC_UUID -> {
                 emitOnResponse(buf)
             }
             DeviceConnection.EVENT_CHARACTERISTIC_UUID -> {
@@ -44,17 +39,7 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
         }
     }
 
-
-    fun addOnReadListener(listener: OnReadListener): OnReadListener {
-        readListeners.add(listener)
-        return listener
-    }
-
-    fun removeOnReadListener(listener: OnReadListener) {
-        readListeners.remove(listener)
-    }
-
-    fun addOnResponseListener(listener: OnResponseListener): OnResponseListener {
+    fun addOnPacketListener(listener: OnResponseListener): OnResponseListener {
         responseListeners.add(listener)
         return listener
     }
@@ -70,12 +55,6 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
 
     fun removeEventListener(listener: OnEventListener) {
         eventListeners.remove(listener)
-    }
-
-    private fun emitOnRead(status: GattStatus, buf: ByteBuffer) {
-        readListeners.forEach { listener ->
-            listener(status, buf)
-        }
     }
 
     private fun emitOnResponse(buf: ByteBuffer) {

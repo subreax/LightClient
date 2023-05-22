@@ -100,31 +100,30 @@ class BleDeviceApi(
         group: DeviceApi.PropertyGroup,
         progress: MutableStateFlow<Float>
     ): LResult<List<Property>> = withContext(Dispatchers.IO) {
-        val propIdsResult = getPropertiesIds(group)
-        if (propIdsResult is LResult.Failure) {
-            return@withContext propIdsResult
-        }
+        doRequest(FunctionId.GetPropertiesFromGroup, { put(group.ordinal.toByte()) }) { response ->
+            val props = mutableListOf<Property>()
+            val body = response.body
+            while (body.position() < body.limit()) {
+                val sz = body.getShort().toInt()
+                val oldLimit = body.limit()
+                body.limit(body.position() + sz)
+                val propertyResult = parsePropertyInfo(body)
+                if (propertyResult is LResult.Failure) {
+                    return@doRequest propertyResult
+                }
 
-        val ids = (propIdsResult as LResult.Success).value
-
-        val totalRequests = 1 + ids.size
-        val progressIncr = 1f / totalRequests
-        progress.value += progressIncr
-
-        val properties = mutableListOf<Property>()
-        for (id in ids) {
-            val result = getPropertyById(id)
-            if (result is LResult.Failure) {
-                return@withContext result
+                val property = (propertyResult as LResult.Success).value
+                val deserializer = propertySerializers[property.type]!!
+                val parseValueResult = deserializer.deserializeValue(response.body, property)
+                if (parseValueResult is LResult.Failure) {
+                    return@doRequest parseValueResult
+                }
+                body.limit(oldLimit)
+                props.add(property)
             }
 
-            val property = (result as LResult.Success).value
-            properties.add(property)
-            progress.value += progressIncr
-
-            coroutineContext.ensureActive()
+            LResult.Success(props)
         }
-        LResult.Success(properties)
     }
 
     private suspend fun getPropertiesIds(group: DeviceApi.PropertyGroup): LResult<Array<Int>> {
@@ -158,6 +157,20 @@ class BleDeviceApi(
 
     private fun parsePropertyInfo(id: Int, buf: ByteBuffer): LResult<Property> {
         buf.position(4) // skip reading id
+        val typeInt = buf.get().toInt()
+        if (typeInt >= PropertyType.values().size) {
+            return LResult.Failure("Unsupported property type: $typeInt")
+        }
+        val type = PropertyType.values()[typeInt]
+
+        buf.get() // reading groupId
+        val name = buf.getUtf8String()
+
+        return propertySerializers[type]!!.deserializeInfo(id, name, buf)
+    }
+
+    private fun parsePropertyInfo(buf: ByteBuffer): LResult<Property> {
+        val id = buf.getInt()
         val typeInt = buf.get().toInt()
         if (typeInt >= PropertyType.values().size) {
             return LResult.Failure("Unsupported property type: $typeInt")
