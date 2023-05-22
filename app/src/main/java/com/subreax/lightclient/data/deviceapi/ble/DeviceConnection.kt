@@ -111,13 +111,13 @@ class DeviceConnection(
             return LResult.Failure("Service not found")
         }
 
-        val bleRWCharacteristic = bleService.getCharacteristic(RW_CHARACTERISTIC_UUID)
+        val bleRWCharacteristic = bleService.getCharacteristic(REQUEST_CHARACTERISTIC_UUID)
         if (bleRWCharacteristic == null) {
             return LResult.Failure("RW Characteristic not found")
         }
 
         val bleResHeaderCharacteristic =
-            bleService.getCharacteristic(RESPONSE_HEADER_CHARACTERISTIC_UUID)
+            bleService.getCharacteristic(RESPONSE_CHARACTERISTIC_UUID)
         if (bleResHeaderCharacteristic == null) {
             return LResult.Failure("Response Header Characteristic not found")
         }
@@ -145,8 +145,8 @@ class DeviceConnection(
     companion object {
         private const val TAG = "DeviceConnection"
         val SERVICE_UUID = UUID.fromString("b7816278-8536-11ed-a1eb-0242ac120002")!!
-        val RW_CHARACTERISTIC_UUID = UUID.fromString("d4b51c9a-8536-11ed-a1eb-0242ac120002")!!
-        val RESPONSE_HEADER_CHARACTERISTIC_UUID = UUID.fromString("b64172a8-8537-11ed-a1eb-0242ac120002")!!
+        val REQUEST_CHARACTERISTIC_UUID = UUID.fromString("d4b51c9a-8536-11ed-a1eb-0242ac120002")!!
+        val RESPONSE_CHARACTERISTIC_UUID = UUID.fromString("b64172a8-8537-11ed-a1eb-0242ac120002")!!
         val EVENT_CHARACTERISTIC_UUID = UUID.fromString("b818f931-5046-4b35-b5c7-eb62e84a2be1")!!
     }
 }

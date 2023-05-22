@@ -8,11 +8,15 @@ import com.subreax.lightclient.utils.getUtf8String
 import com.subreax.lightclient.utils.getWrittenData
 import com.subreax.lightclient.utils.toPrettyString
 import com.welie.blessed.BluetoothPeripheral
-import com.welie.blessed.GattStatus
 import com.welie.blessed.WriteType
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -20,7 +24,9 @@ import java.nio.ByteOrder
 
 data class BleResponseHeader(
     val fnId: Byte,
-    val status: Byte
+    val status: Byte,
+    val packetsCount: Int,
+    val bodySz: Int
 ) {
     fun isOk(): Boolean = status.toInt() == 0
 }
@@ -33,7 +39,7 @@ data class BleResponse(
 class BleDeviceEndpoint(
     private val peripheral: BluetoothPeripheral,
     private val callback: BleDeviceCallback,
-    private val rw: BluetoothGattCharacteristic
+    private val req: BluetoothGattCharacteristic
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val _eventFlow = MutableSharedFlow<BleLightEvent>()
@@ -41,6 +47,10 @@ class BleDeviceEndpoint(
         get() = _eventFlow
 
     private val requestBuf = ByteBuffer.allocate(512).apply {
+        order(ByteOrder.LITTLE_ENDIAN)
+    }
+
+    private val responseBuf = ByteBuffer.allocate(PACKET_SZ * 1024).apply {
         order(ByteOrder.LITTLE_ENDIAN)
     }
 
@@ -64,15 +74,15 @@ class BleDeviceEndpoint(
     ): LResult<BleResponse> {
         requestBuf.newRequest(fnId)
         onWriteBody(requestBuf)
+        val response = writeAndWaitResponse(requestBuf)
+            ?: return LResult.Failure("Failed to fetch response")
 
-        val header = writeAndWaitResponseHeader(requestBuf) ?: return LResult.Failure("No header")
-        val body = read() ?: return LResult.Failure("No body")
-        return if (header.isOk()) {
-            LResult.Success(BleResponse(header, body))
+        return if (response.header.isOk()) {
+            LResult.Success(response)
         } else {
-            val status = header.status
+            val status = response.header.status
             val errorMsg = try {
-                body.getUtf8String()
+                response.body.getUtf8String()
             } catch (ex: Exception) {
                 "<empty>"
             }
@@ -97,79 +107,65 @@ class BleDeviceEndpoint(
 
     private fun writeAsync(buf: ByteBuffer) {
         peripheral.writeCharacteristic(
-            rw,
+            req,
             buf.getWrittenData(),
             WriteType.WITHOUT_RESPONSE
         )
     }
 
-    private fun readAsync() {
-        peripheral.readCharacteristic(rw)
-    }
-
-    private suspend fun read(): ByteBuffer? {
-        val deferred = CompletableDeferred<Unit>()
-        var body: ByteBuffer? = null
-
-        val listener = callback.addOnReadListener { status, body1 ->
-            if (status == GattStatus.SUCCESS) {
-                body = body1
-            } else {
-                Log.e(TAG, "Failed to read characteristic: $status")
-            }
-            deferred.complete(Unit)
+    private suspend fun writeAndWaitResponse(buf: ByteBuffer): BleResponse? {
+        val packetChannel = Channel<ByteBuffer>(Channel.UNLIMITED)
+        val listener = callback.addOnPacketListener {
+            it.limit(PACKET_SZ)
+            packetChannel.trySend(it)
         }
 
-        readAsync()
-
-        try {
-            withTimeout(5000) {
-                deferred.await()
-            }
-        } catch (_: TimeoutCancellationException) {
-            Log.e(TAG, "read() timeout")
-        }
-
-        callback.removeOnReadListener(listener)
-        return body
-    }
-
-    private suspend fun writeAndWaitResponseHeader(
-        buf: ByteBuffer,
-        checkHeader: (BleResponseHeader) -> Boolean
-    ): BleResponseHeader? {
-        val deferred = CompletableDeferred<Unit>()
-
-        var header: BleResponseHeader? = null
-        val listener = callback.addOnResponseListener {
-            header = parseResponseHeader(it)
-            if (header != null && checkHeader(header!!)) {
-                deferred.complete(Unit)
-            }
-        }
-
+        responseBuf.position(0)
         writeAsync(buf)
 
-        try {
-            withTimeout(5000) {
-                deferred.await()
+        var packetsCount = 1
+        var packetsReceived = 0
+        var header: BleResponseHeader? = null
+        while (packetsReceived < packetsCount) {
+            try {
+                val packet = withTimeout(1000) {
+                    packetChannel.receive()
+                }
+
+                if (packetsReceived == 0) {
+                    // reads header from packet. after this packet will contain only body data
+                    header = parseResponseHeader(packet)
+                    if (header == null) {
+                        Log.e(TAG, "Failed to parse header")
+                        break
+                    }
+                    packetsCount = header.packetsCount
+                }
+
+                responseBuf.put(packet)
+                ++packetsReceived
+                //Log.v(TAG, "Packed received: $packetsReceived/$packetsCount")
+            } catch (_: TimeoutCancellationException) {
+                Log.e(TAG, "Failed to fetch new packet")
+                break
             }
-        } catch (_: TimeoutCancellationException) {
-            Log.e(TAG, "writeAndWaitNotification() timeout")
         }
 
         callback.removeResponseListener(listener)
-        return header
+        val bodySz = header?.bodySz ?: 0
+        val body = ByteBuffer
+            .wrap(responseBuf.array(), 0, bodySz)
+            .order(ByteOrder.LITTLE_ENDIAN)
+        return if (header != null) BleResponse(header, body) else null
     }
-
-    private suspend fun writeAndWaitResponseHeader(buf: ByteBuffer): BleResponseHeader? =
-        writeAndWaitResponseHeader(buf) { true }
 
     private fun parseResponseHeader(data: ByteBuffer): BleResponseHeader? {
         return try {
             val fnId: Byte = data.get()
             val status: Byte = data.get()
-            BleResponseHeader(fnId, status)
+            val packetsCount = data.getShort().toInt()
+            val bodySz = data.getShort().toInt()
+            BleResponseHeader(fnId, status, packetsCount, bodySz)
         } catch (ex: BufferUnderflowException) {
             null
         }
@@ -192,5 +188,6 @@ class BleDeviceEndpoint(
 
     companion object {
         private const val TAG = "BleDeviceEndpoint"
+        private const val PACKET_SZ = 20
     }
 }
