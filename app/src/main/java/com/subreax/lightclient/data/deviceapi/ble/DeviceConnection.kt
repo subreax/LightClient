@@ -42,7 +42,7 @@ class DeviceConnection(
         coroutineScope.launch {
             connectionListener.status.collect { status ->
                 if (status == BleConnectionEvent.ConnectionLost) {
-                    _disconnect()
+                    disconnectSilently()
                     _status.value = DeviceApi.ConnectionStatus.ConnectionLost
                 }
             }
@@ -63,10 +63,11 @@ class DeviceConnection(
 
         if (res == null) {
             _status.value = DeviceApi.ConnectionStatus.Disconnected
+            disconnectSilently()
             return LResult.Failure("Failed to connect")
         }
 
-        val endpointRes = findEndpoint(peripheral)
+        val endpointRes = findEndpoints(peripheral)
         if (endpointRes is LResult.Failure) {
             disconnect()
             return endpointRes
@@ -83,13 +84,13 @@ class DeviceConnection(
     }
 
     suspend fun disconnect() = withContext(Dispatchers.IO) {
-        _disconnect()
+        disconnectSilently()
         _status.value = DeviceApi.ConnectionStatus.Disconnected
         LResult.Success(Unit)
     }
 
     /** Disconnects from device without changing connection state **/
-    private suspend fun _disconnect() {
+    private suspend fun disconnectSilently() {
         endpoint?.cancelEventListener()
         endpoint = null
 
@@ -105,7 +106,7 @@ class DeviceConnection(
         peripheral = null
     }
 
-    private suspend fun findEndpoint(peripheral: BluetoothPeripheral): LResult<BleDeviceEndpoint> {
+    private suspend fun findEndpoints(peripheral: BluetoothPeripheral): LResult<BleDeviceEndpoint> {
         val bleService = peripheral.getService(SERVICE_UUID)
         if (bleService == null) {
             return LResult.Failure("Service not found")

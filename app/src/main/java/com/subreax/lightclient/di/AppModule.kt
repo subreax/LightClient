@@ -12,6 +12,7 @@ import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.deviceapi.ble.BleDeviceApi
 import com.subreax.lightclient.data.state.ApplicationState
 import com.subreax.lightclient.data.state.controllers.ConnectionController
+import com.subreax.lightclient.data.state.controllers.ReconnectionController
 import com.subreax.lightclient.data.state.controllers.ConnectivityController
 import com.subreax.lightclient.data.state.controllers.SynchronizationController
 import com.subreax.lightclient.ui.UiLog
@@ -20,6 +21,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
 
 @Module
@@ -73,7 +75,17 @@ object AppModule {
         connectionRepository: ConnectionRepository,
         uiLog: UiLog
     ): ConnectionController {
-        return ConnectionController(appState, connectionRepository, uiLog)
+        return ConnectionController(appState, connectionRepository, uiLog, Dispatchers.Default)
+    }
+
+    @Singleton
+    @Provides
+    fun provideReconnectionController(
+        appState: ApplicationState,
+        connectionRepository: ConnectionRepository,
+        uiLog: UiLog
+    ): ReconnectionController {
+        return ReconnectionController(appState, connectionRepository, uiLog, Dispatchers.Default)
     }
 
     @Singleton

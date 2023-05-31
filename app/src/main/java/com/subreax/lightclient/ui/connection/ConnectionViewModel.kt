@@ -69,9 +69,7 @@ class ConnectionViewModel @Inject constructor(
                     AppStateId.Syncing -> {
                         uiState = uiState.copy(loadingMsg = UiText.Res(R.string.fetching_data))
                     }
-                    AppStateId.Ready -> {
-                        //pickedDevice?.let { device -> navHome.emit(device) }
-                    }
+                    else -> {  }
                 }
             }
         }

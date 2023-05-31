@@ -12,7 +12,7 @@ enum class AppEventId {
 }
 
 enum class AppStateId {
-    WaitingForConnectivity, Disconnected, Connecting, Syncing, Ready
+    WaitingForConnectivity, Disconnected, Connecting, Syncing, Ready, Reconnecting
 }
 
 
@@ -81,7 +81,19 @@ class ApplicationState {
                     }
                     AppEventId.ConnectivityDisabled,
                     AppEventId.ConnectionLost -> {
-                        setState(AppStateId.Connecting)
+                        setState(AppStateId.Reconnecting)
+                    }
+                    else -> {}
+                }
+            }
+
+            .addState(AppStateId.Reconnecting) { event ->
+                when (event) {
+                    AppEventId.Connected -> {
+                        setState(AppStateId.Syncing)
+                    }
+                    AppEventId.Disconnected -> {
+                        setState(AppStateId.Disconnected)
                     }
                     else -> {}
                 }

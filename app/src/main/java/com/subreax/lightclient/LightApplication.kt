@@ -3,6 +3,7 @@ package com.subreax.lightclient
 import android.app.Application
 import com.subreax.lightclient.data.device.DeviceRepository
 import com.subreax.lightclient.data.state.controllers.ConnectionController
+import com.subreax.lightclient.data.state.controllers.ReconnectionController
 import com.subreax.lightclient.data.state.controllers.ConnectivityController
 import com.subreax.lightclient.data.state.controllers.SynchronizationController
 import dagger.hilt.android.HiltAndroidApp
@@ -13,6 +14,7 @@ class LightApplication : Application() {
     @Inject lateinit var connectivityController: ConnectivityController
     @Inject lateinit var connectionController: ConnectionController
     @Inject lateinit var syncController: SynchronizationController
+    @Inject lateinit var reconnectionController: ReconnectionController
     @Inject lateinit var deviceRepository: DeviceRepository
 
     override fun onCreate() {
@@ -21,5 +23,6 @@ class LightApplication : Application() {
         connectivityController.start()
         connectionController.start()
         syncController.start()
+        reconnectionController.start()
     }
 }
