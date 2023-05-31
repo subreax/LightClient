@@ -3,7 +3,7 @@ package com.subreax.lightclient.data
 import kotlinx.coroutines.flow.MutableStateFlow
 
 enum class PropertyType {
-    Color, IntNumber, IntSlider, FloatNumber, FloatSlider, Enum, Bool, Special, Count
+    Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, Special, Count
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
@@ -50,6 +50,14 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         max: Float
     ) : BaseFloat(id, PropertyType.FloatNumber, name, initialValue, min, max)
 
+    class FloatSmallHSlider(
+        id: Int,
+        name: String,
+        initialValue: Float,
+        min: Float,
+        max: Float
+    ) : BaseFloat(id, PropertyType.FloatSmallHSlider, name, initialValue, min, max)
+
     class Color(
         id: Int,
         name: String,
@@ -92,4 +100,12 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         min: Int,
         max: Int
     ) : BaseInt(id, PropertyType.IntSlider, name, initialValue, min, max)
+
+    class IntSmallHSlider(
+        id: Int,
+        name: String,
+        initialValue: Int,
+        min: Int,
+        max: Int
+    ) : BaseInt(id, PropertyType.IntSmallHSlider, name, initialValue, min, max)
 }

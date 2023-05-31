@@ -41,10 +41,12 @@ class BleDeviceApi(
     private val propertySerializers = mapOf(
         PropertyType.FloatNumber to FloatNumberSerializer(),
         PropertyType.FloatSlider to FloatSliderSerializer(),
+        PropertyType.FloatSmallHSlider to FloatSmallHSliderSerializer(),
         PropertyType.Color to ColorPropertySerializer(),
         PropertyType.Enum to EnumPropertySerializer(),
         PropertyType.IntNumber to IntPropertySerializer(),
         PropertyType.IntSlider to IntSliderPropertySerializer(),
+        PropertyType.IntSmallHSlider to IntSmallHSliderPropertySerializer(),
         PropertyType.Bool to BoolPropertySerializer()
     )
 

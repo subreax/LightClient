@@ -81,6 +81,16 @@ class FloatSliderSerializer : BaseFloatSerializer() {
     ): Property.BaseFloat = Property.FloatSlider(id, name, value, min, max)
 }
 
+class FloatSmallHSliderSerializer : BaseFloatSerializer() {
+    override fun createProperty(
+        id: Int,
+        name: String,
+        value: Float,
+        min: Float,
+        max: Float
+    ): Property.BaseFloat = Property.FloatSmallHSlider(id, name, value, min, max)
+}
+
 class ColorPropertySerializer : PropertySerializer {
     override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
         return LResult.Success(
@@ -226,6 +236,18 @@ class IntSliderPropertySerializer : BaseIntPropertySerializer() {
         max: Int
     ): Property.BaseInt {
         return Property.IntSlider(id, name, value, min, max)
+    }
+}
+
+class IntSmallHSliderPropertySerializer : BaseIntPropertySerializer() {
+    override fun createProperty(
+        id: Int,
+        name: String,
+        value: Int,
+        min: Int,
+        max: Int
+    ): Property.BaseInt {
+        return Property.IntSmallHSlider(id, name, value, min, max)
     }
 }
 

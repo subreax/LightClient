@@ -159,6 +159,10 @@ val PCF = Array<PropertyComposableFactory>(PropertyType.Count.ordinal) {
             FloatSliderProperty2(prop, callback)
         }
 
+        PropertyType.FloatSmallHSlider.ordinal -> { prop, callback ->
+            FloatSmallHSliderProperty2(prop, callback)
+        }
+
         PropertyType.Color.ordinal -> { prop, callback ->
             ColorProperty2(prop, callback)
         }
@@ -173,6 +177,10 @@ val PCF = Array<PropertyComposableFactory>(PropertyType.Count.ordinal) {
 
         PropertyType.IntSlider.ordinal -> { prop, callback ->
             IntSliderProperty2(prop, callback)
+        }
+
+        PropertyType.IntSmallHSlider.ordinal -> { prop, callback ->
+            IntSmallHSliderProperty2(prop, callback)
         }
 
         PropertyType.Bool.ordinal -> { prop, callback ->
@@ -212,7 +220,7 @@ fun PropertiesSection(
         )
 
         UniformGrid(
-            minCellSize = 112.dp,
+            minCellSize = 48.dp,
             spacing = spacing
         ) {
             properties.forEach {
@@ -260,7 +268,7 @@ fun PropertyEditorDialog(
 @SuppressLint("UnrememberedMutableState")
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
-    widthDp = 360,
+    widthDp = 400,
     heightDp = 780,
     showBackground = true
 )
