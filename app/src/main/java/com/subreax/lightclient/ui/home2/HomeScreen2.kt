@@ -26,6 +26,7 @@ import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.home.HomeViewModel
 import com.subreax.lightclient.ui.home.PropertyCallback
 import com.subreax.lightclient.ui.theme.LightClientTheme
+import java.util.Calendar
 
 @Composable
 fun HomeScreen2(
@@ -85,13 +86,12 @@ fun HomeScreen2(
     sceneProperties: List<Property>,
     propertyCallback: PropertyCallback
 ) {
-    val greeting = "Добрых вечеров!"
     val connectedDeviceInfo = buildAnnotatedString {
         when (appState) {
             AppStateId.Ready -> {
                 append("Выполнено подключение к контроллеру ")
             }
-            AppStateId.Connecting -> {
+            AppStateId.Reconnecting -> {
                 append("Переподключение к контроллеру ")
             }
             AppStateId.Syncing -> {
@@ -113,7 +113,7 @@ fun HomeScreen2(
             .verticalScroll(rememberScrollState())
     ) {
         TopBar(
-            title = greeting,
+            title = getGreeting(),
             subtitle = { Text(text = connectedDeviceInfo) },
             actions = {
                 IconButton(onClick = { /*TODO*/ }) {
@@ -143,6 +143,18 @@ fun HomeScreen2(
             properties = sceneProperties,
             callback = propertyCallback
         )
+    }
+}
+
+private fun getGreeting(): String {
+    val calendar = Calendar.getInstance()
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    return when (hour / 6) {
+        0 -> "Какие люди нарисовались!"
+        1 -> "Доброе утро!"
+        2 -> "Добрый день!"
+        3 -> "Добрых вечеров!"
+        else -> "Какая нечистая тебя притащила?"
     }
 }
 
