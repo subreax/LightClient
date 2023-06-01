@@ -50,7 +50,7 @@ class BleDeviceEndpoint(
         order(ByteOrder.LITTLE_ENDIAN)
     }
 
-    private val responseBuf = ByteBuffer.allocate(PACKET_SZ * 1024).apply {
+    private val responseBuf = ByteBuffer.allocate(PACKET_SZ * 819).apply {
         order(ByteOrder.LITTLE_ENDIAN)
     }
 

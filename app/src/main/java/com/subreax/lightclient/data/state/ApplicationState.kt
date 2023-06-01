@@ -64,9 +64,7 @@ class ApplicationState {
                     AppEventId.Synced -> {
                         setState(AppStateId.Ready)
                     }
-                    AppEventId.Disconnected -> {
-                        setState(AppStateId.Disconnected)
-                    }
+                    AppEventId.Disconnected,
                     AppEventId.ConnectivityDisabled -> {
                         setState(AppStateId.WaitingForConnectivity)
                     }

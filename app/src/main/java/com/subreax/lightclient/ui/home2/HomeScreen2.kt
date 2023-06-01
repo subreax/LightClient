@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -115,11 +113,6 @@ fun HomeScreen2(
         TopBar(
             title = getGreeting(),
             subtitle = { Text(text = connectedDeviceInfo) },
-            actions = {
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
-                }
-            },
             modifier = Modifier.padding(bottom = 8.dp)
         )
 

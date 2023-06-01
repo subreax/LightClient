@@ -220,20 +220,28 @@ class BleDeviceApi(
         }
 
         if (property.type == PropertyType.Enum) {
-            doRequest(FunctionId.SetPropertyValueById, {
-                putInt(property.id)
-                serializer.serializeValue(property, this)
-            }) {
-                LResult.Success(Unit)
-            }
+            updatePropertyValueSync(serializer, property)
         }
         else {
-            endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
-                putInt(property.id)
-                serializer.serializeValue(property, this)
-            }
-            delay(1000 / 15)
+            updatePropertyValueAsync(serializer, property)
         }
+    }
+
+    private suspend fun updatePropertyValueSync(serializer: PropertySerializer, property: Property) {
+        doRequest(FunctionId.SetPropertyValueById, {
+            putInt(property.id)
+            serializer.serializeValue(property, this)
+        }) {
+            LResult.Success(Unit)
+        }
+    }
+
+    private suspend fun updatePropertyValueAsync(serializer: PropertySerializer, property: Property) {
+        endpoint?.doRequestWithoutResponse(FunctionId.SetPropertyValueById) {
+            putInt(property.id)
+            serializer.serializeValue(property, this)
+        }
+        delay(1000 / 15)
     }
 
     private suspend fun <T> doRequest(
