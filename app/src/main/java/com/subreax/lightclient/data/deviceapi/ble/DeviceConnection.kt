@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.utils.waitForWithTimeout
@@ -51,7 +52,7 @@ class DeviceConnection(
 
     suspend fun connect(address: String): LResult<Unit> {
         if (!connectivityObserver.isAvailable) {
-            return LResult.Failure("Bluetooth is off")
+            return LResult.Failure(R.string.bluetooth_is_off)
         }
 
         val peripheral = central.getPeripheral(address)
@@ -64,7 +65,7 @@ class DeviceConnection(
         if (res == null) {
             _status.value = DeviceApi.ConnectionStatus.Disconnected
             disconnectSilently()
-            return LResult.Failure("Failed to connect")
+            return LResult.Failure(R.string.connection_timed_out)
         }
 
         val endpointRes = findEndpoints(peripheral)
@@ -112,15 +113,15 @@ class DeviceConnection(
             return LResult.Failure("Service not found")
         }
 
-        val bleRWCharacteristic = bleService.getCharacteristic(REQUEST_CHARACTERISTIC_UUID)
-        if (bleRWCharacteristic == null) {
-            return LResult.Failure("RW Characteristic not found")
+        val bleReqCharacteristic = bleService.getCharacteristic(REQUEST_CHARACTERISTIC_UUID)
+        if (bleReqCharacteristic == null) {
+            return LResult.Failure("Request Characteristic not found")
         }
 
-        val bleResHeaderCharacteristic =
+        val bleResCharacteristic =
             bleService.getCharacteristic(RESPONSE_CHARACTERISTIC_UUID)
-        if (bleResHeaderCharacteristic == null) {
-            return LResult.Failure("Response Header Characteristic not found")
+        if (bleResCharacteristic == null) {
+            return LResult.Failure("Response Characteristic not found")
         }
 
         val bleEventCharacteristic =
@@ -130,7 +131,7 @@ class DeviceConnection(
             return LResult.Failure("Event Characteristic not found")
         }
 
-        peripheral.setNotify(bleResHeaderCharacteristic, true)
+        peripheral.setNotify(bleResCharacteristic, true)
         peripheral.setNotify(bleEventCharacteristic, true)
         peripheral.requestMtu(BluetoothPeripheral.MAX_MTU)
 
@@ -138,7 +139,7 @@ class DeviceConnection(
             BleDeviceEndpoint(
                 peripheral,
                 deviceCallback,
-                bleRWCharacteristic
+                bleReqCharacteristic
             )
         )
     }

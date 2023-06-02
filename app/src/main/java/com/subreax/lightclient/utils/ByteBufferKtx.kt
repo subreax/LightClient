@@ -2,10 +2,10 @@ package com.subreax.lightclient.utils
 
 import java.nio.ByteBuffer
 
-fun ByteBuffer.toPrettyString(): String {
+fun ByteBuffer.toPrettyString(start: Int, end: Int): String {
     val sb = StringBuilder()
     val arr = array()
-    for (i in 0 until position()) {
+    for (i in start until end) {
         val b = arr[i]
         val b1 = (b.toInt() + 256) and 0xff
         val byteStr = b1.toString(16)

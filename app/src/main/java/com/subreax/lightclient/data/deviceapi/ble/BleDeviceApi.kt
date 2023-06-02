@@ -77,6 +77,7 @@ class BleDeviceApi(
 
                 val response = endpoint?.doRequest(request.fnId, request.onWriteBody)
                     ?: LResult.Failure("No connection")
+
                 request.onResponse(response)
                 Log.v(TAG, "<-- finished request ${request.fnId}")
             }
@@ -201,8 +202,8 @@ class BleDeviceApi(
 
             val property = (result as LResult.Success).value
 
-            val deserializer = propertySerializers[property.type]!!
-            val result2 = deserializer.deserializeValue(res.body, property)
+            val serializer = propertySerializers[property.type]!!
+            val result2 = serializer.deserializeValue(res.body, property)
             if (result2 is LResult.Success) {
                 LResult.Success(property)
             }

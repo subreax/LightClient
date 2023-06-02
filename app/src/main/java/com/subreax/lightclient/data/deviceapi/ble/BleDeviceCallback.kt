@@ -9,11 +9,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 
-typealias OnResponseListener = (data: ByteBuffer) -> Unit
+typealias OnPacketListener = (data: ByteBuffer) -> Unit
 typealias OnEventListener = (data: ByteBuffer) -> Unit
 
 class BleDeviceCallback : BluetoothPeripheralCallback() {
-    private val responseListeners = mutableListOf<OnResponseListener>()
+    private val packetListeners = mutableListOf<OnPacketListener>()
     private val eventListeners = mutableListOf<OnEventListener>()
 
     override fun onCharacteristicUpdate(
@@ -26,12 +26,13 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
             Log.w(TAG, "${characteristic.uuid}: value is null")
         }
 
-        val buf = ByteBuffer.wrap(value!!)
-        buf.order(ByteOrder.LITTLE_ENDIAN)
+        val buf = ByteBuffer
+            .wrap(value!!)
+            .order(ByteOrder.LITTLE_ENDIAN)
 
         when (characteristic.uuid) {
             DeviceConnection.RESPONSE_CHARACTERISTIC_UUID -> {
-                emitOnResponse(buf)
+                emitOnPacket(buf)
             }
             DeviceConnection.EVENT_CHARACTERISTIC_UUID -> {
                 emitOnEvent(buf)
@@ -39,13 +40,13 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
         }
     }
 
-    fun addOnPacketListener(listener: OnResponseListener): OnResponseListener {
-        responseListeners.add(listener)
+    fun addPacketListener(listener: OnPacketListener): OnPacketListener {
+        packetListeners.add(listener)
         return listener
     }
 
-    fun removeResponseListener(listener: OnResponseListener) {
-        responseListeners.remove(listener)
+    fun removePacketListener(listener: OnPacketListener) {
+        packetListeners.remove(listener)
     }
 
     fun addEventListener(listener: OnEventListener): OnEventListener {
@@ -57,8 +58,8 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
         eventListeners.remove(listener)
     }
 
-    private fun emitOnResponse(buf: ByteBuffer) {
-        responseListeners.forEach { listener ->
+    private fun emitOnPacket(buf: ByteBuffer) {
+        packetListeners.forEach { listener ->
             listener(buf)
         }
     }

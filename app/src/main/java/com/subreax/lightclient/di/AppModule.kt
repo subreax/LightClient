@@ -52,11 +52,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSyncController(
+        @ApplicationContext appContext: Context,
         appState: ApplicationState,
         connectionRepository: ConnectionRepository,
         uiLog: UiLog
     ): SynchronizationController {
-        return SynchronizationController(appState, connectionRepository, uiLog)
+        return SynchronizationController(appContext, appState, connectionRepository, uiLog)
     }
 
     @Singleton

@@ -13,7 +13,7 @@ sealed class LResult<out T>(val code: ReturnCode) {
         constructor(message: String, code: ReturnCode = ReturnCode.Unspecified)
                 : this(UiText.Hardcoded(message), code)
 
-        constructor(@StringRes res: Int, vararg args: Any = emptyArray(), code: ReturnCode = ReturnCode.Unspecified)
-                : this(UiText.Res(res, args), code)
+        constructor(@StringRes res: Int, vararg args: Any = emptyArray())
+                : this(UiText.Res(res, *args), ReturnCode.Unspecified)
     }
 }

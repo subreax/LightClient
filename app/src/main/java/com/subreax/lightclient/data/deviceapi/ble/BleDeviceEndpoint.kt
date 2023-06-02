@@ -3,6 +3,7 @@ package com.subreax.lightclient.data.deviceapi.ble
 import android.bluetooth.BluetoothGattCharacteristic
 import android.util.Log
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.utils.getUtf8String
 import com.subreax.lightclient.utils.getWrittenData
@@ -74,20 +75,20 @@ class BleDeviceEndpoint(
     ): LResult<BleResponse> {
         requestBuf.newRequest(fnId)
         onWriteBody(requestBuf)
-        val response = writeAndWaitResponse(requestBuf)
-            ?: return LResult.Failure("Failed to fetch response")
+        val responseRes = writeAndWaitResponse(requestBuf)
 
-        return if (response.header.isOk()) {
-            LResult.Success(response)
-        } else {
+        if (responseRes is LResult.Success && !responseRes.value.header.isOk()) {
+            val response = responseRes.value
             val status = response.header.status
             val errorMsg = try {
                 response.body.getUtf8String()
             } catch (ex: Exception) {
-                "<empty>"
+                "<none>"
             }
-            LResult.Failure("Failed to perform request. Status: $status  msg: $errorMsg")
+            return LResult.Failure(R.string.failed_to_perform_req, status, errorMsg)
         }
+
+        return responseRes
     }
 
     fun doRequestWithoutResponse(fnId: FunctionId, onWriteBody: ByteBuffer.() -> Unit) {
@@ -106,6 +107,7 @@ class BleDeviceEndpoint(
     }
 
     private fun writeAsync(buf: ByteBuffer) {
+        //Log.d(TAG, "request: ${buf.toPrettyString(0, buf.position())}")
         peripheral.writeCharacteristic(
             req,
             buf.getWrittenData(),
@@ -113,9 +115,9 @@ class BleDeviceEndpoint(
         )
     }
 
-    private suspend fun writeAndWaitResponse(buf: ByteBuffer): BleResponse? {
+    private suspend fun writeAndWaitResponse(buf: ByteBuffer): LResult<BleResponse> {
         val packetChannel = Channel<ByteBuffer>(Channel.UNLIMITED)
-        val listener = callback.addOnPacketListener {
+        val listener = callback.addPacketListener {
             it.limit(PACKET_SZ)
             packetChannel.trySend(it)
         }
@@ -128,7 +130,7 @@ class BleDeviceEndpoint(
         var header: BleResponseHeader? = null
         while (packetsReceived < packetsCount) {
             try {
-                val packet = withTimeout(1000) {
+                val packet = withTimeout(2000) {
                     packetChannel.receive()
                 }
 
@@ -136,27 +138,28 @@ class BleDeviceEndpoint(
                     // reads header from packet. after this packet will contain only body data
                     header = parseResponseHeader(packet)
                     if (header == null) {
-                        Log.e(TAG, "Failed to parse header")
-                        break
+                        return LResult.Failure(R.string.failed_to_parse_header)
                     }
                     packetsCount = header.packetsCount
                 }
 
                 responseBuf.put(packet)
                 ++packetsReceived
-                //Log.v(TAG, "Packed received: $packetsReceived/$packetsCount")
             } catch (_: TimeoutCancellationException) {
-                Log.e(TAG, "Failed to fetch new packet")
-                break
+                return LResult.Failure(R.string.packet_loss_d_of_d, packetsReceived, packetsCount)
             }
         }
 
-        callback.removeResponseListener(listener)
+        callback.removePacketListener(listener)
         val bodySz = header?.bodySz ?: 0
         val body = ByteBuffer
             .wrap(responseBuf.array(), 0, bodySz)
             .order(ByteOrder.LITTLE_ENDIAN)
-        return if (header != null) BleResponse(header, body) else null
+
+        //Log.d(TAG, "response: ${body.toPrettyString(0, body.limit())}")
+
+        val response = BleResponse(header!!, body)
+        return LResult.Success(response)
     }
 
     private fun parseResponseHeader(data: ByteBuffer): BleResponseHeader? {
@@ -182,7 +185,7 @@ class BleDeviceEndpoint(
                 }
             }
         } catch (ex: BufferUnderflowException) {
-            Log.e(TAG, "Failed to handle event ${buf.toPrettyString()}")
+            Log.e(TAG, "Failed to handle event ${buf.toPrettyString(0, buf.limit())}")
         }
     }
 

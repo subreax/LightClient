@@ -1,6 +1,6 @@
 package com.subreax.lightclient.data.state.controllers
 
-import android.util.Log
+import android.content.Context
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.connection.ConnectionRepository
@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class SynchronizationController @Inject constructor(
+    private val appContext: Context,
     private val appState: ApplicationState,
     private val connectionRepository: ConnectionRepository,
     private val uiLog: UiLog,
@@ -35,8 +36,7 @@ class SynchronizationController @Inject constructor(
                     else {
                         connectionRepository.disconnect()
                         val errorMsg = (status as LResult.Failure).message
-                        uiLog.e(UiText.Res(R.string.failed_to_sync, errorMsg.toString()))
-                        Log.e("SyncController", "Failed to sync: $errorMsg")
+                        uiLog.e(UiText.Res(R.string.failed_to_sync, errorMsg.stringValue(appContext)))
                     }
                 }
             }

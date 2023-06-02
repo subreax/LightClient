@@ -9,4 +9,9 @@
     <string name="waiting_for_connectivity">Ожидание блюпупа…</string>
     <string name="failed_to_connect">Не удалось подключиться к %s</string>
     <string name="failed_to_sync">Не удалось синхронизироваться с контроллером: %s</string>
+    <string name="connection_timed_out">Не удалось подключиться: время подключения истекло</string>
+    <string name="bluetooth_is_off">Bluetooth отключён</string>
+    <string name="failed_to_parse_header">Не удалось прочитать заголовок ответа</string>
+    <string name="packet_loss_d_of_d">Потеря пакетов: %d/%d</string>
+    <string name="failed_to_perform_req">Не удалось выполнить запрос. Статус: %d, сообщение: %s</string>
 </resources>
