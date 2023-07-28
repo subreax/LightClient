@@ -31,25 +31,3 @@ suspend fun <T> Flow<T>.waitForWithTimeout(timeout: Long, condition: (T) -> Bool
 
     return result
 }
-
-
-/*suspend fun <T> Flow<T>.runAndWaitForResponse(operation: () -> Unit, condition: (T) -> Boolean): T {
-    var result: T? = null
-
-    withContext(Dispatchers.Default) {
-        launch {
-            collect {
-                if (condition(it)) {
-                    result = it
-                    cancel()
-                }
-            }
-        }
-
-        launch {
-            operation()
-        }
-    }
-
-    return result!!
-}*/
