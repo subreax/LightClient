@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -89,12 +90,17 @@ private fun SimpleValue(value: String) {
 }
 
 @Composable
-private fun SimpleSmallValue(value: String) {
+private fun SimpleSmallValue(
+    value: String,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign = TextAlign.Center
+) {
     Text(
         text = value,
         style = MaterialTheme.typography.body1,
-        textAlign = TextAlign.Center,
-        fontWeight = FontWeight.Bold
+        textAlign = textAlign,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier
     )
 }
 
@@ -141,17 +147,22 @@ private fun SmallHSliderLayout2(name: String, value: String, modifier: Modifier 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
+        modifier = modifier
             .padding(horizontal = 12.dp)
             .fillMaxSize()
     ) {
         Text(
             text = name,
             style = MaterialTheme.typography.body2,
-            modifier = modifier
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+            modifier = Modifier.weight(1f)
         )
 
-        SimpleSmallValue(value = value)
+        SimpleSmallValue(
+            value = value,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
 
@@ -669,69 +680,86 @@ fun LoadingProperty2(baseProperty: Property, callback: PropertyCallback) {
 }
 
 
-@Preview(widthDp = 360, heightDp = 500, uiMode = UI_MODE_NIGHT_YES)
+@Preview(widthDp = 500, heightDp = 500, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun Properties2Preview() {
     LightClientTheme {
-        UniformGrid(minCellSize = 48.dp, modifier = Modifier.fillMaxSize()) {
-            FloatSliderProperty2(
-                name = "Яркость",
-                value = 0.5f,
-                min = 0f,
-                max = 1f,
-                onValueChanged = {},
-                modifier = Modifier.span(horizontal = 2, vertical = 4)
-            )
-            EnumProperty2(
-                name = "Сцена",
-                value = "Fire",
-                onClick = {},
-                modifier = Modifier.span(horizontal = 4, vertical = 2)
-            )
-            IntProperty2(
-                name = "Кол-во пикселей", value = 24, onClick = {}, modifier = Modifier.span(2, 2)
-            )
-            BoolProperty2(
-                name = "Датчик движения",
-                value = true,
-                onClick = {},
-                modifier = Modifier.span(2, 2)
-            )
-            ColorProperty2(
-                name = "Цвет 1",
-                color = Color(0xff0098ff),
-                onClick = {},
-                modifier = Modifier.span(2, 2)
-            )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(4.dp)
+        ) {
+            UniformGrid(minCellSize = 50.dp, modifier = Modifier.fillMaxSize()) {
+                FloatSliderProperty2(
+                    name = "Q15 Slider",
+                    value = 0.5f,
+                    min = 0f,
+                    max = 1f,
+                    onValueChanged = {},
+                    modifier = Modifier.span(horizontal = 2, vertical = 4)
+                )
+                IntSliderProperty2(
+                    name = "Int Slider",
+                    progress = 0.67f,
+                    value = 8,
+                    onProgressChanged = {},
+                    modifier = Modifier.span(2, 4)
+                )
+                EnumProperty2(
+                    name = "Enum",
+                    value = "Value Name",
+                    onClick = {},
+                    modifier = Modifier.span(horizontal = 4, vertical = 2)
+                )
+                ColorProperty2(
+                    name = "Color",
+                    color = Color(0xff0098ff),
+                    onClick = {},
+                    modifier = Modifier.span(2, 2)
+                )
+                BoolProperty2(
+                    name = "Bool",
+                    value = true,
+                    onClick = {},
+                    modifier = Modifier.span(2, 2)
+                )
+                FloatSmallHSliderProperty2(
+                    name = "Q15 Small HSlider",
+                    value = 0.33f,
+                    min = 0f,
+                    max = 1f,
+                    onValueChanged = { },
+                    modifier = Modifier.span(horizontal = 4, vertical = 1)
+                )
 
-            LoadingProperty2(
+                FloatProperty2(
+                    name = "Q15",
+                    value = 0.5345f,
+                    onClick = { },
+                    modifier = Modifier.span(2, 2)
+                )
+
+                IntSmallHSliderProperty2(
+                    name = "Int Small HSlider",
+                    progress = 0.67f,
+                    value = 4,
+                    onProgressChanged = { },
+                    modifier = Modifier.span(4, 1)
+                )
+
+                IntProperty2(
+                    name = "Int", value = 24, onClick = {}, modifier = Modifier.span(2, 2)
+                )
+
+
+                /*LoadingProperty2(
                 progress = 0.5f,
                 modifier = Modifier.span(horizontal = 4, vertical = 2)
-            )
+            )*/
 
-            FloatProperty2(
-                name = "Float Property",
-                value = 0.5345f,
-                onClick = { },
-                modifier = Modifier.span(2, 2)
-            )
 
-            FloatSmallHSliderProperty2(
-                name = "Float Small HSlider",
-                value = 0.5f,
-                min = 0f,
-                max = 1f,
-                onValueChanged = { },
-                modifier = Modifier.span(horizontal = 4, vertical = 1)
-            )
-
-            IntSmallHSliderProperty2(
-                name = "Int Small HSlider",
-                progress = 0.5f,
-                value = 3,
-                onProgressChanged = { },
-                modifier = Modifier.span(4, 1)
-            )
+            }
         }
     }
 

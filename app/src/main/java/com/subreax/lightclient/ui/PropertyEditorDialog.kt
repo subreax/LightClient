@@ -162,7 +162,7 @@ fun IntPropertyEditorDialog(
         propertyName = propertyName,
         initialValue = value1,
         onValueChanged = {
-            it.filter { ch -> ch.isDigit() }
+            it.filterInt()
         },
         onSubmit = {
             val i = (it.toIntOrNull() ?: min1).coerceIn(min1, max1)
@@ -173,6 +173,12 @@ fun IntPropertyEditorDialog(
         hint = "$min1 .. $max1",
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
     )
+}
+
+private fun String.filterInt(): String {
+    return filterIndexed { index, ch ->
+        ch.isDigit() || (index == 0 && ch == '-')
+    }
 }
 
 
@@ -212,13 +218,13 @@ fun FloatPropertyEditorDialog(
 
 private fun String.filterFloat(): String {
     var pointsCount = 0
-    return filter { ch ->
+    return filterIndexed { index, ch ->
         val isPoint = ch == ',' || ch == '.'
         if (isPoint) {
             ++pointsCount
         }
 
-        ch.isDigit() || (isPoint && pointsCount < 2)
+        ch.isDigit() || (index == 0 && ch == '-') || (isPoint && pointsCount < 2)
     }
 }
 

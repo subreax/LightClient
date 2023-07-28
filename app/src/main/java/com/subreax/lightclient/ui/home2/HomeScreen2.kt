@@ -136,6 +136,8 @@ fun HomeScreen2(
             properties = sceneProperties,
             callback = propertyCallback
         )
+
+        Spacer(Modifier.height(16.dp))
     }
 }
 
