@@ -3,6 +3,7 @@ package com.subreax.lightclient.data.connection.impl
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
@@ -88,8 +89,9 @@ class BleConnectionRepository(
         scanBondedDevicesJob = launch {
             while (isActive) {
                 if (hasBtConnectPermission()) {
-                    val devicesList = btAdapter.bondedDevices.map { DeviceDesc(it.name, it.address) }
-                    _devices.value = devicesList
+                    _devices.value = btAdapter.bondedDevices
+                        .filter { it.isBle()  }
+                        .map { it.descriptor() }
                 }
                 delay(2000)
             }
@@ -112,3 +114,11 @@ class BleConnectionRepository(
         private const val TAG = "BleConnectionRepo"
     }
 }
+
+@SuppressLint("MissingPermission")
+private fun BluetoothDevice.isBle() =
+    type == BluetoothDevice.DEVICE_TYPE_LE ||
+    type == BluetoothDevice.DEVICE_TYPE_DUAL
+
+@SuppressLint("MissingPermission")
+private fun BluetoothDevice.descriptor() = DeviceDesc(name, address)
