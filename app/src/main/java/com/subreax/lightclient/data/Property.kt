@@ -1,16 +1,41 @@
 package com.subreax.lightclient.data
 
+import android.util.Log
+import com.subreax.lightclient.data.deviceapi.DeviceApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 
 enum class PropertyType {
     Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, Special, Count
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
+    private var valueChangeListenerJob: Job? = null
+
+    abstract fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job
+
+    fun startSendingValueChanges(scope: CoroutineScope, deviceApi: DeviceApi) {
+        if (valueChangeListenerJob == null) {
+            valueChangeListenerJob = createValueChangeListener(scope, deviceApi)
+            Log.v("Property", "Start sending value changes of property '$name'")
+        }
+    }
+
+    fun stopSendingValueChanges() {
+        valueChangeListenerJob?.cancel()
+        valueChangeListenerJob = null
+        Log.v("Property", "Stop sending value changes of property '$name'")
+    }
+
     class SpecLoading(
         initialProgress: Float
     ) : Property(-1, PropertyType.Special, "Loading in progress") {
         val progress = MutableStateFlow(initialProgress)
+
+        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi) = Job()
     }
 
 
@@ -21,6 +46,14 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         initialValue: Int,
     ) : Property(id, PropertyType.Enum, name) {
         val currentValue = MutableStateFlow(initialValue)
+
+        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+            return scope.launch {
+                currentValue.drop(1).collect {
+                    deviceApi.updatePropertyValue(this@Enum)
+                }
+            }
+        }
     }
 
     open class BaseFloat(
@@ -32,6 +65,14 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         val max: Float
     ) : Property(id, type, name) {
         val current = MutableStateFlow(initialValue)
+
+        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+            return scope.launch {
+                current.drop(1).collect {
+                    deviceApi.updatePropertyValue(this@BaseFloat)
+                }
+            }
+        }
     }
 
     class FloatSlider(
@@ -64,6 +105,14 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         initialValue: Int
     ) : Property(id, PropertyType.Color, name) {
         val color = MutableStateFlow(initialValue)
+
+        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+            return scope.launch {
+                color.drop(1).collect {
+                    deviceApi.updatePropertyValue(this@Color)
+                }
+            }
+        }
     }
 
     class Bool(
@@ -72,6 +121,14 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         initialValue: Boolean
     ) : Property(id, PropertyType.Bool, name) {
         val toggled = MutableStateFlow(initialValue)
+
+        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+            return scope.launch {
+                toggled.drop(1).collect {
+                    deviceApi.updatePropertyValue(this@Bool)
+                }
+            }
+        }
     }
 
     open class BaseInt(
@@ -83,6 +140,14 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         val max: Int
     ) : Property(id, type, name) {
         val current = MutableStateFlow(initialValue)
+
+        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+            return scope.launch {
+                current.drop(1).collect {
+                    deviceApi.updatePropertyValue(this@BaseInt)
+                }
+            }
+        }
     }
 
     class IntNumber(

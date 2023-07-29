@@ -16,4 +16,18 @@ sealed class LResult<out T>(val code: ReturnCode) {
         constructor(@StringRes res: Int, vararg args: Any = emptyArray())
                 : this(UiText.Res(res, *args), ReturnCode.Unspecified)
     }
+
+    fun <G> then(actionIfSuccess: () -> LResult<G>): LResult<G> {
+        return if (this is Success) {
+            actionIfSuccess()
+        } else
+            this as Failure
+    }
+
+    suspend fun <G> thenSuspend(actionIfSuccess: suspend () -> LResult<G>): LResult<G> {
+        return if (this is Success) {
+            actionIfSuccess()
+        } else
+            this as Failure
+    }
 }

@@ -59,15 +59,15 @@ class HomeViewModel @Inject constructor(
     }
 
     fun setPropertyValue(property: Property.Bool, value: Boolean) {
-        deviceRepository.setPropertyValue(property, value)
+        property.toggled.value = value
     }
 
     fun setPropertyValue(property: Property.BaseFloat, value: Float) {
-        deviceRepository.setPropertyValue(property, value)
+        property.current.value = value
     }
 
     fun setPropertyValue(property: Property.BaseInt, value: Int) {
-        deviceRepository.setPropertyValue(property, value)
+        property.current.value = value
     }
 
     fun showEditDialog(property: Property) {

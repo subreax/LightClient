@@ -109,7 +109,7 @@ class BleLightDevice(
             val eventId = buf.get().toInt()
             if (eventId == 0) {
                 val groupId = buf.get().toInt()
-                val group = DeviceApi.PropertyGroup.values()[groupId]
+                val group = DeviceApi.PropertyGroupId.values()[groupId]
 
                 Log.v(TAG, "### new event: Properties Changed")
                 _events.emit(BleLightEvent.PropertiesChanged(group))

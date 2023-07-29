@@ -63,13 +63,13 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
     }
 
     override suspend fun getProperties(
-        group: DeviceApi.PropertyGroup,
+        group: DeviceApi.PropertyGroupId,
         progress: MutableStateFlow<Float>
     ): LResult<List<Property>> = withContext(Dispatchers.IO) {
         delay(1000)
         when (group) {
-            DeviceApi.PropertyGroup.Global -> LResult.Success(_globalProps)
-            DeviceApi.PropertyGroup.Scene -> LResult.Success(_sceneProps)
+            DeviceApi.PropertyGroupId.Global -> LResult.Success(_globalProps)
+            DeviceApi.PropertyGroupId.Scene -> LResult.Success(_sceneProps)
         }
     }
 
@@ -82,7 +82,7 @@ class FakeDeviceApi(private val connectivityObserver: ConnectivityObserver) : De
     override val connectionStatus: Flow<DeviceApi.ConnectionStatus>
         get() = _flowIsConnected.map { if (it) DeviceApi.ConnectionStatus.Connected else DeviceApi.ConnectionStatus.Disconnected }
 
-    private val _propertiesChanged = MutableSharedFlow<DeviceApi.PropertyGroup>()
-    override val propertiesChanged: Flow<DeviceApi.PropertyGroup>
+    private val _propertiesChanged = MutableSharedFlow<DeviceApi.PropertyGroupId>()
+    override val propertiesChanged: Flow<DeviceApi.PropertyGroupId>
         get() = _propertiesChanged
 }

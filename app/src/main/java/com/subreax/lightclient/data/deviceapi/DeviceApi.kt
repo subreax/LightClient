@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 interface DeviceApi {
-    enum class PropertyGroup {
+    enum class PropertyGroupId {
         Global, Scene
     }
 
@@ -21,12 +21,12 @@ interface DeviceApi {
     fun getDeviceName(): String
 
     suspend fun getProperties(
-        group: PropertyGroup,
+        group: PropertyGroupId,
         progress: MutableStateFlow<Float>
     ): LResult<List<Property>>
 
     suspend fun updatePropertyValue(property: Property)
 
     val connectionStatus: Flow<ConnectionStatus>
-    val propertiesChanged: Flow<PropertyGroup>
+    val propertiesChanged: Flow<PropertyGroupId>
 }

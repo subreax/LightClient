@@ -1,4 +1,4 @@
-package com.subreax.lightclient.data.device.impl
+package com.subreax.lightclient.data.device.fake
 
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.Property
@@ -39,25 +39,5 @@ class Fake2DeviceRepository : DeviceRepository {
             return LResult.Success(v1)
         }
         return LResult.Failure("Property not found")
-    }
-
-    override fun setPropertyValue(property: Property.Bool, value: Boolean) {
-        property.toggled.value = value
-    }
-
-    override fun setPropertyValue(property: Property.BaseFloat, value: Float) {
-        property.current.value = value
-    }
-
-    override fun setPropertyValue(property: Property.BaseInt, value: Int) {
-        property.current.value = value
-    }
-
-    override fun setPropertyValue(property: Property.Color, value: Int) {
-        property.color.value = value
-    }
-
-    override fun setPropertyValue(property: Property.Enum, value: Int) {
-        property.currentValue.value = value
     }
 }

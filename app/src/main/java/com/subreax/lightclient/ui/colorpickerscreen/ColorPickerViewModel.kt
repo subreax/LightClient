@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ColorPickerViewModel @Inject constructor(
-    private val deviceRepository: DeviceRepository,
+    deviceRepository: DeviceRepository,
     state: SavedStateHandle
 ) : ViewModel() {
     private val property: Property.Color
@@ -37,6 +37,6 @@ class ColorPickerViewModel @Inject constructor(
     }
 
     fun setColor(color: Color) {
-        deviceRepository.setPropertyValue(property, color.toArgb())
+        property.color.value = color.toArgb()
     }
 }

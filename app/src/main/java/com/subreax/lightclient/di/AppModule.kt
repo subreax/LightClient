@@ -7,7 +7,7 @@ import com.subreax.lightclient.data.connection.impl.BleConnectionRepository
 import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.connectivity.impl.BtConnectivityObserver
 import com.subreax.lightclient.data.device.DeviceRepository
-import com.subreax.lightclient.data.device.impl.FakeDeviceRepository
+import com.subreax.lightclient.data.device.impl.DeviceRepositoryImpl
 import com.subreax.lightclient.data.deviceapi.DeviceApi
 import com.subreax.lightclient.data.deviceapi.ble.BleDeviceApi
 import com.subreax.lightclient.data.state.ApplicationState
@@ -96,7 +96,7 @@ object AppModule {
         deviceApi: DeviceApi,
         uiLog: UiLog
     ): DeviceRepository {
-        return FakeDeviceRepository(syncController, deviceApi, uiLog)
+        return DeviceRepositoryImpl(syncController, deviceApi, uiLog)
     }
 
     @Singleton

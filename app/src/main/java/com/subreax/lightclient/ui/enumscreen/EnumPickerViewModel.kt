@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EnumPickerViewModel @Inject constructor(
-    private val deviceRepository: DeviceRepository,
+    deviceRepository: DeviceRepository,
     state: SavedStateHandle
 ) : ViewModel() {
     private val property: Property.Enum
@@ -33,6 +33,6 @@ class EnumPickerViewModel @Inject constructor(
     }
 
     fun select(index: Int) {
-        deviceRepository.setPropertyValue(property, index)
+        property.currentValue.value = index
     }
 }

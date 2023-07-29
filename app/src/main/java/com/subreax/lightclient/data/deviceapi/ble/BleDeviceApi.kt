@@ -46,8 +46,8 @@ class BleDeviceApi(context: Context) : DeviceApi {
     override val connectionStatus: Flow<DeviceApi.ConnectionStatus>
         get() = _connectionStatus
 
-    private val _propertiesChanged = MutableSharedFlow<DeviceApi.PropertyGroup>()
-    override val propertiesChanged: Flow<DeviceApi.PropertyGroup>
+    private val _propertiesChanged = MutableSharedFlow<DeviceApi.PropertyGroupId>()
+    override val propertiesChanged: Flow<DeviceApi.PropertyGroupId>
         get() = _propertiesChanged
 
 
@@ -93,7 +93,7 @@ class BleDeviceApi(context: Context) : DeviceApi {
     override fun getDeviceName() = device?.name ?: "Disconnected"
 
     override suspend fun getProperties(
-        group: DeviceApi.PropertyGroup,
+        group: DeviceApi.PropertyGroupId,
         progress: MutableStateFlow<Float>
     ): LResult<List<Property>> = withContext(Dispatchers.IO) {
         doRequest(FunctionId.GetPropertiesFromGroup, { put(group.ordinal.toByte()) }) { response ->
@@ -122,7 +122,7 @@ class BleDeviceApi(context: Context) : DeviceApi {
         }
     }
 
-    private suspend fun getPropertiesIds(group: DeviceApi.PropertyGroup): LResult<Array<Int>> {
+    private suspend fun getPropertiesIds(group: DeviceApi.PropertyGroupId): LResult<Array<Int>> {
         return doRequest(
             FunctionId.GetPropertiesIdsByGroup,
             { put(group.ordinal.toByte()) }

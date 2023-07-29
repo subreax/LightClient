@@ -11,9 +11,4 @@ interface DeviceRepository {
 
     suspend fun getDeviceName(): String
     fun getPropertyById(id: Int): LResult<Property>
-    fun setPropertyValue(property: Property.Bool, value: Boolean)
-    fun setPropertyValue(property: Property.BaseFloat, value: Float)
-    fun setPropertyValue(property: Property.BaseInt, value: Int)
-    fun setPropertyValue(property: Property.Color, value: Int)
-    fun setPropertyValue(property: Property.Enum, value: Int)
 }
