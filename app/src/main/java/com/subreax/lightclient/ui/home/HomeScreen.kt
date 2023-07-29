@@ -7,10 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -19,11 +18,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.state.AppStateId
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
+import java.util.Calendar
 
 @Composable
 fun HomeScreen(
@@ -83,22 +84,23 @@ fun HomeScreen(
     sceneProperties: List<Property>,
     propertyCallback: PropertyCallback
 ) {
-    val greeting = "Добрых вечеров!"
     val connectedDeviceInfo = buildAnnotatedString {
         when (appState) {
             AppStateId.Ready -> {
-                append("Выполнено подключение к контроллеру ")
+                append(stringResource(R.string.connected_to))
             }
-            AppStateId.Connecting -> {
-                append("Переподключение к контроллеру ")
+            AppStateId.Reconnecting -> {
+                append(stringResource(R.string.reconnecting_to))
             }
             AppStateId.Syncing -> {
-                append("Синхронизация с контроллером ")
+                append(stringResource(R.string.syncing_with))
             }
             else -> {
                 append("$appState ")
             }
         }
+
+        append("\n")
 
         withStyle(SpanStyle(color = LocalContentColor.current.copy(alpha = ContentAlpha.high))) {
             append(deviceName)
@@ -111,37 +113,46 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState())
     ) {
         TopBar(
-            title = greeting,
+            title = getGreeting(),
             subtitle = { Text(text = connectedDeviceInfo) },
-            actions = {
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
-                }
-            },
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         PropertiesSection(
-            name = "Глобальные параметры",
+            name = stringResource(R.string.global_props),
             modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .fillMaxWidth(),
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(0.95f),
             spacing = 8.dp,
             properties = globalProperties,
             callback = propertyCallback
         )
+        Spacer(Modifier.height(16.dp))
 
         PropertiesSection(
-            name = "Параметры сцены",
+            name = stringResource(R.string.scene_props),
             modifier = Modifier
-                .padding(top = 8.dp, start = 8.dp, end = 8.dp)
-                .fillMaxWidth(),
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(0.95f),
             spacing = 8.dp,
             properties = sceneProperties,
             callback = propertyCallback
         )
 
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun getGreeting(): String {
+    val calendar = Calendar.getInstance()
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    return when (hour / 6) {
+        0 -> stringResource(R.string.greeing_at_night)
+        1 -> stringResource(R.string.greeting_at_morning)
+        2 -> stringResource(R.string.greeting_at_noon)
+        3 -> stringResource(R.string.greeting_at_evening)
+        else -> stringResource(R.string.greeting_unknown)
     }
 }
 
@@ -156,6 +167,10 @@ val PCF = Array<PropertyComposableFactory>(PropertyType.Count.ordinal) {
 
         PropertyType.FloatSlider.ordinal -> { prop, callback ->
             FloatSliderProperty(prop, callback)
+        }
+
+        PropertyType.FloatSmallHSlider.ordinal -> { prop, callback ->
+            FloatSmallHSliderProperty(prop, callback)
         }
 
         PropertyType.Color.ordinal -> { prop, callback ->
@@ -174,12 +189,16 @@ val PCF = Array<PropertyComposableFactory>(PropertyType.Count.ordinal) {
             IntSliderProperty(prop, callback)
         }
 
+        PropertyType.IntSmallHSlider.ordinal -> { prop, callback ->
+            IntSmallHSliderProperty(prop, callback)
+        }
+
         PropertyType.Bool.ordinal -> { prop, callback ->
-            ToggleProperty(prop, callback)
+            BoolProperty(prop, callback)
         }
 
         PropertyType.Special.ordinal -> { prop, callback ->
-            SpecLoadingProperty(prop, callback)
+            LoadingProperty(prop, callback)
         }
 
         else -> { _, _ -> }
@@ -206,12 +225,16 @@ fun PropertiesSection(
         Text(
             text = name,
             style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colors.primary,
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 8.dp)
+            color = LocalContentColorMediumAlpha,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
-        Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
-            for (prop in properties) {
-                Property(property = prop, callback = callback)
+
+        UniformGrid(
+            minCellSize = 48.dp,
+            spacing = spacing
+        ) {
+            properties.forEach {
+                Property(property = it, callback = callback)
             }
         }
     }
@@ -255,7 +278,7 @@ fun PropertyEditorDialog(
 @SuppressLint("UnrememberedMutableState")
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
-    widthDp = 360,
+    widthDp = 400,
     heightDp = 780,
     showBackground = true
 )
@@ -266,8 +289,8 @@ fun HomeScreenPreview() {
             appState = AppStateId.Ready,
             deviceName = "ESP32-Home",
             globalProperties = listOf(
-                Property.Enum(0, "Сцена", listOf("Smoke"), 0),
                 Property.FloatSlider(1, "Яркость", 0.0f, 100.0f, 42.0f),
+                Property.Enum(0, "Сцена", listOf("Smoke"), 0),
                 Property.Bool(2, "Датчик движения", true)
             ),
             sceneProperties = listOf(

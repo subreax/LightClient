@@ -1,4 +1,4 @@
-package com.subreax.lightclient.ui.home2
+package com.subreax.lightclient.ui.home
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
@@ -49,7 +49,6 @@ import com.subreax.lightclient.ui.UniformGrid
 import com.subreax.lightclient.ui.UniformGridScope.Companion.span
 import com.subreax.lightclient.ui.colorpicker.ColorDisplay2
 import com.subreax.lightclient.ui.colorpicker.lerp
-import com.subreax.lightclient.ui.home.PropertyCallback
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -214,7 +213,7 @@ private fun BaseTextValueProperty(
 
 
 @Composable
-fun IntProperty2(
+fun IntProperty(
     name: String,
     value: Int,
     onClick: () -> Unit,
@@ -229,11 +228,11 @@ fun IntProperty2(
 }
 
 @Composable
-fun IntProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun IntProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.IntNumber
     val value by property.current.collectAsState()
 
-    IntProperty2(
+    IntProperty(
         name = property.name,
         value = value,
         onClick = { callback.intClicked(property) },
@@ -243,7 +242,7 @@ fun IntProperty2(baseProperty: Property, callback: PropertyCallback) {
 
 
 @Composable
-fun FloatProperty2(
+fun FloatProperty(
     name: String,
     value: Float,
     onClick: () -> Unit,
@@ -258,11 +257,11 @@ fun FloatProperty2(
 }
 
 @Composable
-fun FloatProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun FloatProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.BaseFloat
     val value by property.current.collectAsState()
 
-    FloatProperty2(
+    FloatProperty(
         name = property.name,
         value = value,
         onClick = { callback.floatClicked(property) },
@@ -271,7 +270,7 @@ fun FloatProperty2(baseProperty: Property, callback: PropertyCallback) {
 }
 
 @Composable
-fun BoolProperty2(
+fun BoolProperty(
     name: String,
     value: Boolean,
     onClick: (Boolean) -> Unit,
@@ -292,11 +291,11 @@ fun BoolProperty2(
 }
 
 @Composable
-fun BoolProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun BoolProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.Bool
     val value by property.toggled.collectAsState()
 
-    BoolProperty2(
+    BoolProperty(
         name = property.name,
         value = value,
         onClick = { callback.toggleChanged(property, it) },
@@ -306,7 +305,7 @@ fun BoolProperty2(baseProperty: Property, callback: PropertyCallback) {
 
 
 @Composable
-fun EnumProperty2(
+fun EnumProperty(
     name: String,
     value: String,
     onClick: () -> Unit,
@@ -316,7 +315,7 @@ fun EnumProperty2(
 }
 
 @Composable
-fun EnumProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun EnumProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.Enum
     val valueIdx by property.currentValue.collectAsState()
     val value =
@@ -325,7 +324,7 @@ fun EnumProperty2(baseProperty: Property, callback: PropertyCallback) {
         else
             "Unknown value: $valueIdx"
 
-    EnumProperty2(
+    EnumProperty(
         name = property.name,
         value = value,
         onClick = { callback.enumClicked(property) },
@@ -335,7 +334,7 @@ fun EnumProperty2(baseProperty: Property, callback: PropertyCallback) {
 
 
 @Composable
-fun BaseSliderProperty2(
+fun BaseSliderProperty(
     name: String,
     displayedValue: String,
     progress: Float,
@@ -382,7 +381,7 @@ fun BaseSliderProperty2(
 private fun round2(value: Float) = round(value * 100f) / 100f
 
 @Composable
-fun FloatSliderProperty2(
+fun FloatSliderProperty(
     name: String,
     value: Float,
     min: Float,
@@ -392,7 +391,7 @@ fun FloatSliderProperty2(
 ) {
     val progress = ((value - min) / (max - min)).coerceIn(0f, 1f)
 
-    BaseSliderProperty2(
+    BaseSliderProperty(
         name = name,
         displayedValue = "${round2(value)}",
         progress = progress,
@@ -402,11 +401,11 @@ fun FloatSliderProperty2(
 }
 
 @Composable
-fun FloatSliderProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun FloatSliderProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.BaseFloat
     val value by property.current.collectAsState()
 
-    FloatSliderProperty2(
+    FloatSliderProperty(
         name = property.name,
         value = value,
         min = property.min,
@@ -418,7 +417,7 @@ fun FloatSliderProperty2(baseProperty: Property, callback: PropertyCallback) {
 
 
 @Composable
-fun BaseSliderProperty2(
+fun BaseSliderProperty(
     orientation: Orientation,
     progress: Float,
     onProgressChanged: (Float) -> Unit,
@@ -470,7 +469,7 @@ fun BaseSliderProperty2(
 
 
 @Composable
-fun FloatSmallHSliderProperty2(
+fun FloatSmallHSliderProperty(
     name: String,
     value: Float,
     min: Float,
@@ -480,7 +479,7 @@ fun FloatSmallHSliderProperty2(
 ) {
     val progress = ((value - min) / (max - min)).coerceIn(0f, 1f)
 
-    BaseSliderProperty2(
+    BaseSliderProperty(
         orientation = Orientation.Horizontal,
         progress = progress,
         onProgressChanged = { onValueChanged(lerp(min, max, it)) },
@@ -491,11 +490,11 @@ fun FloatSmallHSliderProperty2(
 }
 
 @Composable
-fun FloatSmallHSliderProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun FloatSmallHSliderProperty(baseProperty: Property, callback: PropertyCallback) {
     val prop = baseProperty as Property.BaseFloat
     val value by prop.current.collectAsState()
 
-    FloatSmallHSliderProperty2(
+    FloatSmallHSliderProperty(
         name = prop.name,
         value = value,
         min = prop.min,
@@ -508,14 +507,14 @@ fun FloatSmallHSliderProperty2(baseProperty: Property, callback: PropertyCallbac
 }
 
 @Composable
-fun IntSliderProperty2(
+fun IntSliderProperty(
     name: String,
     progress: Float,
     value: Int,
     onProgressChanged: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BaseSliderProperty2(
+    BaseSliderProperty(
         name = name,
         displayedValue = "$value",
         progress = progress,
@@ -525,7 +524,7 @@ fun IntSliderProperty2(
 }
 
 @Composable
-fun IntSliderProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun IntSliderProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.IntSlider
     val min = property.min
     val max = property.max
@@ -534,7 +533,7 @@ fun IntSliderProperty2(baseProperty: Property, callback: PropertyCallback) {
     val progress0 = ((value - min).toFloat() / (max - min)).coerceIn(0f, 1f)
     var progress by remember { mutableStateOf(progress0) }
 
-    IntSliderProperty2(
+    IntSliderProperty(
         name = property.name,
         progress = progress,
         value = value,
@@ -550,14 +549,14 @@ fun IntSliderProperty2(baseProperty: Property, callback: PropertyCallback) {
 }
 
 @Composable
-fun IntSmallHSliderProperty2(
+fun IntSmallHSliderProperty(
     name: String,
     progress: Float,
     value: Int,
     onProgressChanged: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BaseSliderProperty2(
+    BaseSliderProperty(
         orientation = Orientation.Horizontal,
         progress = progress,
         onProgressChanged = onProgressChanged,
@@ -568,7 +567,7 @@ fun IntSmallHSliderProperty2(
 }
 
 @Composable
-fun IntSmallHSliderProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun IntSmallHSliderProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.BaseInt
     val min = property.min
     val max = property.max
@@ -577,7 +576,7 @@ fun IntSmallHSliderProperty2(baseProperty: Property, callback: PropertyCallback)
     val progress0 = ((value - min).toFloat() / (max - min)).coerceIn(0f, 1f)
     var progress by remember { mutableStateOf(progress0) }
 
-    IntSmallHSliderProperty2(
+    IntSmallHSliderProperty(
         name = property.name,
         progress = progress,
         value = value,
@@ -594,7 +593,7 @@ fun IntSmallHSliderProperty2(baseProperty: Property, callback: PropertyCallback)
 
 
 @Composable
-fun ColorProperty2(
+fun ColorProperty(
     name: String,
     color: Color,
     onClick: () -> Unit,
@@ -644,12 +643,12 @@ fun ColorProperty2(
 }
 
 @Composable
-fun ColorProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun ColorProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.Color
     val intColor by property.color.collectAsState()
     val value = Color(intColor)
 
-    ColorProperty2(
+    ColorProperty(
         name = property.name,
         color = value,
         onClick = { callback.colorPropertyClicked(property) },
@@ -659,7 +658,7 @@ fun ColorProperty2(baseProperty: Property, callback: PropertyCallback) {
 
 
 @Composable
-fun LoadingProperty2(progress: Float, modifier: Modifier = Modifier) {
+fun LoadingProperty(progress: Float, modifier: Modifier = Modifier) {
     BaseProperty(
         name = {
             SimpleName(name = stringResource(R.string.Loading))
@@ -674,17 +673,17 @@ fun LoadingProperty2(progress: Float, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun LoadingProperty2(baseProperty: Property, callback: PropertyCallback) {
+fun LoadingProperty(baseProperty: Property, callback: PropertyCallback) {
     val property = baseProperty as Property.SpecLoading
     val progress by property.progress.collectAsState()
 
-    LoadingProperty2(progress = progress, modifier = Modifier.span(horizontal = 4, vertical = 2))
+    LoadingProperty(progress = progress, modifier = Modifier.span(horizontal = 4, vertical = 2))
 }
 
 
 @Preview(widthDp = 500, heightDp = 500, uiMode = UI_MODE_NIGHT_YES)
 @Composable
-fun Properties2Preview() {
+fun PropertiesPreview() {
     LightClientTheme {
         Box(
             Modifier
@@ -693,7 +692,7 @@ fun Properties2Preview() {
                 .padding(4.dp)
         ) {
             UniformGrid(minCellSize = 50.dp, modifier = Modifier.fillMaxSize()) {
-                FloatSliderProperty2(
+                FloatSliderProperty(
                     name = "Q15 Slider",
                     value = 0.5f,
                     min = 0f,
@@ -701,32 +700,32 @@ fun Properties2Preview() {
                     onValueChanged = {},
                     modifier = Modifier.span(horizontal = 2, vertical = 4)
                 )
-                IntSliderProperty2(
+                IntSliderProperty(
                     name = "Int Slider",
                     progress = 0.67f,
                     value = 8,
                     onProgressChanged = {},
                     modifier = Modifier.span(2, 4)
                 )
-                EnumProperty2(
+                EnumProperty(
                     name = "Enum",
                     value = "Value Name",
                     onClick = {},
                     modifier = Modifier.span(horizontal = 4, vertical = 2)
                 )
-                ColorProperty2(
+                ColorProperty(
                     name = "Color",
                     color = Color(0xff0098ff),
                     onClick = {},
                     modifier = Modifier.span(2, 2)
                 )
-                BoolProperty2(
+                BoolProperty(
                     name = "Bool",
                     value = true,
                     onClick = {},
                     modifier = Modifier.span(2, 2)
                 )
-                FloatSmallHSliderProperty2(
+                FloatSmallHSliderProperty(
                     name = "Q15 Small HSlider",
                     value = 0.33f,
                     min = 0f,
@@ -735,14 +734,14 @@ fun Properties2Preview() {
                     modifier = Modifier.span(horizontal = 4, vertical = 1)
                 )
 
-                FloatProperty2(
+                FloatProperty(
                     name = "Q15",
                     value = 0.5345f,
                     onClick = { },
                     modifier = Modifier.span(2, 2)
                 )
 
-                IntSmallHSliderProperty2(
+                IntSmallHSliderProperty(
                     name = "Int Small HSlider",
                     progress = 0.67f,
                     value = 4,
@@ -750,7 +749,7 @@ fun Properties2Preview() {
                     modifier = Modifier.span(4, 1)
                 )
 
-                IntProperty2(
+                IntProperty(
                     name = "Int", value = 24, onClick = {}, modifier = Modifier.span(2, 2)
                 )
 
