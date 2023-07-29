@@ -159,7 +159,7 @@ private fun getGreeting(): String {
 
 typealias PropertyComposableFactory = @Composable (prop: Property, callback: PropertyCallback) -> Unit
 
-val PCF = Array<PropertyComposableFactory>(PropertyType.Count.ordinal) {
+val PCF = Array<PropertyComposableFactory>(PropertyType.values().size) {
     when (it) {
         PropertyType.FloatNumber.ordinal -> { prop, callback ->
             FloatProperty(prop, callback)

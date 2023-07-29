@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 enum class PropertyType {
-    Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, Special, Count
+    Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, Special
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
