@@ -109,10 +109,14 @@ class BleLightDevice(
             val eventId = buf.get().toInt()
             if (eventId == 0) {
                 val groupId = buf.get().toInt()
-                val group = DeviceApi.PropertyGroupId.values()[groupId]
-
-                Log.v(TAG, "### new event: Properties Changed")
-                _events.emit(BleLightEvent.PropertiesChanged(group))
+                if (groupId < DeviceApi.PropertyGroupId.values().size) {
+                    val group = DeviceApi.PropertyGroupId.values()[groupId]
+                    Log.v(TAG, "### new event: Properties Changed")
+                    _events.emit(BleLightEvent.PropertiesChanged(group))
+                }
+                else {
+                    Log.e(TAG, "PropertyGroupId is out of range")
+                }
             }
         } catch (ex: BufferUnderflowException) {
             Log.e(TAG, "Failed to handle event ${buf.toPrettyString(0, buf.limit())}")
