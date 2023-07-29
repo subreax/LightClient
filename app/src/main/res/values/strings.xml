@@ -27,8 +27,8 @@
     <string name="failed_to_deserialize_prop_value">Не удалось десериализировать значение параметра %s</string>
     <string name="enum_prop_should_have_at_least_1_enum">Не удалось десериализовать информацию о параметре %s: перечисление должно содержать как минимум 1 элемент</string>
     <string name="enum_prop_value_is_out_of_bounds">Не удалось </string>
-    <string name="connected_to">Выполнено подключение к контроллеру &#032;</string>
-    <string name="reconnecting_to">Переподключение к контроллеру &#032;</string>
+    <string name="connected_to">"Выполнено подключение к контроллеру "</string>
+    <string name="reconnecting_to">"Переподключение к контроллеру "</string>
     <string name="syncing_with">"Синхронизация с контроллером "</string>
     <string name="global_props">Глобальные параметры</string>
     <string name="scene_props">Параметры сцены</string>

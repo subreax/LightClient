@@ -102,6 +102,8 @@ fun HomeScreen2(
             }
         }
 
+        append("\n")
+
         withStyle(SpanStyle(color = LocalContentColor.current.copy(alpha = ContentAlpha.high))) {
             append(deviceName)
         }
