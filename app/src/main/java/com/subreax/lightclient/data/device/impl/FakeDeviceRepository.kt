@@ -33,7 +33,6 @@ class FakeDeviceRepository @Inject constructor(
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     init {
-        Log.d(TAG, "FakeDeviceRepository init")
         syncController.addAction {
             propertyListenerJobs.forEach {
                 it.value.cancel()
@@ -150,7 +149,7 @@ class FakeDeviceRepository @Inject constructor(
             }
 
             else -> {
-                scope.launch {  }
+                scope.launch { }
             }
         }
 
@@ -225,7 +224,8 @@ class FakeDeviceRepository @Inject constructor(
         _sceneProperties.value = listOf(loadingProperty)
 
         val props: List<Property>
-        val result2 = deviceApi.getProperties(DeviceApi.PropertyGroup.Scene, loadingProperty.progress)
+        val result2 =
+            deviceApi.getProperties(DeviceApi.PropertyGroup.Scene, loadingProperty.progress)
         if (result2 is LResult.Success) {
             props = result2.value
         } else {
@@ -243,6 +243,6 @@ class FakeDeviceRepository @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "FakeDeviceRepository"
+        private const val TAG = "DeviceRepositoryImpl"
     }
 }

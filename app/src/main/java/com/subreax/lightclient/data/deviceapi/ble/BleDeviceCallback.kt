@@ -5,16 +5,16 @@ import android.util.Log
 import com.welie.blessed.BluetoothPeripheral
 import com.welie.blessed.BluetoothPeripheralCallback
 import com.welie.blessed.GattStatus
+import kotlinx.coroutines.channels.Channel
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-
-typealias OnPacketListener = (data: ByteBuffer) -> Unit
-typealias OnEventListener = (data: ByteBuffer) -> Unit
-
 class BleDeviceCallback : BluetoothPeripheralCallback() {
-    private val packetListeners = mutableListOf<OnPacketListener>()
-    private val eventListeners = mutableListOf<OnEventListener>()
+    val packetChannel = Channel<ByteBuffer>(Channel.UNLIMITED)
+    val eventChannel = Channel<ByteBuffer>(Channel.UNLIMITED)
+    var receivePackets = false
+    var receiveEvents = false
+
 
     override fun onCharacteristicUpdate(
         peripheral: BluetoothPeripheral,
@@ -31,46 +31,25 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
             .order(ByteOrder.LITTLE_ENDIAN)
 
         when (characteristic.uuid) {
-            DeviceConnection.RESPONSE_CHARACTERISTIC_UUID -> {
-                emitOnPacket(buf)
+            BleLightConnector.RESPONSE_CHARACTERISTIC_UUID -> {
+                if (receivePackets) {
+                    packetChannel.trySend(buf)
+                }
             }
-            DeviceConnection.EVENT_CHARACTERISTIC_UUID -> {
-                emitOnEvent(buf)
+
+            BleLightConnector.EVENT_CHARACTERISTIC_UUID -> {
+                if (receiveEvents) {
+                    eventChannel.trySend(buf)
+                }
             }
-        }
-    }
 
-    fun addPacketListener(listener: OnPacketListener): OnPacketListener {
-        packetListeners.add(listener)
-        return listener
-    }
-
-    fun removePacketListener(listener: OnPacketListener) {
-        packetListeners.remove(listener)
-    }
-
-    fun addEventListener(listener: OnEventListener): OnEventListener {
-        eventListeners.add(listener)
-        return listener
-    }
-
-    fun removeEventListener(listener: OnEventListener) {
-        eventListeners.remove(listener)
-    }
-
-    private fun emitOnPacket(buf: ByteBuffer) {
-        packetListeners.forEach { listener ->
-            listener(buf)
-        }
-    }
-
-    private fun emitOnEvent(buf: ByteBuffer) {
-        eventListeners.forEach { listener ->
-            listener(buf)
+            else -> {
+                Log.w(TAG, "Unknown data")
+            }
         }
     }
 
     companion object {
-        private const val TAG = "BleDeviceCallback"
+        private const val TAG = "BleDeviceCallback2"
     }
 }
