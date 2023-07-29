@@ -9,11 +9,13 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.subreax.lightclient.R
 import com.subreax.lightclient.ui.theme.LightClientTheme
 
 @Composable
@@ -34,7 +36,7 @@ fun TopBar(
             IconButton(onClick = navBack, modifier = Modifier.padding(end = 8.dp)) {
                 Icon(
                     Icons.Filled.ChevronLeft,
-                    contentDescription = "Go back",
+                    contentDescription = stringResource(R.string.go_back),
                     modifier = Modifier.size(32.dp)
                 )
             }

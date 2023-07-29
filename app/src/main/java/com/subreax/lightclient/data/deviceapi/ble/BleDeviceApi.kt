@@ -3,6 +3,7 @@ package com.subreax.lightclient.data.deviceapi.ble
 import android.content.Context
 import android.util.Log
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.PropertyType
@@ -76,7 +77,6 @@ class BleDeviceApi(context: Context) : DeviceApi {
     }
 
     override suspend fun disconnect(): LResult<Unit> = withContext(Dispatchers.IO) {
-
         device?.disconnect()
         onDisconnect()
         _connectionStatus.emit(DeviceApi.ConnectionStatus.Disconnected)
@@ -155,7 +155,7 @@ class BleDeviceApi(context: Context) : DeviceApi {
         buf.position(4) // skip reading id
         val typeInt = buf.get().toInt()
         if (typeInt >= PropertyType.values().size) {
-            return LResult.Failure("Unsupported property type: $typeInt")
+            return LResult.Failure(R.string.unknown_prop_type, typeInt)
         }
         val type = PropertyType.values()[typeInt]
 
@@ -169,7 +169,7 @@ class BleDeviceApi(context: Context) : DeviceApi {
         val id = buf.getInt()
         val typeInt = buf.get().toInt()
         if (typeInt >= PropertyType.values().size) {
-            return LResult.Failure("Unsupported property type: $typeInt")
+            return LResult.Failure(R.string.unknown_prop_type, typeInt)
         }
         val type = PropertyType.values()[typeInt]
 
@@ -252,7 +252,7 @@ class BleDeviceApi(context: Context) : DeviceApi {
         exec: suspend LightDevice.(LightDevice.Request) -> LResult<T>
     ): LResult<T> = withContext(Dispatchers.IO) {
         val request = LightDevice.Request(fnId, onWriteBody)
-        val notNullDevice = device ?: return@withContext LResult.Failure("Disconnected")
+        val notNullDevice = device ?: return@withContext LResult.Failure(R.string.failed_to_perform_request_disconnected)
         exec(notNullDevice, request)
     }
 

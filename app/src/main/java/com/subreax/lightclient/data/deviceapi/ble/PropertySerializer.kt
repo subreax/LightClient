@@ -2,6 +2,7 @@ package com.subreax.lightclient.data.deviceapi.ble
 
 import android.graphics.Color
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.utils.getUtf8String
 import java.nio.BufferUnderflowException
@@ -21,7 +22,7 @@ abstract class BaseFloatSerializer : PropertySerializer {
         value: Float,
         min: Float,
         max: Float
-    ) : Property.BaseFloat
+    ): Property.BaseFloat
 
     override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
         return try {
@@ -31,7 +32,7 @@ abstract class BaseFloatSerializer : PropertySerializer {
                 createProperty(id, name, min, min, max)
             )
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure("No info provided for min and max values")
+            LResult.Failure(R.string.no_info_provided_for_min_and_max_values, name)
         }
     }
 
@@ -56,7 +57,7 @@ abstract class BaseFloatSerializer : PropertySerializer {
             frp.current.value = value
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure("No value")
+            LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
         }
     }
 }
@@ -117,7 +118,7 @@ class ColorPropertySerializer : PropertySerializer {
             colorProp.color.value = buf.getInt()
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure("No value")
+            LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
         }
     }
 }
@@ -130,7 +131,7 @@ class EnumPropertySerializer : PropertySerializer {
         try {
             val count = buf.getShort().toInt()
             if (count == 0) {
-                return LResult.Failure("Enum should have at least 1 enumerator")
+                return LResult.Failure(R.string.enum_prop_should_have_at_least_1_enum, name)
             }
 
             for (i in 0 until count) {
@@ -139,7 +140,7 @@ class EnumPropertySerializer : PropertySerializer {
 
             return LResult.Success(Property.Enum(id, name, values, 0))
         } catch (ex: BufferUnderflowException) {
-            return LResult.Failure("Failed to read enum property")
+            return LResult.Failure(R.string.failed_to_deserialize_prop_info, name)
         }
     }
 
@@ -158,17 +159,15 @@ class EnumPropertySerializer : PropertySerializer {
     override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
         val enumProp = target as Property.Enum
 
-        try {
-            val value = buf.getShort().toInt()
+        return try {
+            var value = buf.getShort().toInt()
             if (value >= enumProp.values.size) {
-                return LResult.Failure(
-                    "Enum value should be in range 0..${enumProp.values.size}, but actual is $value"
-                )
+                value = enumProp.values.size - 1
             }
             enumProp.currentValue.value = value
-            return LResult.Success(Unit)
+            LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            return LResult.Failure("No value")
+            LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
         }
     }
 }
@@ -190,7 +189,7 @@ abstract class BaseIntPropertySerializer : PropertySerializer {
                 createProperty(id, name, min, min, max)
             )
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure("No info provided for min and max values")
+            LResult.Failure(R.string.no_info_provided_for_min_and_max_values, name)
         }
     }
 
@@ -210,7 +209,7 @@ abstract class BaseIntPropertySerializer : PropertySerializer {
             intProp.current.value = buf.getInt()
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure("No value")
+            LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
         }
     }
 }
@@ -273,7 +272,7 @@ class BoolPropertySerializer : PropertySerializer {
             (target as Property.Bool).toggled.value = value
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
-            LResult.Failure("Failed to read bool value")
+            LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
         }
     }
 

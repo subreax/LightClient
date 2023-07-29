@@ -239,9 +239,10 @@ class BleLightDevice(
             }
         } catch (ex: TimeoutCancellationException) {
             return if (packetsReceived == 0) {
-                LResult.Failure("Failed to receive response")
+                LResult.Failure(R.string.failed_to_receive_response)
             } else {
-                LResult.Failure("Failed to receive response: ${packetsReceived + 1}/$packetsCount")
+                //LResult.Failure("Failed to receive response: ${packetsReceived + 1}/$packetsCount")
+                LResult.Failure(R.string.failed_to_receive_response_due_to_packet_loss, packetsReceived+1, packetsCount)
             }
         }
 

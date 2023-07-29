@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.ui.LocalContentColorMediumAlpha
 import com.subreax.lightclient.ui.UniformGrid
@@ -660,7 +662,7 @@ fun ColorProperty2(baseProperty: Property, callback: PropertyCallback) {
 fun LoadingProperty2(progress: Float, modifier: Modifier = Modifier) {
     BaseProperty(
         name = {
-            SimpleName(name = "Загрузка...")
+            SimpleName(name = stringResource(R.string.Loading))
         },
         value = {
             Box(contentAlignment = Alignment.Center) {

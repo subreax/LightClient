@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -17,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.state.AppStateId
@@ -87,13 +89,13 @@ fun HomeScreen2(
     val connectedDeviceInfo = buildAnnotatedString {
         when (appState) {
             AppStateId.Ready -> {
-                append("Выполнено подключение к контроллеру ")
+                append(stringResource(R.string.connected_to))
             }
             AppStateId.Reconnecting -> {
-                append("Переподключение к контроллеру ")
+                append(stringResource(R.string.reconnecting_to))
             }
             AppStateId.Syncing -> {
-                append("Синхронизация с контроллером ")
+                append(stringResource(R.string.syncing_with))
             }
             else -> {
                 append("$appState ")
@@ -117,7 +119,7 @@ fun HomeScreen2(
         )
 
         PropertiesSection(
-            name = "Глобальные параметры",
+            name = stringResource(R.string.global_props),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(0.95f),
@@ -128,7 +130,7 @@ fun HomeScreen2(
         Spacer(Modifier.height(16.dp))
 
         PropertiesSection(
-            name = "Параметры сцены",
+            name = stringResource(R.string.scene_props),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(0.95f),
@@ -141,15 +143,16 @@ fun HomeScreen2(
     }
 }
 
+@Composable
 private fun getGreeting(): String {
     val calendar = Calendar.getInstance()
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
     return when (hour / 6) {
-        0 -> "Какие люди нарисовались!"
-        1 -> "Доброе утро!"
-        2 -> "Добрый день!"
-        3 -> "Добрых вечеров!"
-        else -> "Какая нечистая тебя притащила?"
+        0 -> stringResource(R.string.greeing_at_night)
+        1 -> stringResource(R.string.greeting_at_morning)
+        2 -> stringResource(R.string.greeting_at_noon)
+        3 -> stringResource(R.string.greeting_at_evening)
+        else -> stringResource(R.string.greeting_unknown)
     }
 }
 

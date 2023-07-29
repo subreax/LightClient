@@ -13,9 +13,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.subreax.lightclient.R
 import com.subreax.lightclient.ui.TopBar
 import com.subreax.lightclient.ui.theme.LightClientTheme
 
@@ -47,7 +49,7 @@ fun EnumScreen(
     Column {
         TopBar(
             title = propertyName,
-            subtitle = { Text("Выбирай нужный пункт") },
+            subtitle = { Text(stringResource(R.string.select_an_item)) },
             navBack = navBack
         )
 

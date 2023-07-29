@@ -89,27 +89,16 @@ class BleLightConnector(appContext: Context) {
 
     private fun findCharacteristics(peripheral: BluetoothPeripheral): LResult<DeviceCharacteristics> {
         val bleService = peripheral.getService(SERVICE_UUID)
-        if (bleService == null) {
-            return LResult.Failure("Service not found")
-        }
+            ?: return LResult.Failure(R.string.service_not_found)
 
         val bleReqCharacteristic = bleService.getCharacteristic(REQUEST_CHARACTERISTIC_UUID)
-        if (bleReqCharacteristic == null) {
-            return LResult.Failure("Request Characteristic not found")
-        }
+            ?: return LResult.Failure(R.string.request_characteristic_not_found)
 
-        val bleResCharacteristic =
-            bleService.getCharacteristic(RESPONSE_CHARACTERISTIC_UUID)
-        if (bleResCharacteristic == null) {
-            return LResult.Failure("Response Characteristic not found")
-        }
+        val bleResCharacteristic = bleService.getCharacteristic(RESPONSE_CHARACTERISTIC_UUID)
+            ?: return LResult.Failure(R.string.response_characteristic_not_found)
 
-        val bleEventCharacteristic =
-            bleService.getCharacteristic(EVENT_CHARACTERISTIC_UUID)
-
-        if (bleEventCharacteristic == null) {
-            return LResult.Failure("Event Characteristic not found")
-        }
+        val bleEventCharacteristic = bleService.getCharacteristic(EVENT_CHARACTERISTIC_UUID)
+            ?: return LResult.Failure(R.string.event_characteristic_not_found)
 
         return LResult.Success(
             DeviceCharacteristics(

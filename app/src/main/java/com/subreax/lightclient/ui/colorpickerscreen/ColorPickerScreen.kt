@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.subreax.lightclient.R
 import com.subreax.lightclient.ui.TopBar
 import com.subreax.lightclient.ui.colorpicker.ColorPicker
 import com.subreax.lightclient.ui.colorpicker.HSVColor
@@ -43,7 +45,7 @@ fun ColorPickerScreen(
         TopBar(
             title = colorName,
             subtitle = {
-                Text("Изменение цвета")
+                Text(stringResource(R.string.choose_a_color))
             },
             navBack = navBack
         )

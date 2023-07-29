@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.subreax.lightclient.R
 import com.subreax.lightclient.round4
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlinx.coroutines.delay
@@ -67,14 +69,14 @@ fun BasePropertyEditorDialog(
         Surface(shape = RoundedCornerShape(16.dp)) {
             PropertyEditorDialogLayout(
                 title = propertyName,
-                subtitle = "Редактирование значения",
+                subtitle = stringResource(R.string.edit_value),
                 submitButton = {
                     TextButton(
                         onClick = {
                             submitAction()
                         }
                     ) {
-                        Text("Установить")
+                        Text(stringResource(R.string.set))
                     }
                 },
                 onClose = onClose
@@ -139,7 +141,7 @@ fun PropertyEditorDialogLayout(
         }
 
         IconButton(onClick = onClose, Modifier.align(Alignment.TopEnd)) {
-            Icon(Icons.Filled.Close, "Close")
+            Icon(Icons.Filled.Close, stringResource(R.string.close))
         }
     }
 }
