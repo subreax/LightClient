@@ -1,19 +1,23 @@
 package com.subreax.lightclient.ui.connection
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.R
-import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.DeviceDesc
-import com.subreax.lightclient.data.state.AppStateId
-import com.subreax.lightclient.data.state.ApplicationState
+import com.subreax.lightclient.data.connection.ConnectionProgress
+import com.subreax.lightclient.data.connection.ConnectionRepository
+import com.subreax.lightclient.ui.UiLog
 import com.subreax.lightclient.ui.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class ErrorMsg(
@@ -24,7 +28,7 @@ data class ErrorMsg(
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
     private val connectionRepository: ConnectionRepository,
-    private val appState: ApplicationState
+    private val uiLog: UiLog
 ) : ViewModel() {
     data class UiState(
         val loading: Boolean,
@@ -45,35 +49,12 @@ class ConnectionViewModel @Inject constructor(
     )
         private set
 
-    val navHome = MutableSharedFlow<DeviceDesc>()
-
-    private var selectedDevice: DeviceDesc? = null
+    private val _navHome = MutableSharedFlow<DeviceDesc>()
+    val navHome: Flow<DeviceDesc>
+        get() = _navHome
 
 
     init {
-        viewModelScope.launch {
-            appState.stateId.collect {
-                when (it) {
-                    AppStateId.WaitingForConnectivity -> {
-                        uiState = uiState.copy(waitingForConnectivity = true, devices = emptyList())
-                    }
-                    AppStateId.Disconnected -> {
-                        uiState = uiState.copy(waitingForConnectivity = false, loading = false)
-                    }
-                    AppStateId.Connecting -> {
-                        uiState = uiState.copy(
-                            loading = true,
-                            loadingMsg = UiText.Res(R.string.connecting_to, selectedDevice?.name ?: "unknown")
-                        )
-                    }
-                    AppStateId.Syncing -> {
-                        uiState = uiState.copy(loadingMsg = UiText.Res(R.string.fetching_data))
-                    }
-                    else -> {  }
-                }
-            }
-        }
-
         viewModelScope.launch {
             connectionRepository.devices.collect { devices ->
                 uiState = uiState.copy(devices = devices)
@@ -82,11 +63,41 @@ class ConnectionViewModel @Inject constructor(
     }
 
     fun connect(deviceDesc: DeviceDesc) {
-        selectedDevice = deviceDesc
-
-
         viewModelScope.launch {
-            connectionRepository.selectDevice(deviceDesc)
+            withContext(Dispatchers.IO) {
+                connectionRepository.connect(deviceDesc).collect {
+                    Log.d(TAG, "connect state changed: $it")
+                    when (it) {
+                        ConnectionProgress.Connecting -> {
+                            uiState = uiState.copy(
+                                loading = true,
+                                loadingMsg = UiText.Res(R.string.connecting_to, deviceDesc.name)
+                            )
+                        }
+
+                        ConnectionProgress.Fetching -> {
+                            uiState = uiState.copy(
+                                loading = true,
+                                loadingMsg = UiText.Res(R.string.fetching_data)
+                            )
+                        }
+
+                        ConnectionProgress.Done -> {
+                            _navHome.emit(deviceDesc)
+                        }
+
+                        ConnectionProgress.FailedToConnect,
+                        ConnectionProgress.NoConnectivity -> {
+                            uiState = uiState.copy(loading = false)
+                            uiLog.e(UiText.Res(R.string.failed_to_connect, deviceDesc.name))
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    companion object {
+        private const val TAG = "ConnectionViewModel"
     }
 }

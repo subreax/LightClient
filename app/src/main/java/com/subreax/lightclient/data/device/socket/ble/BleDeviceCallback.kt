@@ -1,4 +1,4 @@
-package com.subreax.lightclient.data.deviceapi.ble
+package com.subreax.lightclient.data.device.socket.ble
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.util.Log
@@ -11,10 +11,6 @@ import java.nio.ByteOrder
 
 class BleDeviceCallback : BluetoothPeripheralCallback() {
     val packetChannel = Channel<ByteBuffer>(Channel.UNLIMITED)
-    val eventChannel = Channel<ByteBuffer>(Channel.UNLIMITED)
-    var receivePackets = false
-    var receiveEvents = false
-
 
     override fun onCharacteristicUpdate(
         peripheral: BluetoothPeripheral,
@@ -26,27 +22,22 @@ class BleDeviceCallback : BluetoothPeripheralCallback() {
             Log.w(TAG, "${characteristic.uuid}: value is null")
         }
 
+        if (value?.size == 0) {
+            Log.w(TAG, "${characteristic.uuid}: empty value")
+            return
+        }
+
         val buf = ByteBuffer
             .wrap(value!!)
             .order(ByteOrder.LITTLE_ENDIAN)
 
-        when (characteristic.uuid) {
-            BleLightConnector.RESPONSE_CHARACTERISTIC_UUID -> {
-                if (receivePackets) {
-                    packetChannel.trySend(buf)
-                }
-            }
-
-            BleLightConnector.EVENT_CHARACTERISTIC_UUID -> {
-                if (receiveEvents) {
-                    eventChannel.trySend(buf)
-                }
-            }
-
-            else -> {
-                Log.w(TAG, "Unknown data")
-            }
+        if (characteristic.uuid == BleConnector.RESPONSE_CHARACTERISTIC_UUID) {
+            sendPacket(buf)
         }
+    }
+
+    private fun sendPacket(buf: ByteBuffer) {
+        packetChannel.trySend(buf)
     }
 
     companion object {

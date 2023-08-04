@@ -1,4 +1,4 @@
-package com.subreax.lightclient.data.deviceapi.ble
+package com.subreax.lightclient.data.device.api.bin
 
 enum class FunctionId {
     GetPropertyInfoById,

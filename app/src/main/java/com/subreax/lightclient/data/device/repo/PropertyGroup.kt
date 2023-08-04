@@ -1,9 +1,9 @@
-package com.subreax.lightclient.data.device.impl
+package com.subreax.lightclient.data.device.repo
 
 import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.data.deviceapi.DeviceApi
+import com.subreax.lightclient.data.device.api.DeviceApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlin.coroutines.coroutineContext
 
 class PropertyGroup(
-    val id: DeviceApi.PropertyGroupId,
-    private val deviceApi: DeviceApi
+    val id: Id,
+    private val api: DeviceApi
 ) {
+    enum class Id { General, Scene }
+
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     private val _props = MutableStateFlow<List<Property>>(emptyList())
@@ -24,7 +26,7 @@ class PropertyGroup(
     fun set(props: List<Property>) {
         stopSendingValueChanges()
         props.forEach {
-            it.startSendingValueChanges(coroutineScope, deviceApi)
+            it.startSendingValueChanges(coroutineScope, api)
         }
         _props.value = props
     }
@@ -44,13 +46,13 @@ class PropertyGroup(
         }
     }
 
-    suspend fun sync(): LResult<Unit> {
+    suspend fun fetch(): LResult<Unit> {
         Log.v(TAG, "[PropertyGroup $id] Sync started...")
 
         val loadingProperty = Property.SpecLoading(0f)
         set(listOf(loadingProperty))
 
-        val propsResult = deviceApi.getProperties(id, loadingProperty.progress)
+        val propsResult = api.getPropertiesFromGroup(id)
         return if (propsResult is LResult.Success) {
             coroutineContext.ensureActive()
             set(propsResult.value)

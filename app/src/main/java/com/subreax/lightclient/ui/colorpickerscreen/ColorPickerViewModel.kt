@@ -1,13 +1,13 @@
 package com.subreax.lightclient.ui.colorpickerscreen
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.subreax.lightclient.LResult
 import com.subreax.lightclient.Screen
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.data.device.DeviceRepository
+import com.subreax.lightclient.data.device.repo.DeviceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -16,24 +16,22 @@ class ColorPickerViewModel @Inject constructor(
     deviceRepository: DeviceRepository,
     state: SavedStateHandle
 ) : ViewModel() {
+    private val device = deviceRepository.getDevice()
     private val property: Property.Color
 
     val propertyName: String
+        get() = property.name
+
     val propertyColor: Color
+        get() = Color(property.color.value)
 
     init {
         val propId: Int = state[Screen.ColorPicker.propertyIdArg]!!
-        val propertyResult = deviceRepository.getPropertyById(propId)
-        if (propertyResult is LResult.Success) {
-            property = propertyResult.value as Property.Color
-            propertyName = property.name
+        val genericProp = device.findPropertyById(propId)
+        if (genericProp == null) {
+            Log.e("ColorPickerVM", "Failed to find property with id $propId")
         }
-        else {
-            throw Exception((propertyResult as LResult.Failure).message.toString())
-        }
-
-        val intColor = property.color.value
-        propertyColor = Color(intColor)
+        property = genericProp!! as Property.Color
     }
 
     fun setColor(color: Color) {

@@ -17,17 +17,24 @@ sealed class LResult<out T>(val code: ReturnCode) {
                 : this(UiText.Res(res, *args), ReturnCode.Unspecified)
     }
 
-    fun <G> then(actionIfSuccess: () -> LResult<G>): LResult<G> {
+    suspend fun <G> then(actionIfSuccess: suspend (T) -> LResult<G>): LResult<G> {
         return if (this is Success) {
-            actionIfSuccess()
+            actionIfSuccess(this.value)
         } else
             this as Failure
     }
 
-    suspend fun <G> thenSuspend(actionIfSuccess: suspend () -> LResult<G>): LResult<G> {
-        return if (this is Success) {
-            actionIfSuccess()
-        } else
-            this as Failure
+    suspend fun onSuccess(actionIfSuccess: suspend (T) -> Unit): LResult<T> {
+        if (this is Success) {
+            actionIfSuccess(value)
+        }
+        return this
+    }
+
+    suspend fun onFailure(actionOnFailure: suspend (Failure) -> Unit): LResult<T> {
+        if (this is Failure) {
+            actionOnFailure(this)
+        }
+        return this
     }
 }

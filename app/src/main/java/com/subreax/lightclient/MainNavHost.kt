@@ -42,7 +42,13 @@ sealed class Screen(val route: String) {
 fun MainNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Screen.Connection.route) {
         composable(Screen.Connection.route) {
-            ConnectionScreen(navHome = {})
+            ConnectionScreen(navHome = {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(navController.currentDestination!!.route!!) {
+                        inclusive = true
+                    }
+                }
+            })
         }
 
         composable(Screen.Home.route) {

@@ -1,11 +1,11 @@
 package com.subreax.lightclient.ui.enumscreen
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.subreax.lightclient.LResult
 import com.subreax.lightclient.Screen
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.data.device.DeviceRepository
+import com.subreax.lightclient.data.device.repo.DeviceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -15,6 +15,7 @@ class EnumPickerViewModel @Inject constructor(
     deviceRepository: DeviceRepository,
     state: SavedStateHandle
 ) : ViewModel() {
+    private val device = deviceRepository.getDevice()
     private val property: Property.Enum
 
     val propertyName: String
@@ -28,8 +29,11 @@ class EnumPickerViewModel @Inject constructor(
 
     init {
         val propId: Int = state[Screen.EnumPicker.propertyIdArg]!!
-        val rawProp = (deviceRepository.getPropertyById(propId) as LResult.Success).value
-        property = rawProp as Property.Enum
+        val genericProp = device.findPropertyById(propId)
+        if (genericProp == null) {
+            Log.e("EnumPickerVM", "Property with id $propId not found")
+        }
+        property = genericProp!! as Property.Enum
     }
 
     fun select(index: Int) {

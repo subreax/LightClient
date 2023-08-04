@@ -1,4 +1,4 @@
-package com.subreax.lightclient.data.deviceapi.ble
+package com.subreax.lightclient.data.device
 
 import com.welie.blessed.BluetoothCentralManagerCallback
 import com.welie.blessed.BluetoothPeripheral
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 enum class BleConnectionEvent {
-    Connecting, Connected, FailedToConnect, Disconnecting, Disconnected, ConnectionLost
+    Connecting, Connected, FailedToConnect, Disconnecting, Disconnected
 }
 
 class BleConnectionListener : BluetoothCentralManagerCallback() {

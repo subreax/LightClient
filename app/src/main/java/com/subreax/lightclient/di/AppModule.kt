@@ -6,22 +6,15 @@ import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.connection.impl.BleConnectionRepository
 import com.subreax.lightclient.data.connectivity.ConnectivityObserver
 import com.subreax.lightclient.data.connectivity.impl.BtConnectivityObserver
-import com.subreax.lightclient.data.device.DeviceRepository
-import com.subreax.lightclient.data.device.impl.DeviceRepositoryImpl
-import com.subreax.lightclient.data.deviceapi.DeviceApi
-import com.subreax.lightclient.data.deviceapi.ble.BleDeviceApi
-import com.subreax.lightclient.data.state.ApplicationState
-import com.subreax.lightclient.data.state.controllers.ConnectionController
-import com.subreax.lightclient.data.state.controllers.ReconnectionController
-import com.subreax.lightclient.data.state.controllers.ConnectivityController
-import com.subreax.lightclient.data.state.controllers.SynchronizationController
+import com.subreax.lightclient.data.device.repo.DeviceRepository
+import com.subreax.lightclient.data.device.repo.impl.DeviceRepositoryImpl
+import com.subreax.lightclient.data.device.BleCentralContainer
 import com.subreax.lightclient.ui.UiLog
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
 
 @Module
@@ -37,66 +30,18 @@ object AppModule {
     @Singleton
     fun provideConnectionRepository(
         @ApplicationContext context: Context,
-        appState: ApplicationState,
-        deviceApi: DeviceApi
+        deviceRepository: DeviceRepository
     ): ConnectionRepository {
-        return BleConnectionRepository(context, appState, deviceApi)
+        return BleConnectionRepository(context, deviceRepository)
+        //return FakeConnectionRepository()
     }
 
     @Provides
     @Singleton
-    fun provideApplicationState(): ApplicationState {
-        return ApplicationState()
-    }
-
-    @Provides
-    @Singleton
-    fun provideSyncController(
-        @ApplicationContext appContext: Context,
-        appState: ApplicationState,
-        connectionRepository: ConnectionRepository,
-        uiLog: UiLog
-    ): SynchronizationController {
-        return SynchronizationController(appContext, appState, connectionRepository, uiLog)
-    }
-
-    @Singleton
-    @Provides
-    fun provideConnectivityController(
-        appState: ApplicationState,
-        connectivityObserver: ConnectivityObserver
-    ): ConnectivityController {
-        return ConnectivityController(appState, connectivityObserver)
-    }
-
-    @Singleton
-    @Provides
-    fun provideConnectionController(
-        appState: ApplicationState,
-        connectionRepository: ConnectionRepository,
-        uiLog: UiLog
-    ): ConnectionController {
-        return ConnectionController(appState, connectionRepository, uiLog, Dispatchers.Default)
-    }
-
-    @Singleton
-    @Provides
-    fun provideReconnectionController(
-        appState: ApplicationState,
-        connectionRepository: ConnectionRepository,
-        uiLog: UiLog
-    ): ReconnectionController {
-        return ReconnectionController(appState, connectionRepository, uiLog, Dispatchers.Default)
-    }
-
-    @Singleton
-    @Provides
     fun provideDeviceRepository(
-        syncController: SynchronizationController,
-        deviceApi: DeviceApi,
-        uiLog: UiLog
+        bleCentralContainer: BleCentralContainer
     ): DeviceRepository {
-        return DeviceRepositoryImpl(syncController, deviceApi, uiLog)
+        return DeviceRepositoryImpl(bleCentralContainer)
     }
 
     @Singleton
@@ -107,7 +52,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideDeviceApi(@ApplicationContext context: Context): DeviceApi {
-        return BleDeviceApi(context)
+    fun provideBleCentralContainer(@ApplicationContext context: Context): BleCentralContainer {
+        return BleCentralContainer(context)
     }
 }

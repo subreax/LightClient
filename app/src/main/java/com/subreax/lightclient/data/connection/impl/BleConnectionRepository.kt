@@ -7,22 +7,21 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
-import com.subreax.lightclient.LResult
+import android.util.Log
 import com.subreax.lightclient.data.DeviceDesc
+import com.subreax.lightclient.data.connection.ConnectionProgress
 import com.subreax.lightclient.data.connection.ConnectionRepository
-import com.subreax.lightclient.data.deviceapi.DeviceApi
-import com.subreax.lightclient.data.state.AppEventId
-import com.subreax.lightclient.data.state.AppStateId
-import com.subreax.lightclient.data.state.ApplicationState
+import com.subreax.lightclient.data.device.repo.DeviceRepository
+import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.ui.isPermissionGranted
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 
 class BleConnectionRepository(
     private val appContext: Context,
-    private val appState: ApplicationState,
-    private val deviceApi: DeviceApi
+    private val deviceRepository: DeviceRepository
 ) : ConnectionRepository {
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val btAdapter: BluetoothAdapter
@@ -32,15 +31,18 @@ class BleConnectionRepository(
     override val devices: Flow<List<DeviceDesc>>
         get() = _devices
 
-    private var selectedDeviceDesc: DeviceDesc? = null
-
 
     init {
         val btManager = appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         btAdapter = btManager.adapter!!
 
+
+
         coroutineScope.launch {
-            appState.stateId.collect { state ->
+            // todo: listen for bluetooth state
+            startScanningBondedDevices()
+
+            /*appState.stateId.collect { state ->
                 if (state == AppStateId.WaitingForConnectivity) {
                     _devices.value = emptyList()
                 }
@@ -51,37 +53,32 @@ class BleConnectionRepository(
                 else {
                     stopScanningBondedDevices()
                 }
-            }
+            }*/
         }
+    }
 
-        coroutineScope.launch {
-            deviceApi.connectionStatus.collect {
-                if (it == DeviceApi.ConnectionStatus.ConnectionLost) {
-                    appState.notifyEvent(AppEventId.ConnectionLost)
+    override suspend fun connect(deviceDesc: DeviceDesc) = flow {
+        if (btAdapter.isEnabled) {
+            deviceRepository.connect(deviceDesc).collect {
+                Log.d(TAG, it.toString())
+                val state = when (it) {
+                    Device.State2.Connecting -> ConnectionProgress.Connecting
+                    Device.State2.Fetching -> ConnectionProgress.Fetching
+                    Device.State2.Ready -> ConnectionProgress.Done
+                    Device.State2.Disconnected -> ConnectionProgress.FailedToConnect
                 }
+                emit(state)
             }
         }
-    }
-
-
-    override suspend fun selectDevice(deviceDesc: DeviceDesc) {
-        selectedDeviceDesc = deviceDesc
-        appState.notifyEvent(AppEventId.DeviceSelected)
-    }
-
-    override suspend fun connect(): LResult<Unit> {
-        return selectedDeviceDesc?.let { device ->
-            val result = deviceApi.connect(device)
-            if (result is LResult.Success) {
-                appState.notifyEvent(AppEventId.Connected)
-            }
-            result
-        } ?: LResult.Failure("Device is not picked")
+        else {
+            emit(ConnectionProgress.NoConnectivity)
+        }
     }
 
     override suspend fun disconnect() {
-        deviceApi.disconnect()
-        appState.notifyEvent(AppEventId.Disconnected)
+        if (deviceRepository.isConnected()) {
+            deviceRepository.getDevice().disconnect()
+        }
     }
 
     @SuppressLint("MissingPermission")

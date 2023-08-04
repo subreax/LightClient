@@ -6,54 +6,54 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.data.device.DeviceRepository
-import com.subreax.lightclient.data.state.AppStateId
-import com.subreax.lightclient.data.state.ApplicationState
+import com.subreax.lightclient.data.device.repo.DeviceRepository
+import com.subreax.lightclient.data.device.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val deviceRepository: DeviceRepository,
-    private val appState: ApplicationState
+    deviceRepository: DeviceRepository
 ) : ViewModel() {
     data class UiState(
-        val appState: AppStateId,
+        val deviceState: Device.State2,
         val deviceName: String,
         val globalProperties: List<Property>,
         val sceneProperties: List<Property>,
         val dialogEditProperty: Property? = null
     )
 
+    private val device = deviceRepository.getDevice()
+
     var uiState by mutableStateOf(
         UiState(
-            AppStateId.Ready,
+            Device.State2.Ready,
             "",
-            deviceRepository.globalProperties.value,
-            deviceRepository.sceneProperties.value
+            device.globalProperties.value,
+            device.sceneProperties.value
         )
     )
         private set
 
     init {
         viewModelScope.launch {
-            uiState = uiState.copy(deviceName = deviceRepository.getDeviceName())
+            uiState = uiState.copy(deviceName = device.getDeviceDesc().name)
 
-            deviceRepository.globalProperties.collect {
+            device.globalProperties.collect {
                 uiState = uiState.copy(globalProperties = it)
             }
         }
 
         viewModelScope.launch {
-            deviceRepository.sceneProperties.collect {
+            device.sceneProperties.collect {
                 uiState = uiState.copy(sceneProperties = it)
             }
         }
 
         viewModelScope.launch {
-            appState.stateId.collect {
-                uiState = uiState.copy(appState = it)
+            device.state.collect {
+                uiState = uiState.copy(deviceState = it)
             }
         }
     }

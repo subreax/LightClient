@@ -1,7 +1,7 @@
 package com.subreax.lightclient.data
 
 import android.util.Log
-import com.subreax.lightclient.data.deviceapi.DeviceApi
+import com.subreax.lightclient.data.device.api.DeviceApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,11 +15,11 @@ enum class PropertyType {
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     private var valueChangeListenerJob: Job? = null
 
-    abstract fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job
+    abstract fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job
 
-    fun startSendingValueChanges(scope: CoroutineScope, deviceApi: DeviceApi) {
+    fun startSendingValueChanges(scope: CoroutineScope, api: DeviceApi) {
         if (valueChangeListenerJob == null) {
-            valueChangeListenerJob = createValueChangeListener(scope, deviceApi)
+            valueChangeListenerJob = createValueChangeListener(scope, api)
             Log.v("Property", "Start sending value changes of property '$name'")
         }
     }
@@ -35,7 +35,7 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     ) : Property(-1, PropertyType.Special, "Loading in progress") {
         val progress = MutableStateFlow(initialProgress)
 
-        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi) = Job()
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi) = Job()
     }
 
 
@@ -47,10 +47,10 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     ) : Property(id, PropertyType.Enum, name) {
         val currentValue = MutableStateFlow(initialValue)
 
-        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
             return scope.launch {
                 currentValue.drop(1).collect {
-                    deviceApi.updatePropertyValue(this@Enum)
+                    api.uploadPropertyValue(this@Enum)
                 }
             }
         }
@@ -66,10 +66,10 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     ) : Property(id, type, name) {
         val current = MutableStateFlow(initialValue)
 
-        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
             return scope.launch {
                 current.drop(1).collect {
-                    deviceApi.updatePropertyValue(this@BaseFloat)
+                    api.uploadPropertyValue(this@BaseFloat)
                 }
             }
         }
@@ -106,10 +106,10 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     ) : Property(id, PropertyType.Color, name) {
         val color = MutableStateFlow(initialValue)
 
-        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
             return scope.launch {
                 color.drop(1).collect {
-                    deviceApi.updatePropertyValue(this@Color)
+                    api.uploadPropertyValue(this@Color)
                 }
             }
         }
@@ -122,10 +122,10 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     ) : Property(id, PropertyType.Bool, name) {
         val toggled = MutableStateFlow(initialValue)
 
-        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
             return scope.launch {
                 toggled.drop(1).collect {
-                    deviceApi.updatePropertyValue(this@Bool)
+                    api.uploadPropertyValue(this@Bool)
                 }
             }
         }
@@ -141,10 +141,10 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     ) : Property(id, type, name) {
         val current = MutableStateFlow(initialValue)
 
-        override fun createValueChangeListener(scope: CoroutineScope, deviceApi: DeviceApi): Job {
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
             return scope.launch {
                 current.drop(1).collect {
-                    deviceApi.updatePropertyValue(this@BaseInt)
+                    api.uploadPropertyValue(this@BaseInt)
                 }
             }
         }

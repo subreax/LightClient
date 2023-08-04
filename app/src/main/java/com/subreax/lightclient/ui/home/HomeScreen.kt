@@ -21,7 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.PropertyType
-import com.subreax.lightclient.data.state.AppStateId
+import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import java.util.Calendar
@@ -59,7 +59,7 @@ fun HomeScreen(
     )
 
     HomeScreen(
-        appState = uiState.appState,
+        deviceState = uiState.deviceState,
         deviceName = uiState.deviceName,
         globalProperties = uiState.globalProperties,
         sceneProperties = uiState.sceneProperties,
@@ -78,25 +78,25 @@ fun HomeScreen(
 
 @Composable
 fun HomeScreen(
-    appState: AppStateId,
+    deviceState: Device.State2,
     deviceName: String,
     globalProperties: List<Property>,
     sceneProperties: List<Property>,
     propertyCallback: PropertyCallback
 ) {
     val connectedDeviceInfo = buildAnnotatedString {
-        when (appState) {
-            AppStateId.Ready -> {
+        when (deviceState) {
+            Device.State2.Ready -> {
                 append(stringResource(R.string.connected_to))
             }
-            AppStateId.Reconnecting -> {
+            Device.State2.Connecting -> {
                 append(stringResource(R.string.reconnecting_to))
             }
-            AppStateId.Syncing -> {
+            Device.State2.Fetching -> {
                 append(stringResource(R.string.syncing_with))
             }
             else -> {
-                append("$appState ")
+                append("$deviceState ")
             }
         }
 
@@ -286,7 +286,7 @@ fun PropertyEditorDialog(
 fun HomeScreenPreview() {
     LightClientTheme {
         HomeScreen(
-            appState = AppStateId.Ready,
+            deviceState = Device.State2.Ready,
             deviceName = "ESP32-Home",
             globalProperties = listOf(
                 Property.FloatSlider(1, "Яркость", 0.0f, 100.0f, 42.0f),
