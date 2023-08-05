@@ -9,6 +9,7 @@ import com.subreax.lightclient.data.device.api.Event
 import com.subreax.lightclient.data.device.api.bin.BinDeviceApi
 import com.subreax.lightclient.data.device.repo.PropertyGroup
 import com.subreax.lightclient.data.device.socket.Socket
+import com.subreax.lightclient.except.ConnectionException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -53,12 +55,15 @@ class DeviceImpl(
                     Socket.ConnectionState.Connecting -> {
                         _state.value = Device.State.Connecting
                     }
+
                     Socket.ConnectionState.Connected -> {
                         onConnectState()
                     }
+
                     Socket.ConnectionState.Disconnected -> {
                         _state.value = Device.State.Disconnected
                     }
+
                     Socket.ConnectionState.NoConnectivity -> {
                         _state.value = Device.State.NoConnectivity
                     }
@@ -71,8 +76,7 @@ class DeviceImpl(
                 if (it is Event.PropertiesChanged) {
                     if (it.group == PropertyGroup.Id.Scene) {
                         scenePropGroup.fetch()
-                    }
-                    else if (it.group == PropertyGroup.Id.General) {
+                    } else if (it.group == PropertyGroup.Id.General) {
                         globalPropGroup.fetch()
                     }
                 }
@@ -92,20 +96,25 @@ class DeviceImpl(
         }
     }
 
-    override suspend fun connect() {
-        _state.value = Device.State.Connecting
-        socket.connect()
-            .then {
-                fetchData()
-            }
-            .onSuccess {
-                _state.value = Device.State.Ready
-                autoFetch = true
-            }
-            .onFailure {
-                _errors.emit(it)
-                disconnect()
-            }
+    override suspend fun connect() = withContext(Dispatchers.IO) {
+        flow {
+            _state.value = Device.State.Connecting
+            emit(Device.State.Connecting)
+            socket.connect()
+                .then {
+                    emit(Device.State.Fetching)
+                    fetchData()
+                }
+                .onSuccess {
+                    _state.value = Device.State.Ready
+                    autoFetch = true
+                    emit(Device.State.Ready)
+                }
+                .onFailure {
+                    disconnect()
+                    throw ConnectionException(it.message)
+                }
+        }
     }
 
     private suspend fun fetchData(): LResult<Unit> = withContext(Dispatchers.IO) {

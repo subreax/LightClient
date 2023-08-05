@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 
 class FakeDevice : Device {
     private val _state = MutableStateFlow(Device.State.Disconnected)
@@ -36,12 +37,15 @@ class FakeDevice : Device {
     override val sceneProperties: StateFlow<List<Property>>
         get() = _sceneProperties
 
-    override suspend fun connect() {
+    override suspend fun connect() = flow {
         _state.value = Device.State.Connecting
+        emit(Device.State.Connecting)
         delay(1000)
         _state.value = Device.State.Fetching
+        emit(Device.State.Fetching)
         delay(1000)
         _state.value = Device.State.Ready
+        emit(Device.State.Ready)
     }
 
     override suspend fun disconnect() {

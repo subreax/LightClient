@@ -1,8 +1,8 @@
 package com.subreax.lightclient.data.connection.fake
 
 import com.subreax.lightclient.data.DeviceDesc
-import com.subreax.lightclient.data.connection.ConnectionProgress
 import com.subreax.lightclient.data.connection.ConnectionRepository
+import com.subreax.lightclient.data.device.Device
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,11 +17,11 @@ class FakeConnectionRepository : ConnectionRepository {
         }
 
     override suspend fun connect(deviceDesc: DeviceDesc) = flow {
-        emit(ConnectionProgress.Connecting)
+        emit(Device.State.Connecting)
         delay(1000)
-        emit(ConnectionProgress.Fetching)
+        emit(Device.State.Fetching)
         delay(1000)
-        emit(ConnectionProgress.FailedToConnect)
+        emit(Device.State.Disconnected)
     }
 
     override suspend fun disconnect() {

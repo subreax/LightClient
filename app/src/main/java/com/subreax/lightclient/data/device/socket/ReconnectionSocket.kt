@@ -31,8 +31,11 @@ class ReconnectionSocket(private val socket: Socket) : Socket {
     }
 
     override suspend fun connect(): LResult<Unit> {
-        wasConnectionRequested = true
-        return socket.connect()
+        val res = socket.connect()
+        if (res is LResult.Success) {
+            wasConnectionRequested = true
+        }
+        return res
     }
 
     override suspend fun disconnect() {

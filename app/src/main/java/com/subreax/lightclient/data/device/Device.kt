@@ -18,7 +18,7 @@ interface Device {
     val globalProperties: StateFlow<List<Property>>
     val sceneProperties: StateFlow<List<Property>>
 
-    suspend fun connect()
+    suspend fun connect(): Flow<State>
     suspend fun disconnect()
     fun findPropertyById(id: Int): Property?
     fun getDeviceDesc(): DeviceDesc

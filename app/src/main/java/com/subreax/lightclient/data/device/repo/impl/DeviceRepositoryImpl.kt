@@ -1,20 +1,15 @@
 package com.subreax.lightclient.data.device.repo.impl
 
 import com.subreax.lightclient.data.DeviceDesc
-import com.subreax.lightclient.data.device.repo.DeviceRepository
+import com.subreax.lightclient.data.device.BleCentralContainer
 import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.data.device.impl.DeviceImpl
-import com.subreax.lightclient.data.device.socket.Socket
-import com.subreax.lightclient.data.device.BleCentralContainer
+import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.data.device.socket.ReconnectionSocket
+import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.data.device.socket.ble.BleSocket
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onCompletion
 import javax.inject.Inject
 
 
@@ -22,31 +17,14 @@ class DeviceRepositoryImpl @Inject constructor(
     private val centralContainer: BleCentralContainer
 ) : DeviceRepository {
     private var _device: Device? = null
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    override suspend fun connect(deviceDesc: DeviceDesc) = flow {
+    override suspend fun connect(deviceDesc: DeviceDesc): Flow<Device.State> {
         val device = createDevice(deviceDesc)
-
-        device.state
-            .onSubscription {
-                coroutineScope.launch { device.connect() }
+        return device.connect().onCompletion {
+            if (device.state.value == Device.State.Ready) {
+                _device = device
             }
-            .drop(1)
-            .takeWhile {
-                listOf(
-                    Device.State.Connecting,
-                    Device.State.Fetching
-                ).contains(it)
-            }
-            .collect {
-                emit(it)
-            }
-
-        if (device.state.value == Device.State.Ready) {
-            _device = device
         }
-
-        emit(device.state.value)
     }
 
     private fun createDevice(deviceDesc: DeviceDesc): Device {

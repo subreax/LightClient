@@ -7,17 +7,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.DeviceDesc
-import com.subreax.lightclient.data.connection.ConnectionProgress
 import com.subreax.lightclient.data.connection.ConnectionRepository
+import com.subreax.lightclient.data.device.Device
+import com.subreax.lightclient.except.UiTextException
 import com.subreax.lightclient.ui.UiLog
 import com.subreax.lightclient.ui.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 data class ErrorMsg(
@@ -64,36 +63,45 @@ class ConnectionViewModel @Inject constructor(
 
     fun connect(deviceDesc: DeviceDesc) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                connectionRepository.connect(deviceDesc).collect {
-                    Timber.d("connect state changed: $it")
-                    when (it) {
-                        ConnectionProgress.Connecting -> {
-                            uiState = uiState.copy(
-                                loading = true,
-                                loadingMsg = UiText.Res(R.string.connecting_to, deviceDesc.name)
-                            )
-                        }
+            _connect(deviceDesc)
+        }
+    }
 
-                        ConnectionProgress.Fetching -> {
-                            uiState = uiState.copy(
-                                loading = true,
-                                loadingMsg = UiText.Res(R.string.fetching_data)
-                            )
-                        }
+    private suspend fun _connect(deviceDesc: DeviceDesc) {
+        connectionRepository.connect(deviceDesc)
+            .catch {
+                uiState = uiState.copy(loading = false)
+                if (it is UiTextException) {
+                    uiLog.e(it.details)
+                } else {
+                    uiLog.e(UiText.Hardcoded(it.toString()))
+                }
+            }
+            .collect {
+                when (it) {
+                    Device.State.Connecting -> {
+                        uiState = uiState.copy(
+                            loading = true,
+                            loadingMsg = UiText.Res(R.string.connecting_to, deviceDesc.name)
+                        )
+                    }
 
-                        ConnectionProgress.Done -> {
-                            _navHome.emit(deviceDesc)
-                        }
+                    Device.State.Fetching -> {
+                        uiState = uiState.copy(
+                            loading = true,
+                            loadingMsg = UiText.Res(R.string.fetching_data)
+                        )
+                    }
 
-                        ConnectionProgress.FailedToConnect,
-                        ConnectionProgress.NoConnectivity -> {
-                            uiState = uiState.copy(loading = false)
-                            uiLog.e(UiText.Res(R.string.failed_to_connect, deviceDesc.name))
-                        }
+                    Device.State.Ready -> {
+                        _navHome.emit(deviceDesc)
+                    }
+
+                    else -> {
+                        uiState = uiState.copy(loading = false)
+                        uiLog.e(UiText.Res(R.string.failed_to_connect, deviceDesc.name))
                     }
                 }
             }
-        }
     }
 }

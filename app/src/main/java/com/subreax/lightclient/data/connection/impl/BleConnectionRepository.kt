@@ -8,16 +8,12 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
 import com.subreax.lightclient.data.DeviceDesc
-import com.subreax.lightclient.data.connection.ConnectionProgress
 import com.subreax.lightclient.data.connection.ConnectionRepository
-import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.ui.isPermissionGranted
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
-import timber.log.Timber
 
 class BleConnectionRepository(
     private val appContext: Context,
@@ -57,24 +53,8 @@ class BleConnectionRepository(
         }
     }
 
-    override suspend fun connect(deviceDesc: DeviceDesc) = flow {
-        if (btAdapter.isEnabled) {
-            deviceRepository.connect(deviceDesc).collect {
-                Timber.d(it.toString())
-                val state = when (it) {
-                    Device.State.NoConnectivity -> ConnectionProgress.NoConnectivity
-                    Device.State.Connecting -> ConnectionProgress.Connecting
-                    Device.State.Fetching -> ConnectionProgress.Fetching
-                    Device.State.Ready -> ConnectionProgress.Done
-                    Device.State.Disconnected -> ConnectionProgress.FailedToConnect
-                }
-                emit(state)
-            }
-        }
-        else {
-            emit(ConnectionProgress.NoConnectivity)
-        }
-    }
+    override suspend fun connect(deviceDesc: DeviceDesc) =
+        deviceRepository.connect(deviceDesc)
 
     override suspend fun disconnect() {
         if (deviceRepository.isConnected()) {
@@ -88,7 +68,7 @@ class BleConnectionRepository(
             while (isActive) {
                 if (hasBtConnectPermission()) {
                     _devices.value = btAdapter.bondedDevices
-                        .filter { it.isBle()  }
+                        .filter { it.isBle() }
                         .map { it.descriptor() }
                 }
                 delay(2000)
