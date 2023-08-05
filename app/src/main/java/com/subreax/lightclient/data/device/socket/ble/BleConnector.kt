@@ -134,7 +134,7 @@ class BleConnector(
         return if (peripheral.state == ConnectionState.CONNECTED) {
             LResult.Success(Unit)
         } else {
-            Timber.e("Failed to connect")
+            Timber.e("Failed to connect: timeout")
             LResult.Failure(R.string.connection_timed_out)
         }
     }
