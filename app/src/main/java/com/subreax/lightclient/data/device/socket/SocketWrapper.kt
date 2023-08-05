@@ -1,6 +1,5 @@
 package com.subreax.lightclient.data.device.socket
 
-import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.device.api.Event
 import com.subreax.lightclient.data.device.repo.PropertyGroup
@@ -15,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -95,18 +95,18 @@ class SocketWrapper(private val socket: Socket) {
                     val group = PropertyGroup.Id.values()[groupId]
                     return Event.PropertiesChanged(group)
                 } else {
-                    Log.e(TAG, "Unknown PropertyGroupId: $groupId")
+                    Timber.e("Unknown PropertyGroupId: $groupId")
                 }
             }
         } catch (ex: BufferUnderflowException) {
-            Log.e(TAG, "Failed to handle event ${body.toPrettyString(0, body.limit())}")
+            Timber.e("Failed to handle event ${body.toPrettyString(0, body.limit())}")
         }
 
         return Event.Unknown
     }
 
     private fun startSocketResponseReceiver() {
-        Log.d(TAG, "Message receiver started")
+        Timber.d("Message receiver started")
         messageReceiverJob = coroutineScope.launch {
             while (isActive) {
                 socket.receive()
@@ -114,7 +114,7 @@ class SocketWrapper(private val socket: Socket) {
                     .onSuccess { msg ->
                         coroutineScope.launch { onMessage(msg) }
                     }
-                    .onFailure { Log.e(TAG, "Failed to receive message: ${it.message}") }
+                    .onFailure { Timber.e("Failed to receive message: ${it.message}") }
             }
         }
     }
@@ -127,7 +127,7 @@ class SocketWrapper(private val socket: Socket) {
             if (event !is Event.Unknown) {
                 events.emit(event)
             } else {
-                Log.e(TAG, "Unknown event")
+                Timber.e("Unknown event")
             }
         }
     }
@@ -147,14 +147,14 @@ class SocketWrapper(private val socket: Socket) {
     }
 
     private fun startRequestQueue() {
-        Log.d(TAG, "Request queue started")
+        Timber.d("Request queue started")
         requestQueueJob = coroutineScope.launch(Dispatchers.Default) {
             while (isActive) {
                 val request = requestChannel.receive()
-                Log.v(TAG, "--> running request ${request.data.id}")
+                Timber.v("--> running request ${request.data.id}")
                 val response = performRequest(request)
                 request.onResponse(response)
-                Log.v(TAG, "<-- finished request ${request.data.id}")
+                Timber.v("<-- finished request ${request.data.id}")
             }
         }
     }
@@ -181,7 +181,7 @@ class SocketWrapper(private val socket: Socket) {
     private fun sendRequestBuf() {
         coroutineScope.launch {
             socket.send(requestBuf).onFailure {
-                Log.e(TAG, "Failed to send request: ${it.message}")
+                Timber.e("Failed to send request: ${it.message}")
             }
         }
     }
@@ -215,7 +215,7 @@ class SocketWrapper(private val socket: Socket) {
                 onResponse = { cont.resume(it) }
             )
 
-            Log.v(TAG, "+++ enqueue new request ${request.id}")
+            Timber.v("+++ enqueue new request ${request.id}")
             requestChannel.trySend(requestWrapper)
         }
     }
@@ -230,7 +230,7 @@ class SocketWrapper(private val socket: Socket) {
                 isVoid = true
             )
 
-            Log.v(TAG, "+++ enqueue new request with no response ${request.id}")
+            Timber.v("+++ enqueue new request with no response ${request.id}")
             requestChannel.trySend(requestWrapper)
         }
 
@@ -242,9 +242,6 @@ class SocketWrapper(private val socket: Socket) {
     }
 
     companion object {
-        // todo: rename
-        private const val TAG = "SocketWrapper"
-
         private const val RESPONSE_TIMEOUT_MS = 30000L
     }
 }

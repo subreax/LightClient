@@ -1,12 +1,11 @@
 package com.subreax.lightclient.data.device.socket.ble
 
 import android.bluetooth.BluetoothGattCharacteristic
-import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
-import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.data.device.BleCentralContainer
 import com.subreax.lightclient.data.device.BleConnectionEvent
+import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.utils.waitForWithTimeout
 import com.welie.blessed.BluetoothPeripheral
 import com.welie.blessed.BluetoothPeripheralCallback
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.util.UUID
 
 private data class DeviceCharacteristics(
@@ -76,7 +76,7 @@ class BleConnector(
 
         val characteristicsResult = findCharacteristics(peripheral)
         if (characteristicsResult is LResult.Failure) {
-            Log.d("BleConnector", "Failed to discover characteristics")
+            Timber.e("Failed to discover characteristics")
             disconnect()
             return@withContext characteristicsResult
         }
@@ -89,7 +89,7 @@ class BleConnector(
         )
 
         _connectionState.value = Socket.ConnectionState.Connected
-        Log.d("BleConnector", "Connected")
+        Timber.d("Connected")
         LResult.Success(Unit)
     }
 
@@ -99,10 +99,10 @@ class BleConnector(
         peripheral: BluetoothPeripheral,
         btPeripheralCallback: BluetoothPeripheralCallback
     ): LResult<Unit> {
-        Log.d("BleConnector", "Connecting...")
+        Timber.d("Connecting...")
 
         if (peripheral.state == ConnectionState.CONNECTED) {
-            Log.d("BleConnector", "Already connected")
+            Timber.d("Already connected")
             return LResult.Success(Unit)
         }
 
@@ -124,13 +124,13 @@ class BleConnector(
         return if (peripheral.state == ConnectionState.CONNECTED) {
             LResult.Success(Unit)
         } else {
-            Log.d("BleConnector", "Failed to connect")
+            Timber.e("Failed to connect")
             LResult.Failure(R.string.connection_timed_out)
         }
     }
 
     private fun findCharacteristics(peripheral: BluetoothPeripheral): LResult<DeviceCharacteristics> {
-        Log.d("BleConnector", "Discovering characteristics...")
+        Timber.d("Discovering characteristics...")
 
         val bleService = peripheral.getService(SERVICE_UUID)
             ?: return LResult.Failure(R.string.service_not_found)
@@ -172,7 +172,7 @@ class BleConnector(
         coroutineScope.launch {
             var attempts = 1
             while (isActive) {
-                Log.d("BleConnector", "Reconnection: attempt #$attempts")
+                Timber.d("Reconnection: attempt #$attempts")
                 if (connect() is LResult.Success) {
                     break
                 }

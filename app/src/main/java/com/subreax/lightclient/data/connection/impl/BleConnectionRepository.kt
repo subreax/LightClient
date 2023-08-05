@@ -7,17 +7,17 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.connection.ConnectionProgress
 import com.subreax.lightclient.data.connection.ConnectionRepository
-import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.data.device.Device
+import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.ui.isPermissionGranted
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 
 class BleConnectionRepository(
     private val appContext: Context,
@@ -60,7 +60,7 @@ class BleConnectionRepository(
     override suspend fun connect(deviceDesc: DeviceDesc) = flow {
         if (btAdapter.isEnabled) {
             deviceRepository.connect(deviceDesc).collect {
-                Log.d(TAG, it.toString())
+                Timber.d(it.toString())
                 val state = when (it) {
                     Device.State.Connecting -> ConnectionProgress.Connecting
                     Device.State.Fetching -> ConnectionProgress.Fetching
@@ -105,10 +105,6 @@ class BleConnectionRepository(
         }
 
         return appContext.isPermissionGranted(Manifest.permission.BLUETOOTH_CONNECT)
-    }
-
-    companion object {
-        private const val TAG = "BleConnectionRepo"
     }
 }
 

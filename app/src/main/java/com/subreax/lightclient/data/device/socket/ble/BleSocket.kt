@@ -1,10 +1,9 @@
 package com.subreax.lightclient.data.device.socket.ble
 
-import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
-import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.data.device.BleCentralContainer
+import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.utils.getWrittenData
 import com.subreax.lightclient.utils.toPrettyString
 import com.welie.blessed.WriteType
@@ -13,6 +12,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import timber.log.Timber
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -68,7 +68,7 @@ class BleSocket(
         val body = ByteBuffer.allocate(totalPacketsCount * PACKET_SZ)
             .order(ByteOrder.LITTLE_ENDIAN)
         body.put(firstPacket)
-        Log.d("BleSocket", "header packet { bodySz: $bodySz; packetsCount: $totalPacketsCount }: ${firstPacket.toPrettyString(0, 20)}")
+        Timber.d("header packet { bodySz: $bodySz; packetsCount: $totalPacketsCount }: ${firstPacket.toPrettyString(0, 20)}")
 
         var packetsReceived = 1
         try {
@@ -78,7 +78,7 @@ class BleSocket(
                 }
                 packetsReceived++
                 body.put(packet)
-                Log.d("BleSocket", "new packet [$packetsReceived/$totalPacketsCount]: ${packet.toPrettyString(0, packet.limit())}")
+                Timber.d("new packet [$packetsReceived/$totalPacketsCount]: ${packet.toPrettyString(0, packet.limit())}")
             }
         } catch (ex: TimeoutCancellationException) {
             return@withContext if (isConnected()) {

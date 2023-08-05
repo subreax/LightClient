@@ -63,8 +63,4 @@ class DeviceRepositoryImpl @Inject constructor(
             it.state.value == Device.State.Ready
         } ?: false
     }
-
-    companion object {
-        private const val TAG = "DeviceRepositoryImpl"
-    }
 }

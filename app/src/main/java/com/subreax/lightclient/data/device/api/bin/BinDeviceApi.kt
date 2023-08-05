@@ -1,17 +1,17 @@
 package com.subreax.lightclient.data.device.api.bin
 
-import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.PropertyType
-import com.subreax.lightclient.data.device.repo.PropertyGroup
-import com.subreax.lightclient.data.device.socket.SocketWrapper
 import com.subreax.lightclient.data.device.api.DeviceApi
-import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.data.device.api.Event
+import com.subreax.lightclient.data.device.repo.PropertyGroup
+import com.subreax.lightclient.data.device.socket.Socket
+import com.subreax.lightclient.data.device.socket.SocketWrapper
 import com.subreax.lightclient.utils.getUtf8String
 import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 import java.nio.ByteBuffer
 
 
@@ -37,7 +37,7 @@ class BinDeviceApi(
 
 
     override suspend fun getPropertiesFromGroup(group: PropertyGroup.Id): LResult<List<Property>> {
-        Log.d(TAG, "getPropertiesFromGroup $group")
+        Timber.d("getPropertiesFromGroup $group")
         val req = SocketWrapper.Request(FunctionId.GetPropertiesFromGroup.ordinal) {
             put(group.ordinal.toByte())
         }
@@ -85,7 +85,7 @@ class BinDeviceApi(
         val serializer = propertySerializers[property.type]
         if (serializer == null) {
             val msg = "No serializer found for property type ${property.type}"
-            Log.e(TAG, msg)
+            Timber.e(msg)
             return LResult.Failure(msg)
         }
 
@@ -95,9 +95,5 @@ class BinDeviceApi(
         }
 
         return socketWrapper.doRequest(req).then { LResult.Success(Unit) }
-    }
-
-    companion object {
-        private const val TAG = "BinLightDeviceApi"
     }
 }

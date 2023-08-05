@@ -1,14 +1,13 @@
 package com.subreax.lightclient.data.device.impl
 
-import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.Device
-import com.subreax.lightclient.data.device.api.Event
-import com.subreax.lightclient.data.device.repo.PropertyGroup
 import com.subreax.lightclient.data.device.api.DeviceApi
+import com.subreax.lightclient.data.device.api.Event
 import com.subreax.lightclient.data.device.api.bin.BinDeviceApi
+import com.subreax.lightclient.data.device.repo.PropertyGroup
 import com.subreax.lightclient.data.device.socket.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 
 class DeviceImpl(
@@ -101,7 +101,7 @@ class DeviceImpl(
     }
 
     private suspend fun fetchData(): LResult<Unit> = withContext(Dispatchers.IO) {
-        Log.d("LightDevice2Impl", "Fetching data")
+        Timber.d("Fetching data")
 
         _state.value = Device.State.Fetching
         //val job1 = async { globalPropGroup.fetch() }

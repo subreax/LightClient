@@ -1,6 +1,5 @@
 package com.subreax.lightclient.data.device.repo
 
-import android.util.Log
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.api.DeviceApi
@@ -9,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import timber.log.Timber
 import kotlin.coroutines.coroutineContext
 
 class PropertyGroup(
@@ -47,7 +47,7 @@ class PropertyGroup(
     }
 
     suspend fun fetch(): LResult<Unit> {
-        Log.v(TAG, "[PropertyGroup $id] Sync started...")
+        Timber.v("[PropertyGroup $id] Sync started...")
 
         val loadingProperty = Property.SpecLoading(0f)
         set(listOf(loadingProperty))
@@ -56,16 +56,12 @@ class PropertyGroup(
         return if (propsResult is LResult.Success) {
             coroutineContext.ensureActive()
             set(propsResult.value)
-            Log.v(TAG, "[PropertyGroup $id] Sync done")
+            Timber.v("[PropertyGroup $id] Sync done")
             LResult.Success(Unit)
         } else {
             val msg = (propsResult as LResult.Failure).message
-            Log.e(TAG, "[PropertyGroup $id] Sync failed: $msg")
+            Timber.e("[PropertyGroup $id] Sync failed: $msg")
             LResult.Failure(msg)
         }
-    }
-
-    companion object {
-        private const val TAG = "PropertyGroup"
     }
 }

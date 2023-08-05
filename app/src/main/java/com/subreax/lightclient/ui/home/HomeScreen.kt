@@ -2,7 +2,6 @@ package com.subreax.lightclient.ui.home
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +23,7 @@ import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
+import timber.log.Timber
 import java.util.Calendar
 
 @Composable
@@ -270,7 +270,7 @@ fun PropertyEditorDialog(
         }
 
         else -> {
-            Log.d("HomeScreen", "PropertyEditorDialog unsupported property type: ${property.type}")
+            Timber.d("PropertyEditorDialog unsupported property type: ${property.type}")
         }
     }
 }

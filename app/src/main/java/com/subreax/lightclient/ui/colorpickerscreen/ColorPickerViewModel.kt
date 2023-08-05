@@ -1,6 +1,5 @@
 package com.subreax.lightclient.ui.colorpickerscreen
 
-import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
@@ -9,6 +8,7 @@ import com.subreax.lightclient.Screen
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,7 +29,7 @@ class ColorPickerViewModel @Inject constructor(
         val propId: Int = state[Screen.ColorPicker.propertyIdArg]!!
         val genericProp = device.findPropertyById(propId)
         if (genericProp == null) {
-            Log.e("ColorPickerVM", "Failed to find property with id $propId")
+            Timber.e("Failed to find property with id $propId")
         }
         property = genericProp!! as Property.Color
     }

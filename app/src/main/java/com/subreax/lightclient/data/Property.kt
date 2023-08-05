@@ -1,12 +1,12 @@
 package com.subreax.lightclient.data
 
-import android.util.Log
 import com.subreax.lightclient.data.device.api.DeviceApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 enum class PropertyType {
     Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, Special
@@ -20,14 +20,14 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     fun startSendingValueChanges(scope: CoroutineScope, api: DeviceApi) {
         if (valueChangeListenerJob == null) {
             valueChangeListenerJob = createValueChangeListener(scope, api)
-            Log.v("Property", "Start sending value changes of property '$name'")
+            Timber.v("Start sending value changes of property '$name'")
         }
     }
 
     fun stopSendingValueChanges() {
         valueChangeListenerJob?.cancel()
         valueChangeListenerJob = null
-        Log.v("Property", "Stop sending value changes of property '$name'")
+        Timber.v("Stop sending value changes of property '$name'")
     }
 
     class SpecLoading(

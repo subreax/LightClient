@@ -1,6 +1,5 @@
 package com.subreax.lightclient.ui.connection
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 data class ErrorMsg(
@@ -66,7 +66,7 @@ class ConnectionViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 connectionRepository.connect(deviceDesc).collect {
-                    Log.d(TAG, "connect state changed: $it")
+                    Timber.d("connect state changed: $it")
                     when (it) {
                         ConnectionProgress.Connecting -> {
                             uiState = uiState.copy(
@@ -95,9 +95,5 @@ class ConnectionViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    companion object {
-        private const val TAG = "ConnectionViewModel"
     }
 }
