@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface DeviceRepository {
-    suspend fun connect(deviceDesc: DeviceDesc): Flow<Device.State2>
+    suspend fun connect(deviceDesc: DeviceDesc): Flow<Device.State>
     fun getDevice(): Device
     fun isConnected(): Boolean
 }

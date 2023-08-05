@@ -78,7 +78,7 @@ fun HomeScreen(
 
 @Composable
 fun HomeScreen(
-    deviceState: Device.State2,
+    deviceState: Device.State,
     deviceName: String,
     globalProperties: List<Property>,
     sceneProperties: List<Property>,
@@ -86,13 +86,13 @@ fun HomeScreen(
 ) {
     val connectedDeviceInfo = buildAnnotatedString {
         when (deviceState) {
-            Device.State2.Ready -> {
+            Device.State.Ready -> {
                 append(stringResource(R.string.connected_to))
             }
-            Device.State2.Connecting -> {
+            Device.State.Connecting -> {
                 append(stringResource(R.string.reconnecting_to))
             }
-            Device.State2.Fetching -> {
+            Device.State.Fetching -> {
                 append(stringResource(R.string.syncing_with))
             }
             else -> {
@@ -286,7 +286,7 @@ fun PropertyEditorDialog(
 fun HomeScreenPreview() {
     LightClientTheme {
         HomeScreen(
-            deviceState = Device.State2.Ready,
+            deviceState = Device.State.Ready,
             deviceName = "ESP32-Home",
             globalProperties = listOf(
                 Property.FloatSlider(1, "Яркость", 0.0f, 100.0f, 42.0f),

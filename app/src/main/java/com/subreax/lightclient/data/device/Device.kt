@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.StateFlow
 
 
 interface Device {
-    enum class State2 {
+    enum class State {
         Disconnected, Connecting, Fetching, Ready
     }
 
-    val state: StateFlow<State2>
+    val state: StateFlow<State>
     val errors: Flow<LResult.Failure>
 
     val globalProperties: StateFlow<List<Property>>

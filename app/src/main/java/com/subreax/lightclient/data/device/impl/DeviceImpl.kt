@@ -27,8 +27,8 @@ class DeviceImpl(
     private val api: DeviceApi = BinDeviceApi(socket)
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val _state = MutableStateFlow(Device.State2.Disconnected)
-    override val state: StateFlow<Device.State2>
+    private val _state = MutableStateFlow(Device.State.Disconnected)
+    override val state: StateFlow<Device.State>
         get() = _state
 
     private val _errors = MutableSharedFlow<LResult.Failure>()
@@ -50,13 +50,13 @@ class DeviceImpl(
             socket.connectionState.collect {
                 when (it) {
                     Socket.ConnectionState.Connecting -> {
-                        _state.value = Device.State2.Connecting
+                        _state.value = Device.State.Connecting
                     }
                     Socket.ConnectionState.Connected -> {
                         if (autoFetch) {
                             val res = fetchData()
                             if (res is LResult.Success) {
-                                _state.value = Device.State2.Ready
+                                _state.value = Device.State.Ready
                             } else {
                                 _errors.emit(res as LResult.Failure)
                                 disconnect()
@@ -64,7 +64,7 @@ class DeviceImpl(
                         }
                     }
                     Socket.ConnectionState.Disconnected -> {
-                        _state.value = Device.State2.Disconnected
+                        _state.value = Device.State.Disconnected
                     }
                 }
             }
@@ -85,13 +85,13 @@ class DeviceImpl(
     }
 
     override suspend fun connect() {
-        _state.value = Device.State2.Connecting
+        _state.value = Device.State.Connecting
         socket.connect()
             .then {
                 fetchData()
             }
             .onSuccess {
-                _state.value = Device.State2.Ready
+                _state.value = Device.State.Ready
                 autoFetch = true
             }
             .onFailure {
@@ -103,7 +103,7 @@ class DeviceImpl(
     private suspend fun fetchData(): LResult<Unit> = withContext(Dispatchers.IO) {
         Log.d("LightDevice2Impl", "Fetching data")
 
-        _state.value = Device.State2.Fetching
+        _state.value = Device.State.Fetching
         //val job1 = async { globalPropGroup.fetch() }
         //val job2 = async { scenePropGroup.fetch() }
 

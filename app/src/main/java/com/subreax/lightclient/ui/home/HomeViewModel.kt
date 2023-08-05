@@ -17,7 +17,7 @@ class HomeViewModel @Inject constructor(
     deviceRepository: DeviceRepository
 ) : ViewModel() {
     data class UiState(
-        val deviceState: Device.State2,
+        val deviceState: Device.State,
         val deviceName: String,
         val globalProperties: List<Property>,
         val sceneProperties: List<Property>,
@@ -28,7 +28,7 @@ class HomeViewModel @Inject constructor(
 
     var uiState by mutableStateOf(
         UiState(
-            Device.State2.Ready,
+            Device.State.Ready,
             "",
             device.globalProperties.value,
             device.sceneProperties.value

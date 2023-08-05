@@ -62,10 +62,10 @@ class BleConnectionRepository(
             deviceRepository.connect(deviceDesc).collect {
                 Log.d(TAG, it.toString())
                 val state = when (it) {
-                    Device.State2.Connecting -> ConnectionProgress.Connecting
-                    Device.State2.Fetching -> ConnectionProgress.Fetching
-                    Device.State2.Ready -> ConnectionProgress.Done
-                    Device.State2.Disconnected -> ConnectionProgress.FailedToConnect
+                    Device.State.Connecting -> ConnectionProgress.Connecting
+                    Device.State.Fetching -> ConnectionProgress.Fetching
+                    Device.State.Ready -> ConnectionProgress.Done
+                    Device.State.Disconnected -> ConnectionProgress.FailedToConnect
                 }
                 emit(state)
             }

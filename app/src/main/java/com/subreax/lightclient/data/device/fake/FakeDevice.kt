@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class FakeDevice : Device {
-    private val _state = MutableStateFlow(Device.State2.Disconnected)
-    override val state: StateFlow<Device.State2>
+    private val _state = MutableStateFlow(Device.State.Disconnected)
+    override val state: StateFlow<Device.State>
         get() = _state
 
     private val _errors = MutableSharedFlow<LResult.Failure>()
@@ -37,11 +37,11 @@ class FakeDevice : Device {
         get() = _sceneProperties
 
     override suspend fun connect() {
-        _state.value = Device.State2.Connecting
+        _state.value = Device.State.Connecting
         delay(1000)
-        _state.value = Device.State2.Fetching
+        _state.value = Device.State.Fetching
         delay(1000)
-        _state.value = Device.State2.Ready
+        _state.value = Device.State.Ready
     }
 
     override suspend fun disconnect() {

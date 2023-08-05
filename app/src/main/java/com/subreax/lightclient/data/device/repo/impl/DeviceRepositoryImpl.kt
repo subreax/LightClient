@@ -33,15 +33,15 @@ class DeviceRepositoryImpl @Inject constructor(
             .drop(1)
             .takeWhile {
                 listOf(
-                    Device.State2.Connecting,
-                    Device.State2.Fetching
+                    Device.State.Connecting,
+                    Device.State.Fetching
                 ).contains(it)
             }
             .collect {
                 emit(it)
             }
 
-        if (device.state.value == Device.State2.Ready) {
+        if (device.state.value == Device.State.Ready) {
             _device = device
         }
 
@@ -60,7 +60,7 @@ class DeviceRepositoryImpl @Inject constructor(
 
     override fun isConnected(): Boolean {
         return _device?.let {
-            it.state.value == Device.State2.Ready
+            it.state.value == Device.State.Ready
         } ?: false
     }
 
