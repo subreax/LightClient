@@ -62,6 +62,7 @@ class BleConnectionRepository(
             deviceRepository.connect(deviceDesc).collect {
                 Timber.d(it.toString())
                 val state = when (it) {
+                    Device.State.NoConnectivity -> ConnectionProgress.NoConnectivity
                     Device.State.Connecting -> ConnectionProgress.Connecting
                     Device.State.Fetching -> ConnectionProgress.Fetching
                     Device.State.Ready -> ConnectionProgress.Done

@@ -11,6 +11,7 @@ import com.subreax.lightclient.data.device.repo.PropertyGroup
 import com.subreax.lightclient.data.device.socket.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,18 +54,13 @@ class DeviceImpl(
                         _state.value = Device.State.Connecting
                     }
                     Socket.ConnectionState.Connected -> {
-                        if (autoFetch) {
-                            val res = fetchData()
-                            if (res is LResult.Success) {
-                                _state.value = Device.State.Ready
-                            } else {
-                                _errors.emit(res as LResult.Failure)
-                                disconnect()
-                            }
-                        }
+                        onConnectState()
                     }
                     Socket.ConnectionState.Disconnected -> {
                         _state.value = Device.State.Disconnected
+                    }
+                    Socket.ConnectionState.NoConnectivity -> {
+                        _state.value = Device.State.NoConnectivity
                     }
                 }
             }
@@ -80,6 +76,18 @@ class DeviceImpl(
                         globalPropGroup.fetch()
                     }
                 }
+            }
+        }
+    }
+
+    private suspend fun onConnectState() {
+        if (autoFetch) {
+            val res = fetchData()
+            if (res is LResult.Success) {
+                _state.value = Device.State.Ready
+            } else {
+                _errors.emit(res as LResult.Failure)
+                disconnect()
             }
         }
     }
@@ -104,14 +112,11 @@ class DeviceImpl(
         Timber.d("Fetching data")
 
         _state.value = Device.State.Fetching
-        //val job1 = async { globalPropGroup.fetch() }
-        //val job2 = async { scenePropGroup.fetch() }
+        val job1 = async { globalPropGroup.fetch() }
+        val job2 = async { scenePropGroup.fetch() }
 
-        //val res1 = job1.await()
-        //val res2 = job2.await()
-
-        val res1 = globalPropGroup.fetch()
-        val res2 = scenePropGroup.fetch()
+        val res1 = job1.await()
+        val res2 = job2.await()
 
         if (res1 is LResult.Failure) {
             res1

@@ -16,7 +16,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -51,9 +50,19 @@ class BleConnector(
     init {
         coroutineScope.launch {
             central.connectionListener.status.collect {
-                if (deviceData != null && it == BleConnectionEvent.Disconnected) {
+                if (deviceData != null && it != BleConnectionEvent.Connected) {
                     deviceData = null
-                    onConnectionLost()
+                }
+
+                if (it == BleConnectionEvent.NoConnectivity) {
+                    _connectionState.value = Socket.ConnectionState.NoConnectivity
+                }
+                else if (it == BleConnectionEvent.HasConnectivity) {
+                    _connectionState.value = Socket.ConnectionState.Disconnected
+                }
+                // when device disconnected by user
+                else if (it == BleConnectionEvent.Disconnected && central.manager.isBluetoothEnabled) {
+                    _connectionState.value = Socket.ConnectionState.Disconnected
                 }
             }
         }
@@ -61,6 +70,7 @@ class BleConnector(
 
     suspend fun connect(): LResult<Unit> = withContext(Dispatchers.IO) {
         if (!isBluetoothAvailable()) {
+            Timber.e("Failed to connect: bluetooth is off")
             return@withContext LResult.Failure(R.string.bluetooth_is_off)
         }
 
@@ -166,20 +176,6 @@ class BleConnector(
             event == BleConnectionEvent.Disconnected
         }
         _connectionState.value = Socket.ConnectionState.Disconnected
-    }
-
-    private suspend fun onConnectionLost() {
-        coroutineScope.launch {
-            var attempts = 1
-            while (isActive) {
-                Timber.d("Reconnection: attempt #$attempts")
-                if (connect() is LResult.Success) {
-                    break
-                }
-                attempts++
-                delay(2000)
-            }
-        }
     }
 
     companion object {

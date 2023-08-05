@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
 
 interface Socket {
     enum class ConnectionState {
-        Disconnected, Connecting, Connected
+        Disconnected, NoConnectivity, Connecting, Connected
     }
 
     val connectionState: StateFlow<ConnectionState>

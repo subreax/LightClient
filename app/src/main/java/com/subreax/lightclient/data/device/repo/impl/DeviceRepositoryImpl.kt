@@ -6,6 +6,7 @@ import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.data.device.impl.DeviceImpl
 import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.data.device.BleCentralContainer
+import com.subreax.lightclient.data.device.socket.ReconnectionSocket
 import com.subreax.lightclient.data.device.socket.ble.BleSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +54,9 @@ class DeviceRepositoryImpl @Inject constructor(
     }
 
     private fun createSocket(deviceDesc: DeviceDesc): Socket {
-        return BleSocket(centralContainer, deviceDesc.address)
+        return ReconnectionSocket(
+            BleSocket(centralContainer, deviceDesc.address)
+        )
     }
 
     override fun getDevice(): Device = _device!!

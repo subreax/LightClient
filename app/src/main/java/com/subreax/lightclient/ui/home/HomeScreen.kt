@@ -89,7 +89,8 @@ fun HomeScreen(
             Device.State.Ready -> {
                 append(stringResource(R.string.connected_to))
             }
-            Device.State.Connecting -> {
+            Device.State.Connecting,
+            Device.State.NoConnectivity -> {
                 append(stringResource(R.string.reconnecting_to))
             }
             Device.State.Fetching -> {

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface Device {
     enum class State {
-        Disconnected, Connecting, Fetching, Ready
+        Disconnected, NoConnectivity, Connecting, Fetching, Ready
     }
 
     val state: StateFlow<State>
