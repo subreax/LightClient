@@ -9,6 +9,8 @@ import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.data.device.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,37 +26,47 @@ class HomeViewModel @Inject constructor(
         val dialogEditProperty: Property? = null
     )
 
-    private val device = deviceRepository.getDevice()
+    private lateinit var device: Device
 
     var uiState by mutableStateOf(
         UiState(
             Device.State.Ready,
             "",
-            device.globalProperties.value,
-            device.sceneProperties.value
+            emptyList(),
+            emptyList()
         )
     )
         private set
 
+    private val _navBack = MutableStateFlow(false)
+    val navBack: Flow<Boolean> = _navBack
+
     init {
-        viewModelScope.launch {
-            uiState = uiState.copy(deviceName = device.getDeviceDesc().name)
+        if (deviceRepository.isConnected()) {
+            device = deviceRepository.getDevice()
 
-            device.globalProperties.collect {
-                uiState = uiState.copy(globalProperties = it)
+            viewModelScope.launch {
+                uiState = uiState.copy(deviceName = device.getDeviceDesc().name)
+
+                device.globalProperties.collect {
+                    uiState = uiState.copy(globalProperties = it)
+                }
+            }
+
+            viewModelScope.launch {
+                device.sceneProperties.collect {
+                    uiState = uiState.copy(sceneProperties = it)
+                }
+            }
+
+            viewModelScope.launch {
+                device.state.collect {
+                    uiState = uiState.copy(deviceState = it)
+                }
             }
         }
-
-        viewModelScope.launch {
-            device.sceneProperties.collect {
-                uiState = uiState.copy(sceneProperties = it)
-            }
-        }
-
-        viewModelScope.launch {
-            device.state.collect {
-                uiState = uiState.copy(deviceState = it)
-            }
+        else {
+            _navBack.value = true
         }
     }
 
@@ -76,5 +88,9 @@ class HomeViewModel @Inject constructor(
 
     fun closeDialog() {
         uiState = uiState.copy(dialogEditProperty = null)
+    }
+
+    fun navBackHandled() {
+        _navBack.value = false
     }
 }

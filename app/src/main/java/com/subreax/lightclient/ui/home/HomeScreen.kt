@@ -30,7 +30,8 @@ import java.util.Calendar
 fun HomeScreen(
     navToColorPicker: (propId: Int) -> Unit,
     navToEnumPicker: (propId: Int) -> Unit,
-    homeViewModel: HomeViewModel = hiltViewModel()
+    navBack: () -> Unit,
+    homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState = homeViewModel.uiState
 
@@ -72,6 +73,15 @@ fun HomeScreen(
             callback = propertyCallback,
             onClose = homeViewModel::closeDialog
         )
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        homeViewModel.navBack.collect {
+            if (it) {
+                navBack()
+                homeViewModel.navBackHandled()
+            }
+        }
     }
 }
 
@@ -222,20 +232,22 @@ fun PropertiesSection(
     properties: List<Property>,
     callback: PropertyCallback
 ) {
-    Column(modifier) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold),
-            color = LocalContentColorMediumAlpha,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+    if (properties.isNotEmpty()) {
+        Column(modifier) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold),
+                color = LocalContentColorMediumAlpha,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
-        UniformGrid(
-            minCellSize = 48.dp,
-            spacing = spacing
-        ) {
-            properties.forEach {
-                Property(property = it, callback = callback)
+            UniformGrid(
+                minCellSize = 48.dp,
+                spacing = spacing
+            ) {
+                properties.forEach {
+                    Property(property = it, callback = callback)
+                }
             }
         }
     }

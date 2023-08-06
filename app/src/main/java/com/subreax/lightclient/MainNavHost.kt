@@ -58,6 +58,13 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
                 },
                 navToEnumPicker = {
                     navController.navigate("${Screen.EnumPicker.route}/$it")
+                },
+                navBack = {
+                    navController.navigate(Screen.Connection.route) {
+                        popUpTo(navController.currentDestination!!.route!!) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }
