@@ -1,4 +1,4 @@
-# Description 
+# LightClient 
 LightClient is an Android app to control my own light-devices over bluetooth such as led strips.
 
 ## Screenshots
