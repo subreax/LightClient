@@ -4,8 +4,6 @@ import android.content.Context
 import com.subreax.lightclient.data.*
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.connection.impl.BleConnectionRepository
-import com.subreax.lightclient.data.connectivity.ConnectivityObserver
-import com.subreax.lightclient.data.connectivity.impl.BtConnectivityObserver
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.data.device.repo.impl.DeviceRepositoryImpl
 import com.subreax.lightclient.data.device.BleCentralContainer
@@ -22,12 +20,6 @@ import javax.inject.Singleton
 object AppModule {
     @Provides
     @Singleton
-    fun provideConnectivityObserver(@ApplicationContext context: Context): ConnectivityObserver {
-        return BtConnectivityObserver(context)
-    }
-
-    @Provides
-    @Singleton
     fun provideConnectionRepository(
         @ApplicationContext context: Context,
         deviceRepository: DeviceRepository
@@ -39,9 +31,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDeviceRepository(
+        @ApplicationContext context: Context,
         bleCentralContainer: BleCentralContainer
     ): DeviceRepository {
-        return DeviceRepositoryImpl(bleCentralContainer)
+        return DeviceRepositoryImpl(bleCentralContainer, context)
     }
 
     @Singleton

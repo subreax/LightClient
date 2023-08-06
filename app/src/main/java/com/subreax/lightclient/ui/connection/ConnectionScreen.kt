@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.R
+import com.subreax.lightclient.data.ConnectionType
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.ui.LocalContentColorMediumAlpha
 import com.subreax.lightclient.ui.TopBar
@@ -173,9 +174,9 @@ fun ConnectionScreenPreview() {
     LightClientTheme {
         ConnectionScreen(
             devices = listOf(
-                DeviceDesc("ESP32-Home", "FC:81:CC:4F:8E:36"),
-                DeviceDesc("ESP32-Kitchen", "D1:09:75:BA:15:2D"),
-                DeviceDesc("ESP32-Bath", "5A:46:70:63:6E:99")
+                DeviceDesc("ESP32-Home", "FC:81:CC:4F:8E:36", ConnectionType.BLE),
+                DeviceDesc("ESP32-Kitchen", "D1:09:75:BA:15:2D", ConnectionType.BLE),
+                DeviceDesc("ESP32-Bath", "5A:46:70:63:6E:99", ConnectionType.BLE)
             ),
             onDeviceSelected = { },
             isLoading = false,

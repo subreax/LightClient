@@ -6,7 +6,6 @@ import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.data.device.api.DeviceApi
 import com.subreax.lightclient.data.device.api.Event
-import com.subreax.lightclient.data.device.api.bin.BinDeviceApi
 import com.subreax.lightclient.data.device.repo.PropertyGroup
 import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.except.ConnectionException
@@ -23,11 +22,11 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 
-class DeviceImpl(
+open class DeviceImpl(
     private val deviceDesc: DeviceDesc,
-    private val socket: Socket
+    private val socket: Socket,
+    private val api: DeviceApi
 ) : Device {
-    private val api: DeviceApi = BinDeviceApi(socket)
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val _state = MutableStateFlow(Device.State.Disconnected)

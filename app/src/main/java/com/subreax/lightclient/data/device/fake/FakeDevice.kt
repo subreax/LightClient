@@ -1,6 +1,7 @@
 package com.subreax.lightclient.data.device.fake
 
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.data.ConnectionType
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.Device
@@ -61,6 +62,6 @@ class FakeDevice : Device {
     }
 
     override fun getDeviceDesc(): DeviceDesc {
-        return DeviceDesc("Fake device", "<address>")
+        return DeviceDesc("Fake device", "<address>", ConnectionType.BLE)
     }
 }

@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
+import com.subreax.lightclient.data.ConnectionType
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.device.repo.DeviceRepository
@@ -14,6 +15,7 @@ import com.subreax.lightclient.ui.isPermissionGranted
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import timber.log.Timber
 
 class BleConnectionRepository(
     private val appContext: Context,
@@ -68,11 +70,18 @@ class BleConnectionRepository(
             while (isActive) {
                 if (hasBtConnectPermission()) {
                     _devices.value = btAdapter.bondedDevices
-                        .filter { it.isBle() }
                         .map { it.descriptor() }
                 }
                 delay(2000)
             }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun logBondedDevices() {
+        val devices = btAdapter.bondedDevices
+        devices.forEach {
+            Timber.d("${it.name} - ${it.type}")
         }
     }
 
@@ -91,8 +100,15 @@ class BleConnectionRepository(
 
 @SuppressLint("MissingPermission")
 private fun BluetoothDevice.isBle() =
-    type == BluetoothDevice.DEVICE_TYPE_LE ||
-    type == BluetoothDevice.DEVICE_TYPE_DUAL
+    type == BluetoothDevice.DEVICE_TYPE_LE/* ||
+    type == BluetoothDevice.DEVICE_TYPE_DUAL*/
 
 @SuppressLint("MissingPermission")
-private fun BluetoothDevice.descriptor() = DeviceDesc(name, address)
+private fun BluetoothDevice.getConnectionType() =
+    if (isBle())
+        ConnectionType.BLE
+    else
+        ConnectionType.BT_CLASSIC
+
+@SuppressLint("MissingPermission")
+private fun BluetoothDevice.descriptor() = DeviceDesc(name, address, getConnectionType())

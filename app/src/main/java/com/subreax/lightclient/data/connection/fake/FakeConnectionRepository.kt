@@ -1,5 +1,6 @@
 package com.subreax.lightclient.data.connection.fake
 
+import com.subreax.lightclient.data.ConnectionType
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.device.Device
@@ -11,8 +12,8 @@ class FakeConnectionRepository : ConnectionRepository {
     override val devices: Flow<List<DeviceDesc>>
         get() = flow {
             emit(listOf(
-                DeviceDesc("device1", "address1"),
-                DeviceDesc("device2", "address 2")
+                DeviceDesc("device1", "address1", ConnectionType.BLE),
+                DeviceDesc("device2", "address 2", ConnectionType.BLE)
             ))
         }
 
