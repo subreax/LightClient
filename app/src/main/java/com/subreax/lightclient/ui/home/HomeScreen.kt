@@ -3,8 +3,9 @@ package com.subreax.lightclient.ui.home
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -118,39 +119,37 @@ fun HomeScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-    ) {
-        TopBar(
-            title = getGreeting(),
-            subtitle = { Text(text = connectedDeviceInfo) },
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+    LazyVerticalGrid(columns = GridCells.Adaptive(300.dp), Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            TopBar(
+                title = getGreeting(),
+                subtitle = { Text(text = connectedDeviceInfo) }
+            )
+        }
 
-        PropertiesSection(
-            name = stringResource(R.string.global_props),
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth(0.95f),
-            spacing = 8.dp,
-            properties = globalProperties,
-            callback = propertyCallback
-        )
-        Spacer(Modifier.height(16.dp))
+        item {
+            PropertiesSection(
+                name = stringResource(R.string.global_props),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(0.95f),
+                spacing = 8.dp,
+                properties = globalProperties,
+                callback = propertyCallback
+            )
+        }
 
-        PropertiesSection(
-            name = stringResource(R.string.scene_props),
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth(0.95f),
-            spacing = 8.dp,
-            properties = sceneProperties,
-            callback = propertyCallback
-        )
-
-        Spacer(Modifier.height(16.dp))
+        item {
+            PropertiesSection(
+                name = stringResource(R.string.scene_props),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(0.95f),
+                spacing = 8.dp,
+                properties = sceneProperties,
+                callback = propertyCallback
+            )
+        }
     }
 }
 
@@ -242,7 +241,7 @@ fun PropertiesSection(
             )
 
             UniformGrid(
-                minCellSize = 48.dp,
+                columns = ColumnsCount.Constant(6),
                 spacing = spacing
             ) {
                 properties.forEach {

@@ -44,6 +44,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.ui.ColumnsCount
 import com.subreax.lightclient.ui.LocalContentColorMediumAlpha
 import com.subreax.lightclient.ui.UniformGrid
 import com.subreax.lightclient.ui.UniformGridScope.Companion.span
@@ -691,7 +692,7 @@ fun PropertiesPreview() {
                 .background(Color.Black)
                 .padding(4.dp)
         ) {
-            UniformGrid(minCellSize = 50.dp, modifier = Modifier.fillMaxSize()) {
+            UniformGrid(columns = ColumnsCount.Constant(8), modifier = Modifier.fillMaxSize()) {
                 FloatSliderProperty(
                     name = "Q15 Slider",
                     value = 0.5f,

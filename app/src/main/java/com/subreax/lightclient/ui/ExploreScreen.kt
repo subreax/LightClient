@@ -72,7 +72,7 @@ fun ExploreScreen() {
             .verticalScroll(rememberScrollState())
     ) {
         UniformGrid(
-            minCellSize = 112.dp,
+            columns = ColumnsCount.Constant(6),
             spacing = 8.dp,
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
