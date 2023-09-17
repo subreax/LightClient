@@ -1,5 +1,8 @@
 package com.subreax.lightclient
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -40,7 +43,16 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun MainNavHost(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Screen.Connection.route) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Connection.route,
+        enterTransition = {
+            fadeIn(tween(200))
+        },
+        exitTransition = {
+            fadeOut(tween(200))
+        }
+    ) {
         composable(Screen.Connection.route) {
             ConnectionScreen(navHome = {
                 navController.navigate(Screen.Home.route) {
