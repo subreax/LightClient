@@ -8,8 +8,8 @@
     <string name="pick_controller">Выберите, к какому контроллеру вы хотите подключиться. Если вашего контроллера нет в этом списке, убедитесь, что вы выполнили сопряжение с ним в настройках Bluetooth</string>
     <string name="waiting_for_connectivity">Ожидание блюпупа…</string>
     <string name="failed_to_connect">Не удалось подключиться к %s</string>
-    <string name="failed_to_sync">Не удалось синхронизироваться с контроллером: %s</string>
-    <string name="connection_timed_out">Не удалось подключиться: время подключения истекло</string>
+    <string name="connection_timed_out">Вышло время подключения к контроллеру</string>
+    <string name="fetch_timed_out">Вышло время получения данных от контроллера</string>
     <string name="bluetooth_is_off">Bluetooth отключён</string>
     <string name="failed_to_parse_header">Не удалось прочитать заголовок ответа</string>
     <string name="failed_to_receive_response">Не удалось получить запрос: время истекло</string>

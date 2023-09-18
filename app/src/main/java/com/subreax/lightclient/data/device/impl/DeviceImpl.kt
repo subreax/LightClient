@@ -1,6 +1,7 @@
 package com.subreax.lightclient.data.device.impl
 
 import com.subreax.lightclient.LResult
+import com.subreax.lightclient.R
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.Device
@@ -9,17 +10,19 @@ import com.subreax.lightclient.data.device.api.Event
 import com.subreax.lightclient.data.device.repo.PropertyGroup
 import com.subreax.lightclient.data.device.socket.Socket
 import com.subreax.lightclient.except.ConnectionException
+import com.subreax.lightclient.ui.UiText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
+import kotlinx.coroutines.withTimeoutOrNull
 
 
 open class DeviceImpl(
@@ -85,6 +88,7 @@ open class DeviceImpl(
 
     private suspend fun onConnectState() {
         if (autoFetch) {
+            _state.value = Device.State.Fetching
             val res = fetchData()
             if (res is LResult.Success) {
                 _state.value = Device.State.Ready
@@ -97,28 +101,38 @@ open class DeviceImpl(
 
     override suspend fun connect() = withContext(Dispatchers.IO) {
         flow {
-            _state.value = Device.State.Connecting
-            emit(Device.State.Connecting)
-            socket.connect()
-                .then {
-                    emit(Device.State.Fetching)
-                    fetchData()
-                }
-                .onSuccess {
-                    _state.value = Device.State.Ready
-                    autoFetch = true
-                    emit(Device.State.Ready)
-                }
-                .onFailure {
-                    disconnect()
-                    throw ConnectionException(it.message)
-                }
+            try {
+                connectPhase()
+                fetchPhase()
+            } catch (th: Throwable) {
+                disconnect()
+                throw th
+            }
+
+            _state.value = Device.State.Ready
+            autoFetch = true
+            emit(Device.State.Ready)
         }
     }
 
-    private suspend fun fetchData(): LResult<Unit> = withContext(Dispatchers.IO) {
-        Timber.d("Fetching data")
+    private suspend fun FlowCollector<Device.State>.connectPhase() {
+        _state.value = Device.State.Connecting
+        emit(Device.State.Connecting)
+        socket.connect()
+            .onFailure {
+                throw ConnectionException(it.message)
+            }
+    }
 
+    private suspend fun FlowCollector<Device.State>.fetchPhase() {
+        _state.value = Device.State.Fetching
+        emit(Device.State.Fetching)
+        withTimeoutOrNull(3000) {
+            fetchData()
+        } ?: throw ConnectionException(UiText.Res(R.string.fetch_timed_out))
+    }
+
+    private suspend fun fetchData(): LResult<Unit> = withContext(Dispatchers.IO) {
         _state.value = Device.State.Fetching
         val job1 = async { globalPropGroup.fetch() }
         val job2 = async { scenePropGroup.fetch() }

@@ -13,13 +13,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 private data class RequestWrapper(
@@ -209,7 +209,7 @@ class SocketWrapper(private val socket: Socket) {
     }
 
     suspend fun doRequest(request: Request): LResult<ByteBuffer> = withContext(Dispatchers.IO) {
-        suspendCoroutine { cont ->
+        suspendCancellableCoroutine { cont ->
             val requestWrapper = RequestWrapper(
                 data = request,
                 onResponse = { cont.resume(it) }
@@ -223,7 +223,7 @@ class SocketWrapper(private val socket: Socket) {
     suspend fun doRequestWithNoResponse(
         request: Request
     ): LResult<Unit> = withContext(Dispatchers.IO) {
-        val result = suspendCoroutine { cont ->
+        val result = suspendCancellableCoroutine { cont ->
             val requestWrapper = RequestWrapper(
                 data = request,
                 onResponse = { cont.resume(it) },
