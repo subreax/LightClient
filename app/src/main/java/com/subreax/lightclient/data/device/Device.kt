@@ -22,4 +22,5 @@ interface Device {
     suspend fun disconnect()
     fun findPropertyById(id: Int): Property?
     fun getDeviceDesc(): DeviceDesc
+    suspend fun ping(): Int
 }

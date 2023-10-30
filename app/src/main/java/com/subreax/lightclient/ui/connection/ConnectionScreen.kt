@@ -3,6 +3,8 @@ package com.subreax.lightclient.ui.connection
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -118,10 +120,14 @@ fun ConnectionScreen(
 
 @Composable
 fun LoadingOverlay(message: String) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     Box(
         modifier = Modifier
             .background(Color(0xAE000000))
             .fillMaxSize()
+            .focusable(true)
+            .clickable(interactionSource, null, true) {  }
             .zIndex(2.0f)
     ) {
         Column(

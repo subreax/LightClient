@@ -1,5 +1,8 @@
 package com.subreax.lightclient
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,6 +15,7 @@ import com.subreax.lightclient.ui.colorpickerscreen.ColorPickerScreen
 import com.subreax.lightclient.ui.connection.ConnectionScreen
 import com.subreax.lightclient.ui.enumscreen.EnumScreen
 import com.subreax.lightclient.ui.home.HomeScreen
+import com.subreax.lightclient.ui.ping.PingScreen
 
 
 sealed class Screen(val route: String) {
@@ -35,12 +39,23 @@ sealed class Screen(val route: String) {
         )
     }
 
+    object Ping : Screen("ping_screen")
+
     object Explore : Screen("explore_screen")
 }
 
 @Composable
 fun MainNavHost(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Screen.Connection.route) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Connection.route,
+        enterTransition = {
+            fadeIn(tween(200))
+        },
+        exitTransition = {
+            fadeOut(tween(200))
+        }
+    ) {
         composable(Screen.Connection.route) {
             ConnectionScreen(navHome = {
                 navController.navigate(Screen.Home.route) {
@@ -58,6 +73,9 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
                 },
                 navToEnumPicker = {
                     navController.navigate("${Screen.EnumPicker.route}/$it")
+                },
+                navToPingScreen = {
+                    navController.navigate(Screen.Ping.route)
                 },
                 navBack = {
                     navController.navigate(Screen.Connection.route) {
@@ -83,6 +101,12 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
             arguments = Screen.EnumPicker.args
         ) {
             EnumScreen(navBack = {
+                navController.popBackStack()
+            })
+        }
+
+        composable(Screen.Ping.route) {
+            PingScreen(navBack = {
                 navController.popBackStack()
             })
         }

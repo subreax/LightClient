@@ -64,4 +64,8 @@ class FakeDevice : Device {
     override fun getDeviceDesc(): DeviceDesc {
         return DeviceDesc("Fake device", "<address>", ConnectionType.BLE)
     }
+
+    override suspend fun ping(): Int {
+        return 100
+    }
 }

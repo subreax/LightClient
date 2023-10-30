@@ -109,10 +109,26 @@ private fun calcGrid(columnsCount: Int, measurables: List<Measurable>): GridCalc
     return GridCalculationResult(rowsCount, itemsPos)
 }
 
+sealed class ColumnsCount {
+    abstract fun Density.getColumnsCount(maxWidth: Int, spacing: Int): Int
+
+    class Adaptive(private val minSize: Dp) : ColumnsCount() {
+        override fun Density.getColumnsCount(maxWidth: Int, spacing: Int): Int {
+            return ((maxWidth + spacing) / (minSize.toPx() + spacing)).toInt()
+        }
+    }
+
+    class Constant(private val count: Int) : ColumnsCount() {
+        override fun Density.getColumnsCount(maxWidth: Int, spacing: Int): Int {
+            return count
+        }
+    }
+}
+
 @Composable
 fun UniformGrid(
+    columns: ColumnsCount,
     modifier: Modifier = Modifier,
-    minCellSize: Dp = 96.dp,
     spacing: Dp = 8.dp,
     content: @Composable UniformGridScope.() -> Unit
 ) {
@@ -122,7 +138,10 @@ fun UniformGrid(
     ) { measurables, constraints ->
         val maxW = constraints.maxWidth
         val spacingPx = spacing.toPx().toInt()
-        val columnsCount = ((maxW + spacingPx) / (minCellSize.toPx() + spacingPx)).toInt()
+
+        val columnsCount = with(columns) {
+            getColumnsCount(maxW, spacingPx)
+        }
         // todo: keep at least 1 column even when minCellSize is too big
         check(columnsCount >= 1) {
             "Columns count = 0. Decrease spacing or min cell size to fix it"

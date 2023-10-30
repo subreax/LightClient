@@ -93,4 +93,11 @@ class HomeViewModel @Inject constructor(
     fun navBackHandled() {
         _navBack.value = false
     }
+
+    fun disconnect() {
+        viewModelScope.launch {
+            device.disconnect()
+            _navBack.value = true
+        }
+    }
 }
