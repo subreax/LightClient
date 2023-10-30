@@ -43,12 +43,14 @@ class OldDeviceApi(
     )
     private val primaryColorProp = Property.Color(3, "Основной", Color.RED)
     private val secondaryColorProp = Property.Color(4, "Вторичный", Color.GREEN)
+    private val motionSensorProp = Property.Bool(5, "Датчик движения", false)
 
     private val globalProps = listOf(
         brightnessProp,
         sceneProp,
         primaryColorProp,
-        secondaryColorProp
+        secondaryColorProp,
+        motionSensorProp
     )
 
     override suspend fun getPropertiesFromGroup(group: PropertyGroup.Id): LResult<List<Property>> {
@@ -57,6 +59,7 @@ class OldDeviceApi(
             sceneProp.currentValue.value = fetchSceneId()
             primaryColorProp.color.value = fetchColor(1)
             secondaryColorProp.color.value = fetchColor(2)
+            motionSensorProp.toggled.value = fetchMotionSensorState()
             LResult.Success(globalProps)
         } else {
             LResult.Success(emptyList())
@@ -69,8 +72,13 @@ class OldDeviceApi(
             SCENE_PROP_ID -> sendSceneId(property)
             PRIMARY_COLOR_PROP_ID -> sendColor(1, property)
             SECONDARY_COLOR_PROP_ID -> sendColor(2, property)
+            MOTION_SENSOR_PROP_ID -> sendMotionSensorState(property)
             else -> LResult.Failure("Unknown property id: ${property.id}")
         }
+    }
+
+    override suspend fun ping(): LResult<Unit> {
+        return doRequest("echo[]").then { LResult.Success(Unit) }
     }
 
     private suspend fun sendBrightness(property: Property): LResult<Unit> {
@@ -84,7 +92,7 @@ class OldDeviceApi(
     }
 
     private suspend fun fetchBrightness(): Float {
-        val result = doRequest("gb")
+        val result = doRequest("getBrightness")
         return if (result is LResult.Success) {
             val resp = result.value
             resp.data[0].toInt() / 255.0f
@@ -105,7 +113,7 @@ class OldDeviceApi(
     }
 
     private suspend fun fetchColor(idx: Int): Int {
-        val res = doRequest("gc", idx.toString())
+        val res = doRequest("getColor", idx.toString())
         return if (res is LResult.Success) {
             res.value.data[0].toColor()
         } else {
@@ -114,13 +122,31 @@ class OldDeviceApi(
     }
 
     private suspend fun fetchSceneId(): Int {
-        val res = doRequest("gm")
+        val res = doRequest("getMode")
         return if (res is LResult.Success) {
             res.value.data[0].toInt()
         } else {
             Timber.d("Failed to fetch scene id", (res as LResult.Failure).message.toString())
             0
         }
+    }
+
+    private suspend fun fetchMotionSensorState(): Boolean {
+        val res = doRequest("getSppState", "1")
+        return if (res is LResult.Success) {
+            val value = res.value.data[0].toInt()
+            value > 0
+        } else {
+            false
+        }
+    }
+
+    private suspend fun sendMotionSensorState(property: Property): LResult<Unit> {
+        val prop = property as Property.Bool
+        val enabled = prop.toggled.value
+        val cmd = if (enabled) "es" else "ds"
+        return doRequest(cmd, "1")
+            .then { LResult.Success(Unit) }
     }
 
     private suspend fun sendSceneId(property: Property): LResult<Unit> {
@@ -188,6 +214,7 @@ class OldDeviceApi(
         private const val SCENE_PROP_ID = 2
         private const val PRIMARY_COLOR_PROP_ID = 3
         private const val SECONDARY_COLOR_PROP_ID = 4
+        private const val MOTION_SENSOR_PROP_ID = 5
     }
 }
 

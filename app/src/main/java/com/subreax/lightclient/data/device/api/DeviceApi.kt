@@ -10,4 +10,5 @@ interface DeviceApi {
 
     suspend fun getPropertiesFromGroup(group: PropertyGroup.Id): LResult<List<Property>>
     suspend fun uploadPropertyValue(property: Property): LResult<Unit>
+    suspend fun ping(): LResult<Unit>
 }

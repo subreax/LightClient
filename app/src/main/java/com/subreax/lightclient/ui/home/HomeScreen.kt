@@ -2,14 +2,23 @@ package com.subreax.lightclient.ui.home
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.NetworkPing
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -24,16 +33,24 @@ import com.subreax.lightclient.data.PropertyType
 import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.ui.*
 import com.subreax.lightclient.ui.theme.LightClientTheme
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Calendar
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navToColorPicker: (propId: Int) -> Unit,
     navToEnumPicker: (propId: Int) -> Unit,
+    navToPingScreen: () -> Unit,
     navBack: () -> Unit,
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
+    val density = LocalDensity.current
+    val bottomSheet = remember {
+        ModalBottomSheetState(ModalBottomSheetValue.Hidden, density)
+    }
+    val coroutineScope = rememberCoroutineScope()
     val uiState = homeViewModel.uiState
 
     val propertyCallback = PropertyCallback(
@@ -60,19 +77,36 @@ fun HomeScreen(
         },
     )
 
-    HomeScreen(
-        deviceState = uiState.deviceState,
-        deviceName = uiState.deviceName,
-        globalProperties = uiState.globalProperties,
-        sceneProperties = uiState.sceneProperties,
-        propertyCallback = propertyCallback
-    )
-
     if (uiState.dialogEditProperty != null) {
         PropertyEditorDialog(
             property = uiState.dialogEditProperty,
             callback = propertyCallback,
             onClose = homeViewModel::closeDialog
+        )
+    }
+
+    ModalBottomSheetLayout(
+        sheetState = bottomSheet,
+        sheetContent = {
+            HomeBottomSheetContent(
+                pingClicked = navToPingScreen,
+                disconnectClicked = homeViewModel::disconnect
+            )
+        },
+        scrimColor = MaterialTheme.colors.background.copy(0.6f),
+        sheetElevation = 0.dp,
+    ) {
+        HomeScreen(
+            deviceState = uiState.deviceState,
+            deviceName = uiState.deviceName,
+            globalProperties = uiState.globalProperties,
+            sceneProperties = uiState.sceneProperties,
+            propertyCallback = propertyCallback,
+            onOptionsClicked = {
+                coroutineScope.launch {
+                    bottomSheet.show()
+                }
+            }
         )
     }
 
@@ -93,37 +127,26 @@ fun HomeScreen(
     deviceName: String,
     globalProperties: List<Property>,
     sceneProperties: List<Property>,
-    propertyCallback: PropertyCallback
+    propertyCallback: PropertyCallback,
+    onOptionsClicked: () -> Unit
 ) {
-    val connectedDeviceInfo = buildAnnotatedString {
-        when (deviceState) {
-            Device.State.Ready -> {
-                append(stringResource(R.string.connected_to))
-            }
-            Device.State.Connecting,
-            Device.State.NoConnectivity -> {
-                append(stringResource(R.string.reconnecting_to))
-            }
-            Device.State.Fetching -> {
-                append(stringResource(R.string.syncing_with))
-            }
-            else -> {
-                append("$deviceState ")
-            }
-        }
-
-        append("\n")
-
-        withStyle(SpanStyle(color = LocalContentColor.current.copy(alpha = ContentAlpha.high))) {
-            append(deviceName)
-        }
-    }
-
-    LazyVerticalGrid(columns = GridCells.Adaptive(300.dp), Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(300.dp),
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             TopBar(
                 title = getGreeting(),
-                subtitle = { Text(text = connectedDeviceInfo) }
+                subtitle = {
+                    val text = formatDeviceInfo(deviceState, deviceName)
+                    Text(text = text)
+                },
+                actions = {
+                    IconButton(onClick = onOptionsClicked) {
+                        Icon(Icons.Filled.MoreVert, "More options")
+                    }
+                }
             )
         }
 
@@ -149,6 +172,36 @@ fun HomeScreen(
                 properties = sceneProperties,
                 callback = propertyCallback
             )
+        }
+    }
+}
+
+@Composable
+private fun formatDeviceInfo(deviceState: Device.State, deviceName: String): AnnotatedString {
+    return buildAnnotatedString {
+        when (deviceState) {
+            Device.State.Ready -> {
+                append(stringResource(R.string.connected_to))
+            }
+
+            Device.State.Connecting,
+            Device.State.NoConnectivity -> {
+                append(stringResource(R.string.reconnecting_to))
+            }
+
+            Device.State.Fetching -> {
+                append(stringResource(R.string.syncing_with))
+            }
+
+            else -> {
+                append("$deviceState ")
+            }
+        }
+
+        append("\n")
+
+        withStyle(SpanStyle(color = LocalContentColor.current.copy(alpha = ContentAlpha.high))) {
+            append(deviceName)
         }
     }
 }
@@ -287,6 +340,40 @@ fun PropertyEditorDialog(
     }
 }
 
+
+@Composable
+private fun HomeBottomSheetContent(
+    pingClicked: () -> Unit,
+    disconnectClicked: () -> Unit
+) {
+    BottomSheetItem(
+        icon = Icons.Filled.NetworkPing,
+        text = stringResource(R.string.ping_measurement),
+        onClick = pingClicked
+    )
+    BottomSheetItem(
+        icon = Icons.Filled.Close,
+        text = stringResource(R.string.disconnect),
+        onClick = disconnectClicked
+    )
+}
+
+@Composable
+private fun BottomSheetItem(icon: ImageVector, text: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = text)
+        Text(text)
+    }
+}
+
+
 @SuppressLint("UnrememberedMutableState")
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
@@ -317,7 +404,8 @@ fun HomeScreenPreview() {
                 { _, _ -> },
                 { _, _ -> },
                 {},
-            )
+            ),
+            {}
         )
     }
 }

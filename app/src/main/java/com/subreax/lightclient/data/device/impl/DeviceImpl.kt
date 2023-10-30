@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.system.measureTimeMillis
 
 
 open class DeviceImpl(
@@ -162,5 +163,13 @@ open class DeviceImpl(
 
     override fun getDeviceDesc(): DeviceDesc {
         return deviceDesc
+    }
+
+    override suspend fun ping(): Int {
+        return measureTimeMillis {
+            withContext(Dispatchers.IO) {
+                api.ping()
+            }
+        }.toInt()
     }
 }

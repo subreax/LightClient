@@ -44,4 +44,7 @@
     <string name="set">Установить</string>
     <string name="close">Закрыть</string>
     <string name="go_back">Вернуться на предыдущий экран</string>
+    <string name="ping_measurement">Замер пинга</string>
+    <string name="figure_out_connection_quality_with_your_controller">Определи качество соединения со своим контроллером</string>
+    <string name="disconnect">Отключиться</string>
 </resources>

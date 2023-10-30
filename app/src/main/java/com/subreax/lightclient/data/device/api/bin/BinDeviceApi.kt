@@ -96,4 +96,9 @@ class BinDeviceApi(
 
         return socketWrapper.doRequest(req).then { LResult.Success(Unit) }
     }
+
+    override suspend fun ping(): LResult<Unit> {
+        val req = SocketWrapper.Request(FunctionId.Ping.ordinal) {  }
+        return socketWrapper.doRequest(req).then { LResult.Success(Unit) }
+    }
 }
