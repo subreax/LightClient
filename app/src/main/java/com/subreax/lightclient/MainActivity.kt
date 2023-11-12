@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
             setContent {
                 val navController = rememberNavController()
 
-                LightClientTheme {
+                LightClientTheme(darkTheme = true) {
                     UiLogHandler(uiLog) {
                         MainNavHost(navController)
                     }
