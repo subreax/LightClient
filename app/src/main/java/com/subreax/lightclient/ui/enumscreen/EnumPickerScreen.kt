@@ -46,7 +46,7 @@ fun EnumScreen(
     onSelect: (Int) -> Unit,
     navBack: () -> Unit
 ) {
-    Column {
+    Column(Modifier.fillMaxSize().navigationBarsPadding()) {
         TopBar(
             title = propertyName,
             subtitle = { Text(stringResource(R.string.select_an_item)) },
