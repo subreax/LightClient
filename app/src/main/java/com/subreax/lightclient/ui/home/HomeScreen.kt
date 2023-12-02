@@ -53,29 +53,31 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     val uiState = homeViewModel.uiState
 
-    val propertyCallback = PropertyCallback(
-        colorPropertyClicked = { prop ->
-            navToColorPicker(prop.id)
-        },
-        enumClicked = { prop ->
-            navToEnumPicker(prop.id)
-        },
-        floatChanged = { prop, value ->
-            homeViewModel.setPropertyValue(prop, value)
-        },
-        floatClicked = { prop ->
-            homeViewModel.showEditDialog(prop)
-        },
-        toggleChanged = { prop, value ->
-            homeViewModel.setPropertyValue(prop, value)
-        },
-        intChanged = { prop, value ->
-            homeViewModel.setPropertyValue(prop, value)
-        },
-        intClicked = { prop ->
-            homeViewModel.showEditDialog(prop)
-        },
-    )
+    val propertyCallback = remember {
+        PropertyCallback(
+            colorPropertyClicked = { prop ->
+                navToColorPicker(prop.id)
+            },
+            enumClicked = { prop ->
+                navToEnumPicker(prop.id)
+            },
+            floatChanged = { prop, value ->
+                homeViewModel.setPropertyValue(prop, value)
+            },
+            floatClicked = { prop ->
+                homeViewModel.showEditDialog(prop)
+            },
+            toggleChanged = { prop, value ->
+                homeViewModel.setPropertyValue(prop, value)
+            },
+            intChanged = { prop, value ->
+                homeViewModel.setPropertyValue(prop, value)
+            },
+            intClicked = { prop ->
+                homeViewModel.showEditDialog(prop)
+            },
+        )
+    }
 
     if (uiState.dialogEditProperty != null) {
         PropertyEditorDialog(
@@ -110,7 +112,7 @@ fun HomeScreen(
         )
     }
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(Unit) {
         homeViewModel.navBack.collect {
             if (it) {
                 navBack()
@@ -132,7 +134,9 @@ fun HomeScreen(
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(300.dp),
-        modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
