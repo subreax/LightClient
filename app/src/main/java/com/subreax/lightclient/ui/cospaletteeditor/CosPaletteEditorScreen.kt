@@ -1,6 +1,7 @@
 package com.subreax.lightclient.ui.cospaletteeditor
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -122,8 +123,8 @@ class CosPaletteState2 {
 
     fun applyCosine(dcOffset: Float, amp: Float, freq: Float, phase: Float) {
         world = World(
-            world.ox,
-            world.oy,
+            phase,
+            -dcOffset,
             1 / freq,
             amp
         )
@@ -149,22 +150,28 @@ fun CosPaletteEditor(
                     )
                     drawCircle(Color.Red, 8.0f, circle)
 
+                    val circle2 = Offset(
+                        state.world.worldX2screenX(size.width, 1f),
+                        state.world.worldY2screenY(size.height, 1f)
+                    )
+                    drawCircle(Color.Green, 8.0f, circle2)
+
                     drawCosine(state.world, Color.Red, 2f)
                 }
             }
             .pointerInput(Unit) {
                 detectTestGestures { centroid, panChange, zoomChange ->
-                    val x = centroid.x
+                    val x = centroid.x / size.width
                     val ox = state.world.ox
                     val dx = (x - ox) * (1 - zoomChange.x)
 
-                    val y = centroid.y
+                    val y = (centroid.y - size.height) / size.height
                     val oy = state.world.oy
-                    val dy = (y - oy - size.height) * (1 - zoomChange.y)
+                    val dy = (y - oy) * (1 - zoomChange.y)
 
                     state.world = state.world.copy(
-                        ox = state.world.ox + panChange.x + dx,
-                        oy = state.world.oy + panChange.y + dy,
+                        ox = state.world.ox + panChange.x / size.width + dx,
+                        oy = state.world.oy + panChange.y / size.height + dy,
                         sx = state.world.sx * zoomChange.x,
                         sy = state.world.sy * zoomChange.y
                     )
