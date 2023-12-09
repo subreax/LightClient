@@ -83,11 +83,12 @@ private fun SimpleName(
 }
 
 @Composable
-private fun SimpleValue(value: String) {
+private fun SimpleValue(value: String, modifier: Modifier = Modifier) {
     Text(
         text = value,
         style = MaterialTheme.typography.h5,
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
+        modifier = modifier
     )
 }
 
@@ -657,6 +658,30 @@ fun ColorProperty(baseProperty: Property, callback: PropertyCallback) {
     )
 }
 
+@Composable
+fun CosPaletteProperty(name: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(PropertyShape)
+            .background(MaterialTheme.colors.surface)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        SimpleValue(value = name)
+    }
+}
+
+@Composable
+fun CosPaletteProperty(baseProperty: Property, callback: PropertyCallback) {
+    CosPaletteProperty(
+        name = baseProperty.name,
+        onClick = {
+            val property = baseProperty as Property.CosPalette
+            callback.cosPaletteClicked(property)
+        },
+        modifier = Modifier.span(horizontal = 4, vertical = 2)
+    )
+}
 
 @Composable
 fun LoadingProperty(progress: Float, modifier: Modifier = Modifier) {
@@ -754,6 +779,11 @@ fun PropertiesPreview() {
                     name = "Int", value = 24, onClick = {}, modifier = Modifier.span(2, 2)
                 )
 
+                CosPaletteProperty(
+                    name = "Palette",
+                    onClick = { },
+                    modifier = Modifier.span(horizontal = 4, vertical = 2)
+                )
 
                 /*LoadingProperty2(
                 progress = 0.5f,

@@ -39,10 +39,9 @@ abstract class BaseFloatSerializer : PropertySerializer {
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
         val frp = property as Property.BaseFloat
         val value = frp.current.value
-        val q15 = (value * 32768).roundToInt()
 
         return try {
-            out.putInt(q15)
+            out.putQ15(value)
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
             LResult.Failure("Failed to write value of FloatRange")
@@ -53,8 +52,7 @@ abstract class BaseFloatSerializer : PropertySerializer {
         val frp = target as Property.BaseFloat
 
         return try {
-            val value = buf.getInt() / 32768.0f
-            frp.current.value = value
+            frp.current.value = buf.getQ15()
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
             LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
@@ -275,5 +273,46 @@ class BoolPropertySerializer : PropertySerializer {
             LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
         }
     }
+}
 
+class CosPalettePropertySerializer : PropertySerializer {
+    override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
+        return LResult.Success(Property.CosPalette(id, name, Property.CosPalette.NO_DATA))
+    }
+
+    override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
+        val data = (property as Property.CosPalette).data12.value
+        return try {
+            for (i in 0 until 12) {
+                out.putQ15(data[i])
+            }
+            LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("Failed to write cos palette")
+        }
+    }
+
+    override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
+        val arr = Array(12) { 0f }
+        return try {
+            for (i in 0 until 12) {
+                arr[i] = buf.getQ15()
+            }
+
+            val prop = target as Property.CosPalette
+            prop.data12.value = arr
+            LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("Failed to deserialize cos palette")
+        }
+    }
+}
+
+private fun ByteBuffer.putQ15(f: Float): ByteBuffer {
+    putInt((f * 32768).roundToInt())
+    return this
+}
+
+private fun ByteBuffer.getQ15(): Float {
+    return getInt() / 32768.0f
 }

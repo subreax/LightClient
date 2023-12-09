@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 enum class PropertyType {
-    Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, Special
+    Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, CosPalette, Special
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
@@ -173,4 +173,31 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         min: Int,
         max: Int
     ) : BaseInt(id, PropertyType.IntSmallHSlider, name, initialValue, min, max)
+
+    class CosPalette(
+        id: Int,
+        name: String,
+        initialData12: Array<Float>
+    ) : Property(id, PropertyType.CosPalette, name) {
+        val data12 = MutableStateFlow(initialData12)
+
+        /*data class Data(
+            val ax: Float, val ay: Float, val az: Float,
+            val bx: Float, val by: Float, val bz: Float,
+            val cx: Float, val cy: Float, val cz: Float,
+            val dx: Float, val dy: Float, val dz: Float,
+        )*/
+
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
+            return scope.launch {
+                data12.drop(1).collect {
+                    api.uploadPropertyValue(this@CosPalette)
+                }
+            }
+        }
+
+        companion object {
+            val NO_DATA = Array(12) { 0f }
+        }
+    }
 }

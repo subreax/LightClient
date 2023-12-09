@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.subreax.lightclient.ui.ExploreScreen
 import com.subreax.lightclient.ui.colorpickerscreen.ColorPickerScreen
 import com.subreax.lightclient.ui.connection.ConnectionScreen
+import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteEditorScreen
 import com.subreax.lightclient.ui.enumscreen.EnumScreen
 import com.subreax.lightclient.ui.home.HomeScreen
 import com.subreax.lightclient.ui.ping.PingScreen
@@ -39,6 +40,8 @@ sealed class Screen(val route: String) {
         )
     }
 
+    object CosPaletteEditor : Screen("cos_palette_editor_screen")
+
     object Ping : Screen("ping_screen")
 
     object Explore : Screen("explore_screen")
@@ -48,7 +51,7 @@ sealed class Screen(val route: String) {
 fun MainNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Connection.route,
+        startDestination = Screen.CosPaletteEditor.route,
         enterTransition = {
             fadeIn(tween(200))
         },
@@ -73,6 +76,9 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
                 },
                 navToEnumPicker = {
                     navController.navigate("${Screen.EnumPicker.route}/$it")
+                },
+                navToPaletteEditor = {
+                    navController.navigate(Screen.CosPaletteEditor.route)
                 },
                 navToPingScreen = {
                     navController.navigate(Screen.Ping.route)
@@ -103,6 +109,10 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
             EnumScreen(navBack = {
                 navController.popBackStack()
             })
+        }
+
+        composable(Screen.CosPaletteEditor.route) {
+            CosPaletteEditorScreen()
         }
 
         composable(Screen.Ping.route) {

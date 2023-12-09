@@ -42,6 +42,7 @@ import java.util.Calendar
 fun HomeScreen(
     navToColorPicker: (propId: Int) -> Unit,
     navToEnumPicker: (propId: Int) -> Unit,
+    navToPaletteEditor: (propId: Int) -> Unit,
     navToPingScreen: () -> Unit,
     navBack: () -> Unit,
     homeViewModel: HomeViewModel = hiltViewModel(),
@@ -76,6 +77,9 @@ fun HomeScreen(
             intClicked = { prop ->
                 homeViewModel.showEditDialog(prop)
             },
+            cosPaletteClicked = { prop ->
+                navToPaletteEditor(prop.id)
+            }
         )
     }
 
@@ -265,6 +269,10 @@ val PCF = Array<PropertyComposableFactory>(PropertyType.values().size) {
             BoolProperty(prop, callback)
         }
 
+        PropertyType.CosPalette.ordinal -> { prop, callback ->
+            CosPaletteProperty(prop, callback)
+        }
+
         PropertyType.Special.ordinal -> { prop, callback ->
             LoadingProperty(prop, callback)
         }
@@ -409,6 +417,7 @@ fun HomeScreenPreview() {
                 { _, _ -> },
                 { _, _ -> },
                 {},
+                {}
             ),
             {}
         )

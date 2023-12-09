@@ -10,4 +10,5 @@ data class PropertyCallback(
     val toggleChanged: (Property.Bool, Boolean) -> Unit,
     val intChanged: (Property.BaseInt, Int) -> Unit,
     val intClicked: (Property.BaseInt) -> Unit,
+    val cosPaletteClicked: (Property.CosPalette) -> Unit
 )
