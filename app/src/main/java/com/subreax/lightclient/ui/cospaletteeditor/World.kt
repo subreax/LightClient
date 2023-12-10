@@ -25,6 +25,8 @@ data class World(
         return -(y - screenH + oy * screenH) / (screenH * sy)
     }
 
+    // todo: add scale limits
+    // todo: slow down when scale is big
     fun handlePanZoom(size: IntSize, centroid: Offset, panChange: Offset, zoomChange: Offset): World {
         val x = centroid.x / size.width
         val dx = (x - ox) * (1 - zoomChange.x)

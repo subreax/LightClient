@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.positionChanged
+import kotlin.math.abs
 
 suspend fun PointerInputScope.detectPanZoomGestures(
     onGesture: (centroid: Offset, panChange: Offset, zoomChange: Offset) -> Unit
@@ -56,14 +57,20 @@ private fun PointerEvent.calculateZoom2d(): Offset {
     val oldX2 = change2.previousPosition.x
     val x2 = change2.position.x
     val oldDstX = oldX2 - oldX1
-    val dstX = x2 - x1
+    var dstX = x2 - x1
+    if (abs(dstX) < 75) {
+        dstX = oldDstX
+    }
 
     val oldY1 = change1.previousPosition.y
     val y1 = change1.position.y
     val oldY2 = change2.previousPosition.y
     val y2 = change2.position.y
     val oldDstY = oldY2 - oldY1
-    val dstY = y2 - y1
+    var dstY = y2 - y1
+    if (abs(dstY) < 75) {
+        dstY = oldDstY
+    }
 
     return Offset(dstX / oldDstX, dstY / oldDstY)
 }
