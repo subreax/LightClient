@@ -17,7 +17,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.cos
 
-private const val TwoPi = 6.2831855f
 private const val FunctionStep = 3
 
 
@@ -39,9 +38,9 @@ fun CosPaletteEditor(
                 onDrawBehind {
                     drawRect(Color(0xff000000))
 
-                    drawCosine(state.worlds[0], colors.red, 3f)
-                    drawCosine(state.worlds[1], colors.green, 3f)
-                    drawCosine(state.worlds[2], colors.blue, 3f)
+                    drawCosine(state.red, colors.red, 3f)
+                    drawCosine(state.green, colors.green, 3f)
+                    drawCosine(state.blue, colors.blue, 3f)
                 }
             }
             .pointerInput(Unit) {
@@ -56,12 +55,30 @@ fun CosPaletteEditor(
 class CosPaletteEditorState {
     enum class CosineId { Red, Green, Blue, Null }
 
-    val worlds = mutableStateListOf(
-        World(),
-        World(),
-        World(),
-        World() // null world
+    private val cosines = mutableStateListOf(
+        Cosine(),
+        Cosine(),
+        Cosine(),
+        Cosine() // null cosine
     )
+
+    var red: Cosine
+        get() = cosines[0]
+        set(value) {
+            cosines[0] = value
+        }
+
+    var green: Cosine
+        get() = cosines[1]
+        set(value) {
+            cosines[1] = value
+        }
+
+    var blue: Cosine
+        get() = cosines[2]
+        set(value) {
+            cosines[2] = value
+        }
 
     var selectedCosine by mutableStateOf(CosineId.Null)
         private set
@@ -69,59 +86,13 @@ class CosPaletteEditorState {
     val selectedIdx: Int
         get() = selectedCosine.ordinal
 
-    fun setRed(dcOffset: Float, amp: Float, freq: Float, phase: Float) {
-        worlds[0] = createWorld(dcOffset, amp, freq, phase)
-    }
-
-    fun setRed(cosine: Cosine) {
-        worlds[0] = createWorld(cosine)
-    }
-
-    fun getRed() = getCosine(CosineId.Red)
-
-    fun setGreen(dcOffset: Float, amp: Float, freq: Float, phase: Float) {
-        worlds[1] = createWorld(dcOffset, amp, freq, phase)
-    }
-
-    fun setGreen(cosine: Cosine) {
-        worlds[1] = createWorld(cosine)
-    }
-
-    fun getGreen() = getCosine(CosineId.Green)
-
-    fun setBlue(dcOffset: Float, amp: Float, freq: Float, phase: Float) {
-        worlds[2] = createWorld(dcOffset, amp, freq, phase)
-    }
-
-    fun setBlue(cosine: Cosine) {
-        worlds[2] = createWorld(cosine)
-    }
-
-    fun getBlue() = getCosine(CosineId.Blue)
-
     fun select(id: CosineId) {
         selectedCosine = id
     }
 
     fun handlePanZoom(size: IntSize, centroid: Offset, panChange: Offset, zoomChange: Offset) {
         val i = selectedIdx
-        worlds[i] = worlds[i].handlePanZoom(size, centroid, panChange, zoomChange)
-    }
-
-    private fun createWorld(dcOffset: Float, amp: Float, freq: Float, phase: Float): World {
-        return World(phase, dcOffset, freq, amp)
-    }
-
-    private fun createWorld(cosine: Cosine): World {
-        return createWorld(cosine.dcOffset, cosine.amp, cosine.freq, cosine.phase)
-    }
-
-    private fun getCosine(id: CosineId): Cosine {
-        return worlds[id.ordinal].toCosine()
-    }
-
-    private fun World.toCosine(): Cosine {
-        return Cosine(oy, sy, sxInv, ox)
+        cosines[i] = cosines[i].handlePanZoom(size, centroid, panChange, zoomChange)
     }
 }
 
@@ -144,26 +115,17 @@ private data class CosineColors(
 }
 
 private fun DrawScope.drawCosine(
-    world: World,
+    cosine: Cosine,
     color: Color,
     strokeWidth: Float = 1.0f
 ) {
-    drawFunction(world, color, strokeWidth) { x -> cos(x * TwoPi) }
-}
-
-private fun DrawScope.drawFunction(
-    world: World,
-    color: Color,
-    strokeWidth: Float = 1.0f,
-    f: (Float) -> Float
-) {
     val width = size.width.toInt()
 
-    val wx0 = world.screenX2worldX(size.width, 0f)
-    var y0 = world.worldY2screenY(size.height, f(wx0)).coerceIn(0f, size.height)
+    val wx0 = cosine.screenX2worldX(size.width, 0f)
+    var y0 = cosine.worldY2screenY(size.height, cos(TwoPi * wx0)).coerceIn(0f, size.height)
     for (x in FunctionStep until width step FunctionStep) {
-        val wx1 = world.screenX2worldX(size.width, x.toFloat())
-        val y1 = world.worldY2screenY(size.height, f(wx1)).coerceIn(0f, size.height)
+        val wx1 = cosine.screenX2worldX(size.width, x.toFloat())
+        val y1 = cosine.worldY2screenY(size.height, cos(TwoPi * wx1)).coerceIn(0f, size.height)
 
         val x0 = (x - FunctionStep).toFloat()
         val x1 = x.toFloat()

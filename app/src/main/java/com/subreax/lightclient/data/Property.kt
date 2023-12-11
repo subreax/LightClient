@@ -1,7 +1,6 @@
 package com.subreax.lightclient.data
 
 import com.subreax.lightclient.data.device.api.DeviceApi
-import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteData
 import com.subreax.lightclient.ui.cospaletteeditor.Cosine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -193,9 +192,9 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
 
         companion object {
             val NO_DATA = CosPaletteData(
-                red = Cosine(0f, 1f, 1f, 0f),
-                green = Cosine(0f, 1f, 1f, 0f),
-                blue = Cosine(0f, 1f, 1f, 0f)
+                red = Cosine(0.5f, 0.5f, 1f, 0f),
+                green = Cosine(0.5f, 0.5f, 1f, 1f / 3f),
+                blue = Cosine(0.5f, 0.5f, 1f, 2f / 3f)
             )
         }
     }

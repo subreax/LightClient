@@ -53,11 +53,9 @@ fun CosPaletteEditorScreen(
         )
 
         CosPaletteViewer(
-            palette = CosPaletteData(
-                state.getRed(),
-                state.getGreen(),
-                state.getBlue()
-            ),
+            redCosine = state.red,
+            greenCosine = state.green,
+            blueCosine = state.blue,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(16.dp)

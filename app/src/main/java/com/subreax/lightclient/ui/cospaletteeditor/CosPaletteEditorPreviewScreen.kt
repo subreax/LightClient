@@ -21,9 +21,9 @@ import com.subreax.lightclient.ui.TopBar
 fun CosPaletteEditorPreviewScreen() {
     val state = remember {
         CosPaletteEditorState().apply {
-            setRed(0.5f, 0.5f, 1f, 0f)
-            setGreen(0.5f, 0.5f, 1f, 1f/2f)
-            setBlue(0.5f, 0.5f, 1f, 2f/3f)
+            red = Cosine(0.5f, 0.5f, 1f, 0f)
+            green = Cosine(0.5f, 0.5f, 1f, 1f/2f)
+            blue = Cosine(0.5f, 0.5f, 1f, 2f/3f)
         }
     }
 
@@ -48,11 +48,9 @@ fun CosPaletteEditorPreviewScreen() {
         )
 
         CosPaletteViewer(
-            palette = CosPaletteData(
-                state.getRed(),
-                state.getGreen(),
-                state.getBlue()
-            ),
+            redCosine = state.red,
+            greenCosine = state.green,
+            blueCosine = state.blue,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(16.dp)

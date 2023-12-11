@@ -4,7 +4,7 @@ import android.graphics.Color
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
-import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteData
+import com.subreax.lightclient.data.CosPaletteData
 import com.subreax.lightclient.ui.cospaletteeditor.Cosine
 import com.subreax.lightclient.utils.getUtf8String
 import java.nio.BufferUnderflowException

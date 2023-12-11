@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.subreax.lightclient.Screen
+import com.subreax.lightclient.data.CosPaletteData
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,7 @@ class CosPaletteEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     deviceRepository: DeviceRepository
 ) : ViewModel() {
-    private val prop: Property.CosPalette?
+    private val prop: Property.CosPalette
 
     val state = CosPaletteEditorState()
 
@@ -24,28 +25,20 @@ class CosPaletteEditorViewModel @Inject constructor(
         private set
 
     init {
-        val id = savedStateHandle.get<Int>(Screen.CosPaletteEditor.propertyIdArg)
+        val id = savedStateHandle.get<Int>(Screen.CosPaletteEditor.propertyIdArg)!!
         val device = deviceRepository.getDevice()
-        prop = if (id != null) {
-            device.findPropertyById(id) as Property.CosPalette
-        } else {
-            null
-        }
+        prop = device.findPropertyById(id) as Property.CosPalette
 
-        propertyName = prop?.name ?: "Палитра"
+        propertyName = prop.name
 
-        prop?.data?.value?.let {
-            state.setRed(it.red)
-            state.setGreen(it.green)
-            state.setBlue(it.blue)
+        prop.data.value.let {
+            state.red = it.red
+            state.green = it.green
+            state.blue = it.blue
         }
     }
 
     fun onPaletteChanged() {
-        val red = state.getRed()
-        val green = state.getGreen()
-        val blue = state.getBlue()
-
-        prop?.data?.value = CosPaletteData(red, green, blue)
+        prop.data.value = CosPaletteData(state.red, state.green, state.blue)
     }
 }
