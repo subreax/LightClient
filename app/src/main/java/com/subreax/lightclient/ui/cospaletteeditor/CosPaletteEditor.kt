@@ -109,7 +109,7 @@ class CosPaletteEditorState {
     }
 
     private fun createWorld(dcOffset: Float, amp: Float, freq: Float, phase: Float): World {
-        return World(-phase/freq, dcOffset, 1f/freq, amp)
+        return World(phase, dcOffset, freq, amp)
     }
 
     private fun createWorld(cosine: Cosine): World {
@@ -121,7 +121,7 @@ class CosPaletteEditorState {
     }
 
     private fun World.toCosine(): Cosine {
-        return Cosine(oy, sy, 1f/sx, -ox/sx)
+        return Cosine(oy, sy, sxInv, ox)
     }
 }
 
