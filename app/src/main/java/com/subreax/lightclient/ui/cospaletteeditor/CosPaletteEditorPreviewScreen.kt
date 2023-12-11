@@ -1,6 +1,5 @@
 package com.subreax.lightclient.ui.cospaletteeditor
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,23 +10,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.ui.TopBar
-import com.subreax.lightclient.ui.theme.LightClientTheme
-
 
 @Composable
-fun CosPaletteEditorScreen(
-    navBack: () -> Unit,
-    viewModel: CosPaletteEditorViewModel = hiltViewModel()
-) {
-    val state = viewModel.state
+fun CosPaletteEditorPreviewScreen() {
+    val state = remember {
+        CosPaletteEditorState().apply {
+            setRed(0.5f, 0.5f, 1f, 0f)
+            setGreen(0.5f, 0.5f, 1f, 1f/2f)
+            setBlue(0.5f, 0.5f, 1f, 2f/3f)
+        }
+    }
 
     Column(
         Modifier
@@ -35,11 +33,11 @@ fun CosPaletteEditorScreen(
             .navigationBarsPadding()
     ) {
         TopBar(
-            title = viewModel.propertyName,
+            title = "Palette",
             subtitle = {
                 Text(text = "Настройка цветовой палитры")
             },
-            navBack = navBack
+            navBack = { }
         )
 
         CosPaletteEditor(
@@ -47,9 +45,6 @@ fun CosPaletteEditorScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1.2f),
-            onChange = {
-                viewModel.onPaletteChanged()
-            }
         )
 
         CosPaletteViewer(
@@ -82,16 +77,6 @@ fun CosPaletteEditorScreen(
             Button(onClick = { state.select(CosPaletteEditorState.CosineId.Null) }) {
                 Text("Null")
             }
-        }
-    }
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 320, heightDp = 200)
-@Composable
-fun CosPaletteEditorPreview() {
-    LightClientTheme {
-        Surface {
-            CosPaletteEditor(Modifier.fillMaxSize())
         }
     }
 }

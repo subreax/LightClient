@@ -181,13 +181,6 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     ) : Property(id, PropertyType.CosPalette, name) {
         val data12 = MutableStateFlow(initialData12)
 
-        /*data class Data(
-            val ax: Float, val ay: Float, val az: Float,
-            val bx: Float, val by: Float, val bz: Float,
-            val cx: Float, val cy: Float, val cz: Float,
-            val dx: Float, val dy: Float, val dz: Float,
-        )*/
-
         override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
             return scope.launch {
                 data12.drop(1).collect {

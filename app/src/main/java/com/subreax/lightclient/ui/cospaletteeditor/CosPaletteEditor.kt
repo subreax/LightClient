@@ -58,7 +58,12 @@ data class Cosine(
     val amp: Float,
     val freq: Float,
     val phase: Float
-)
+) {
+    fun getValue(t: Float): Float {
+        val value = dcOffset + amp * cos(TwoPi * (freq * t + phase))
+        return value.coerceIn(0f, 1f)
+    }
+}
 
 class CosPaletteEditorState {
     enum class CosineId { Red, Green, Blue, Null }
@@ -104,12 +109,12 @@ class CosPaletteEditorState {
     }
 
     private fun createWorld(dcOffset: Float, amp: Float, freq: Float, phase: Float): World {
-        return World(phase, dcOffset, 1 / freq, amp)
+        return World(-phase/freq, dcOffset, 1f/freq, amp)
     }
 
     private fun getCosine(id: CosineId): Cosine {
         return with(cosines[id.ordinal]) {
-            Cosine(ox, sy, 1 / sx, oy)
+            Cosine(oy, sy, 1f/sx, -ox/sx)
         }
     }
 }
