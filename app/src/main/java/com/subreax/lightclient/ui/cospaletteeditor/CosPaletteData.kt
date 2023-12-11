@@ -2,7 +2,7 @@ package com.subreax.lightclient.ui.cospaletteeditor
 
 import androidx.compose.ui.graphics.Color
 
-class CosPalette(
+class CosPaletteData(
     val red: Cosine,
     val green: Cosine,
     val blue: Cosine

@@ -48,7 +48,7 @@ fun CosPaletteEditorPreviewScreen() {
         )
 
         CosPaletteViewer(
-            palette = CosPalette(
+            palette = CosPaletteData(
                 state.getRed(),
                 state.getGreen(),
                 state.getBlue()

@@ -17,7 +17,7 @@ import androidx.core.graphics.set
 
 @Composable
 fun CosPaletteViewer(
-    palette: CosPalette,
+    palette: CosPaletteData,
     modifier: Modifier = Modifier
 ) {
     var bitmap by remember { mutableStateOf(createBitmap(10, 10)) }
@@ -36,7 +36,7 @@ fun CosPaletteViewer(
     ) {}
 }
 
-private fun CosPalette.drawToBitmap(bitmap: Bitmap) {
+private fun CosPaletteData.drawToBitmap(bitmap: Bitmap) {
     for (i in 0 until bitmap.width) {
         val t = i.toFloat() / (bitmap.width - 1)
         val color = getColor(t).toArgb()

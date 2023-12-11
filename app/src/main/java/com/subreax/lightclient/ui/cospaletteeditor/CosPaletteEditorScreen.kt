@@ -53,7 +53,7 @@ fun CosPaletteEditorScreen(
         )
 
         CosPaletteViewer(
-            palette = CosPalette(
+            palette = CosPaletteData(
                 state.getRed(),
                 state.getGreen(),
                 state.getBlue()

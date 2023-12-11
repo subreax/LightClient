@@ -34,10 +34,10 @@ class CosPaletteEditorViewModel @Inject constructor(
 
         propertyName = prop?.name ?: "Палитра"
 
-        prop?.data12?.value?.let {
-            state.setRed(it[0], it[3], it[6], it[9])
-            state.setGreen(it[1], it[4], it[7], it[10])
-            state.setBlue(it[2], it[5], it[8], it[11])
+        prop?.data?.value?.let {
+            state.setRed(it.red)
+            state.setGreen(it.green)
+            state.setBlue(it.blue)
         }
     }
 
@@ -46,17 +46,6 @@ class CosPaletteEditorViewModel @Inject constructor(
         val green = state.getGreen()
         val blue = state.getBlue()
 
-        /*prop?.data12?.value = arrayOf(
-            red.dcOffset, red.amp, red.freq, red.phase,
-            green.dcOffset, green.amp, green.freq, green.phase,
-            blue.dcOffset, blue.amp, blue.freq, blue.phase
-        )*/
-
-        prop?.data12?.value = arrayOf(
-            red.dcOffset, green.dcOffset, blue.dcOffset,
-            red.amp, green.amp, blue.amp,
-            red.freq, green.freq, blue.freq,
-            red.phase, green.phase, blue.phase,
-        )
+        prop?.data?.value = CosPaletteData(red, green, blue)
     }
 }

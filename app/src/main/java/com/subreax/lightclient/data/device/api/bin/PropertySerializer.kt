@@ -4,6 +4,8 @@ import android.graphics.Color
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteData
+import com.subreax.lightclient.ui.cospaletteeditor.Cosine
 import com.subreax.lightclient.utils.getUtf8String
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
@@ -281,11 +283,12 @@ class CosPalettePropertySerializer : PropertySerializer {
     }
 
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
-        val data = (property as Property.CosPalette).data12.value
+        val data = (property as Property.CosPalette).data.value
         return try {
-            for (i in 0 until 12) {
-                out.putQ15(data[i])
-            }
+            out.putQ15(data.red.dcOffset).putQ15(data.green.dcOffset).putQ15(data.blue.dcOffset)
+            out.putQ15(data.red.amp).putQ15(data.green.amp).putQ15(data.blue.amp)
+            out.putQ15(data.red.freq).putQ15(data.green.freq).putQ15(data.blue.freq)
+            out.putQ15(data.red.phase).putQ15(data.green.phase).putQ15(data.blue.phase)
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
             LResult.Failure("Failed to write cos palette")
@@ -300,7 +303,11 @@ class CosPalettePropertySerializer : PropertySerializer {
             }
 
             val prop = target as Property.CosPalette
-            prop.data12.value = arr
+            prop.data.value = CosPaletteData(
+                red = Cosine(arr[0], arr[3], arr[6], arr[9]),
+                green = Cosine(arr[1], arr[4], arr[7], arr[10]),
+                blue = Cosine(arr[2], arr[5], arr[8], arr[11])
+            )
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
             LResult.Failure("Failed to deserialize cos palette")

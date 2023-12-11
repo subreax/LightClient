@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.IntSize
 import kotlin.math.cos
 
 private const val TwoPi = 6.2831855f
-private const val FunctionStep = 1
+private const val FunctionStep = 3
 
 
 // todo: make it theme-dependent
@@ -39,9 +39,9 @@ fun CosPaletteEditor(
                 onDrawBehind {
                     drawRect(Color(0xff000000))
 
-                    drawCosine(state.cosines[0], colors.red, 2f)
-                    drawCosine(state.cosines[1], colors.green, 2f)
-                    drawCosine(state.cosines[2], colors.blue, 2f)
+                    drawCosine(state.worlds[0], colors.red, 3f)
+                    drawCosine(state.worlds[1], colors.green, 3f)
+                    drawCosine(state.worlds[2], colors.blue, 3f)
                 }
             }
             .pointerInput(Unit) {
@@ -53,22 +53,10 @@ fun CosPaletteEditor(
     ) { }
 }
 
-data class Cosine(
-    val dcOffset: Float,
-    val amp: Float,
-    val freq: Float,
-    val phase: Float
-) {
-    fun getValue(t: Float): Float {
-        val value = dcOffset + amp * cos(TwoPi * (freq * t + phase))
-        return value.coerceIn(0f, 1f)
-    }
-}
-
 class CosPaletteEditorState {
     enum class CosineId { Red, Green, Blue, Null }
 
-    val cosines = mutableStateListOf(
+    val worlds = mutableStateListOf(
         World(),
         World(),
         World(),
@@ -82,19 +70,31 @@ class CosPaletteEditorState {
         get() = selectedCosine.ordinal
 
     fun setRed(dcOffset: Float, amp: Float, freq: Float, phase: Float) {
-        cosines[0] = createWorld(dcOffset, amp, freq, phase)
+        worlds[0] = createWorld(dcOffset, amp, freq, phase)
+    }
+
+    fun setRed(cosine: Cosine) {
+        worlds[0] = createWorld(cosine)
     }
 
     fun getRed() = getCosine(CosineId.Red)
 
     fun setGreen(dcOffset: Float, amp: Float, freq: Float, phase: Float) {
-        cosines[1] = createWorld(dcOffset, amp, freq, phase)
+        worlds[1] = createWorld(dcOffset, amp, freq, phase)
+    }
+
+    fun setGreen(cosine: Cosine) {
+        worlds[1] = createWorld(cosine)
     }
 
     fun getGreen() = getCosine(CosineId.Green)
 
     fun setBlue(dcOffset: Float, amp: Float, freq: Float, phase: Float) {
-        cosines[2] = createWorld(dcOffset, amp, freq, phase)
+        worlds[2] = createWorld(dcOffset, amp, freq, phase)
+    }
+
+    fun setBlue(cosine: Cosine) {
+        worlds[2] = createWorld(cosine)
     }
 
     fun getBlue() = getCosine(CosineId.Blue)
@@ -105,17 +105,23 @@ class CosPaletteEditorState {
 
     fun handlePanZoom(size: IntSize, centroid: Offset, panChange: Offset, zoomChange: Offset) {
         val i = selectedIdx
-        cosines[i] = cosines[i].handlePanZoom(size, centroid, panChange, zoomChange)
+        worlds[i] = worlds[i].handlePanZoom(size, centroid, panChange, zoomChange)
     }
 
     private fun createWorld(dcOffset: Float, amp: Float, freq: Float, phase: Float): World {
         return World(-phase/freq, dcOffset, 1f/freq, amp)
     }
 
+    private fun createWorld(cosine: Cosine): World {
+        return createWorld(cosine.dcOffset, cosine.amp, cosine.freq, cosine.phase)
+    }
+
     private fun getCosine(id: CosineId): Cosine {
-        return with(cosines[id.ordinal]) {
-            Cosine(oy, sy, 1f/sx, -ox/sx)
-        }
+        return worlds[id.ordinal].toCosine()
+    }
+
+    private fun World.toCosine(): Cosine {
+        return Cosine(oy, sy, 1f/sx, -ox/sx)
     }
 }
 
@@ -129,7 +135,7 @@ private data class CosineColors(
             val colors = arrayOf(Color.Red, Color.Green, Color.Blue)
             for (i in 0 until 3) {
                 if (i != state.selectedIdx) {
-                    colors[i] = colors[i].copy(alpha = 0.33333f)
+                    colors[i] = colors[i].copy(alpha = 0.4f)
                 }
             }
             return CosineColors(colors[0], colors[1], colors[2])

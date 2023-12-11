@@ -1,6 +1,8 @@
 package com.subreax.lightclient.data
 
 import com.subreax.lightclient.data.device.api.DeviceApi
+import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteData
+import com.subreax.lightclient.ui.cospaletteeditor.Cosine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -177,20 +179,24 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
     class CosPalette(
         id: Int,
         name: String,
-        initialData12: Array<Float>
+        initialData: CosPaletteData
     ) : Property(id, PropertyType.CosPalette, name) {
-        val data12 = MutableStateFlow(initialData12)
+        val data = MutableStateFlow(initialData)
 
         override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
             return scope.launch {
-                data12.drop(1).collect {
+                data.drop(1).collect {
                     api.uploadPropertyValue(this@CosPalette)
                 }
             }
         }
 
         companion object {
-            val NO_DATA = Array(12) { 0f }
+            val NO_DATA = CosPaletteData(
+                red = Cosine(0f, 1f, 1f, 0f),
+                green = Cosine(0f, 1f, 1f, 0f),
+                blue = Cosine(0f, 1f, 1f, 0f)
+            )
         }
     }
 }
