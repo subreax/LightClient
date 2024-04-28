@@ -28,7 +28,10 @@ fun CosPaletteViewer(
     Box(
         modifier = modifier
             .onSizeChanged {
-                bitmap = createBitmap(it.width, it.height)
+                bitmap = createBitmap(
+                    it.width.coerceAtLeast(10),
+                    it.height.coerceAtLeast(10)
+                )
             }
             .drawWithCache {
                 onDrawBehind {

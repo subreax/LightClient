@@ -50,6 +50,8 @@ import com.subreax.lightclient.ui.UniformGrid
 import com.subreax.lightclient.ui.UniformGridScope.Companion.span
 import com.subreax.lightclient.ui.colorpicker.ColorDisplay2
 import com.subreax.lightclient.ui.colorpicker.lerp
+import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteViewer
+import com.subreax.lightclient.ui.cospaletteeditor.Cosine
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -659,7 +661,14 @@ fun ColorProperty(baseProperty: Property, callback: PropertyCallback) {
 }
 
 @Composable
-fun CosPaletteProperty(name: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CosPaletteProperty(
+    name: String,
+    red: Cosine,
+    green: Cosine,
+    blue: Cosine,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .clip(PropertyShape)
@@ -668,16 +677,27 @@ fun CosPaletteProperty(name: String, onClick: () -> Unit, modifier: Modifier = M
         contentAlignment = Alignment.Center
     ) {
         SimpleValue(value = name)
+        CosPaletteViewer(
+            redCosine = red,
+            greenCosine = green,
+            blueCosine = blue,
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(8.dp)
+        )
     }
 }
 
 @Composable
 fun CosPaletteProperty(baseProperty: Property, callback: PropertyCallback) {
+    val prop = baseProperty as Property.CosPalette
+    val palette by prop.data.collectAsState()
+
     CosPaletteProperty(
         name = baseProperty.name,
+        red = palette.red,
+        green = palette.green,
+        blue = palette.blue,
         onClick = {
-            val property = baseProperty as Property.CosPalette
-            callback.cosPaletteClicked(property)
+            callback.cosPaletteClicked(prop)
         },
         modifier = Modifier.span(horizontal = 4, vertical = 2)
     )
@@ -779,11 +799,11 @@ fun PropertiesPreview() {
                     name = "Int", value = 24, onClick = {}, modifier = Modifier.span(2, 2)
                 )
 
-                CosPaletteProperty(
+                /*CosPaletteProperty(
                     name = "Palette",
                     onClick = { },
                     modifier = Modifier.span(horizontal = 4, vertical = 2)
-                )
+                )*/
 
                 /*LoadingProperty2(
                 progress = 0.5f,

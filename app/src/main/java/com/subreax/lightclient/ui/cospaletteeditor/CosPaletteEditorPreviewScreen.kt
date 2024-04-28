@@ -22,7 +22,7 @@ fun CosPaletteEditorPreviewScreen() {
     val state = remember {
         CosPaletteEditorState().apply {
             red = Cosine(0.5f, 0.5f, 1f, 0f)
-            green = Cosine(0.5f, 0.5f, 1f, 1f/2f)
+            green = Cosine(0.5f, 0.5f, 1f, 1f/3f)
             blue = Cosine(0.5f, 0.5f, 1f, 2f/3f)
         }
     }
