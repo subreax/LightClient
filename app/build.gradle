@@ -5,6 +5,13 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
+def loadKeystoreProperties(String path) {
+    def propsFile = rootProject.file(path)
+    def props = new Properties()
+    props.load(new FileInputStream(propsFile))
+    return props
+}
+
 android {
     namespace 'com.subreax.lightclient'
     compileSdk 34
@@ -22,6 +29,16 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            def props = loadKeystoreProperties("keystore.properties")
+            storeFile file(props.getProperty("storeFile"))
+            storePassword props.getProperty("storePassword")
+            keyAlias props.getProperty("keyAlias")
+            keyPassword props.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
@@ -29,6 +46,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.getByName("release")
         }
     }
     compileOptions {
