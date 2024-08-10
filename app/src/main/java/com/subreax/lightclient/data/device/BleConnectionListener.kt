@@ -1,6 +1,7 @@
 package com.subreax.lightclient.data.device
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.le.ScanResult
 import com.welie.blessed.BluetoothCentralManagerCallback
 import com.welie.blessed.BluetoothPeripheral
 import com.welie.blessed.HciStatus
@@ -14,11 +15,21 @@ enum class BleConnectionEvent {
     Connecting, Connected, FailedToConnect, Disconnecting, Disconnected, NoConnectivity, HasConnectivity
 }
 
+data class DiscoveredPeripheral(
+    val peripheral: BluetoothPeripheral,
+    val scanResult: ScanResult
+)
+
 class BleConnectionListener : BluetoothCentralManagerCallback() {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val _status = MutableSharedFlow<BleConnectionEvent>()
+    private val _discoveredPeripherals = MutableSharedFlow<DiscoveredPeripheral>()
     val status: SharedFlow<BleConnectionEvent>
         get() = _status
+
+    val discoveredPeripherals: SharedFlow<DiscoveredPeripheral>
+        get() = _discoveredPeripherals
+
 
     override fun onBluetoothAdapterStateChanged(state: Int) {
         coroutineScope.launch {
@@ -58,6 +69,12 @@ class BleConnectionListener : BluetoothCentralManagerCallback() {
     override fun onDisconnectedPeripheral(peripheral: BluetoothPeripheral, status: HciStatus) {
         coroutineScope.launch {
             _status.emit(BleConnectionEvent.Disconnected)
+        }
+    }
+
+    override fun onDiscoveredPeripheral(peripheral: BluetoothPeripheral, scanResult: ScanResult) {
+        coroutineScope.launch {
+            _discoveredPeripherals.emit(DiscoveredPeripheral(peripheral, scanResult))
         }
     }
 }
