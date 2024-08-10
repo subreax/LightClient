@@ -73,7 +73,7 @@ fun ConnectionScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().navigationBarsPadding()) {
         if (isLoading) {
             LoadingOverlay(message = loadingMessage)
         }

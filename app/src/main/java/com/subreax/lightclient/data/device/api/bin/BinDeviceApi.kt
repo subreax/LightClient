@@ -32,7 +32,8 @@ class BinDeviceApi(
         PropertyType.IntNumber to IntPropertySerializer(),
         PropertyType.IntSlider to IntSliderPropertySerializer(),
         PropertyType.IntSmallHSlider to IntSmallHSliderPropertySerializer(),
-        PropertyType.Bool to BoolPropertySerializer()
+        PropertyType.Bool to BoolPropertySerializer(),
+        PropertyType.CosPalette to CosPalettePropertySerializer()
     )
 
 

@@ -94,6 +94,8 @@ class BleConnector(
         val characteristics = (characteristicsResult as LResult.Success).value
         peripheral.setNotify(characteristics.response, true)
         delay(200)
+        peripheral.requestMtu(BluetoothPeripheral.MAX_MTU)
+        delay(200)
         deviceData = BleDeviceData(
             peripheral, callback, characteristics.request
         )

@@ -1,6 +1,7 @@
 package com.subreax.lightclient.data
 
 import com.subreax.lightclient.data.device.api.DeviceApi
+import com.subreax.lightclient.ui.cospaletteeditor.Cosine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +10,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 enum class PropertyType {
-    Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, Special
+    Color, IntNumber, IntSlider, IntSmallHSlider, FloatNumber, FloatSlider, FloatSmallHSlider, Enum, Bool, CosPalette, Special
 }
 
 sealed class Property(val id: Int, val type: PropertyType, val name: String) {
@@ -173,4 +174,28 @@ sealed class Property(val id: Int, val type: PropertyType, val name: String) {
         min: Int,
         max: Int
     ) : BaseInt(id, PropertyType.IntSmallHSlider, name, initialValue, min, max)
+
+    class CosPalette(
+        id: Int,
+        name: String,
+        initialData: CosPaletteData
+    ) : Property(id, PropertyType.CosPalette, name) {
+        val data = MutableStateFlow(initialData)
+
+        override fun createValueChangeListener(scope: CoroutineScope, api: DeviceApi): Job {
+            return scope.launch {
+                data.drop(1).collect {
+                    api.uploadPropertyValue(this@CosPalette)
+                }
+            }
+        }
+
+        companion object {
+            val NO_DATA = CosPaletteData(
+                red = Cosine(0.5f, 0.5f, 1f, 0f),
+                green = Cosine(0.5f, 0.5f, 1f, 1f / 3f),
+                blue = Cosine(0.5f, 0.5f, 1f, 2f / 3f)
+            )
+        }
+    }
 }

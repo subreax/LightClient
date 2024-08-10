@@ -4,6 +4,8 @@ import android.graphics.Color
 import com.subreax.lightclient.LResult
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.data.CosPaletteData
+import com.subreax.lightclient.ui.cospaletteeditor.Cosine
 import com.subreax.lightclient.utils.getUtf8String
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
@@ -39,10 +41,9 @@ abstract class BaseFloatSerializer : PropertySerializer {
     override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
         val frp = property as Property.BaseFloat
         val value = frp.current.value
-        val q15 = (value * 32768).roundToInt()
 
         return try {
-            out.putInt(q15)
+            out.putQ15(value)
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
             LResult.Failure("Failed to write value of FloatRange")
@@ -53,8 +54,7 @@ abstract class BaseFloatSerializer : PropertySerializer {
         val frp = target as Property.BaseFloat
 
         return try {
-            val value = buf.getInt() / 32768.0f
-            frp.current.value = value
+            frp.current.value = buf.getQ15()
             LResult.Success(Unit)
         } catch (ex: BufferUnderflowException) {
             LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
@@ -275,5 +275,51 @@ class BoolPropertySerializer : PropertySerializer {
             LResult.Failure(R.string.failed_to_deserialize_prop_value, target.name)
         }
     }
+}
 
+class CosPalettePropertySerializer : PropertySerializer {
+    override fun deserializeInfo(id: Int, name: String, buf: ByteBuffer): LResult<Property> {
+        return LResult.Success(Property.CosPalette(id, name, Property.CosPalette.NO_DATA))
+    }
+
+    override fun serializeValue(property: Property, out: ByteBuffer): LResult<Unit> {
+        val data = (property as Property.CosPalette).data.value
+        return try {
+            out.putQ15(data.red.dcOffset).putQ15(data.green.dcOffset).putQ15(data.blue.dcOffset)
+            out.putQ15(data.red.amp).putQ15(data.green.amp).putQ15(data.blue.amp)
+            out.putQ15(data.red.freq).putQ15(data.green.freq).putQ15(data.blue.freq)
+            out.putQ15(data.red.phase).putQ15(data.green.phase).putQ15(data.blue.phase)
+            LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("Failed to write cos palette")
+        }
+    }
+
+    override fun deserializeValue(buf: ByteBuffer, target: Property): LResult<Unit> {
+        val arr = Array(12) { 0f }
+        return try {
+            for (i in 0 until 12) {
+                arr[i] = buf.getQ15()
+            }
+
+            val prop = target as Property.CosPalette
+            prop.data.value = CosPaletteData(
+                red = Cosine(arr[0], arr[3], arr[6], arr[9]),
+                green = Cosine(arr[1], arr[4], arr[7], arr[10]),
+                blue = Cosine(arr[2], arr[5], arr[8], arr[11])
+            )
+            LResult.Success(Unit)
+        } catch (ex: BufferUnderflowException) {
+            LResult.Failure("Failed to deserialize cos palette")
+        }
+    }
+}
+
+private fun ByteBuffer.putQ15(f: Float): ByteBuffer {
+    putInt((f * 32768).roundToInt())
+    return this
+}
+
+private fun ByteBuffer.getQ15(): Float {
+    return getInt() / 32768.0f
 }

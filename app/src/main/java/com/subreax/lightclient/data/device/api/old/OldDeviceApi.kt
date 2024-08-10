@@ -43,14 +43,14 @@ class OldDeviceApi(
     )
     private val primaryColorProp = Property.Color(3, "Основной", Color.RED)
     private val secondaryColorProp = Property.Color(4, "Вторичный", Color.GREEN)
-    private val motionSensorProp = Property.Bool(5, "Датчик движения", false)
+    //private val motionSensorProp = Property.Bool(5, "Датчик движения", false)
 
     private val globalProps = listOf(
         brightnessProp,
         sceneProp,
         primaryColorProp,
         secondaryColorProp,
-        motionSensorProp
+        //motionSensorProp
     )
 
     override suspend fun getPropertiesFromGroup(group: PropertyGroup.Id): LResult<List<Property>> {
@@ -59,7 +59,7 @@ class OldDeviceApi(
             sceneProp.currentValue.value = fetchSceneId()
             primaryColorProp.color.value = fetchColor(1)
             secondaryColorProp.color.value = fetchColor(2)
-            motionSensorProp.toggled.value = fetchMotionSensorState()
+            //motionSensorProp.toggled.value = fetchMotionSensorState()
             LResult.Success(globalProps)
         } else {
             LResult.Success(emptyList())
@@ -72,7 +72,7 @@ class OldDeviceApi(
             SCENE_PROP_ID -> sendSceneId(property)
             PRIMARY_COLOR_PROP_ID -> sendColor(1, property)
             SECONDARY_COLOR_PROP_ID -> sendColor(2, property)
-            MOTION_SENSOR_PROP_ID -> sendMotionSensorState(property)
+            //MOTION_SENSOR_PROP_ID -> sendMotionSensorState(property)
             else -> LResult.Failure("Unknown property id: ${property.id}")
         }
     }
@@ -92,7 +92,7 @@ class OldDeviceApi(
     }
 
     private suspend fun fetchBrightness(): Float {
-        val result = doRequest("getBrightness")
+        val result = doRequest("gb")
         return if (result is LResult.Success) {
             val resp = result.value
             resp.data[0].toInt() / 255.0f
@@ -113,7 +113,7 @@ class OldDeviceApi(
     }
 
     private suspend fun fetchColor(idx: Int): Int {
-        val res = doRequest("getColor", idx.toString())
+        val res = doRequest("gc", idx.toString())
         return if (res is LResult.Success) {
             res.value.data[0].toColor()
         } else {
@@ -122,7 +122,7 @@ class OldDeviceApi(
     }
 
     private suspend fun fetchSceneId(): Int {
-        val res = doRequest("getMode")
+        val res = doRequest("gm")
         return if (res is LResult.Success) {
             res.value.data[0].toInt()
         } else {

@@ -3,6 +3,7 @@ package com.subreax.lightclient.ui.colorpickerscreen
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -43,7 +44,7 @@ fun ColorPickerScreen(
     onColorChanged: (HSVColor) -> Unit,
     navBack: () -> Unit
 ) {
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().navigationBarsPadding()) {
         TopBar(
             title = colorName,
             subtitle = {

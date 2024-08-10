@@ -42,6 +42,7 @@ import java.util.Calendar
 fun HomeScreen(
     navToColorPicker: (propId: Int) -> Unit,
     navToEnumPicker: (propId: Int) -> Unit,
+    navToPaletteEditor: (propId: Int) -> Unit,
     navToPingScreen: () -> Unit,
     navBack: () -> Unit,
     homeViewModel: HomeViewModel = hiltViewModel(),
@@ -53,29 +54,34 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     val uiState = homeViewModel.uiState
 
-    val propertyCallback = PropertyCallback(
-        colorPropertyClicked = { prop ->
-            navToColorPicker(prop.id)
-        },
-        enumClicked = { prop ->
-            navToEnumPicker(prop.id)
-        },
-        floatChanged = { prop, value ->
-            homeViewModel.setPropertyValue(prop, value)
-        },
-        floatClicked = { prop ->
-            homeViewModel.showEditDialog(prop)
-        },
-        toggleChanged = { prop, value ->
-            homeViewModel.setPropertyValue(prop, value)
-        },
-        intChanged = { prop, value ->
-            homeViewModel.setPropertyValue(prop, value)
-        },
-        intClicked = { prop ->
-            homeViewModel.showEditDialog(prop)
-        },
-    )
+    val propertyCallback = remember {
+        PropertyCallback(
+            colorPropertyClicked = { prop ->
+                navToColorPicker(prop.id)
+            },
+            enumClicked = { prop ->
+                navToEnumPicker(prop.id)
+            },
+            floatChanged = { prop, value ->
+                homeViewModel.setPropertyValue(prop, value)
+            },
+            floatClicked = { prop ->
+                homeViewModel.showEditDialog(prop)
+            },
+            toggleChanged = { prop, value ->
+                homeViewModel.setPropertyValue(prop, value)
+            },
+            intChanged = { prop, value ->
+                homeViewModel.setPropertyValue(prop, value)
+            },
+            intClicked = { prop ->
+                homeViewModel.showEditDialog(prop)
+            },
+            cosPaletteClicked = { prop ->
+                navToPaletteEditor(prop.id)
+            }
+        )
+    }
 
     if (uiState.dialogEditProperty != null) {
         PropertyEditorDialog(
@@ -110,7 +116,7 @@ fun HomeScreen(
         )
     }
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(Unit) {
         homeViewModel.navBack.collect {
             if (it) {
                 navBack()
@@ -132,8 +138,11 @@ fun HomeScreen(
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(300.dp),
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             TopBar(
@@ -258,6 +267,10 @@ val PCF = Array<PropertyComposableFactory>(PropertyType.values().size) {
 
         PropertyType.Bool.ordinal -> { prop, callback ->
             BoolProperty(prop, callback)
+        }
+
+        PropertyType.CosPalette.ordinal -> { prop, callback ->
+            CosPaletteProperty(prop, callback)
         }
 
         PropertyType.Special.ordinal -> { prop, callback ->
@@ -404,6 +417,7 @@ fun HomeScreenPreview() {
                 { _, _ -> },
                 { _, _ -> },
                 {},
+                {}
             ),
             {}
         )

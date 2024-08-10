@@ -13,6 +13,8 @@ import androidx.navigation.navArgument
 import com.subreax.lightclient.ui.ExploreScreen
 import com.subreax.lightclient.ui.colorpickerscreen.ColorPickerScreen
 import com.subreax.lightclient.ui.connection.ConnectionScreen
+import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteEditorPreviewScreen
+import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteEditorScreen
 import com.subreax.lightclient.ui.enumscreen.EnumScreen
 import com.subreax.lightclient.ui.home.HomeScreen
 import com.subreax.lightclient.ui.ping.PingScreen
@@ -39,9 +41,19 @@ sealed class Screen(val route: String) {
         )
     }
 
+    object CosPaletteEditor : Screen("cos_palette_editor_screen") {
+        const val propertyIdArg = "id"
+        val routeWithArgs = "$route/{$propertyIdArg}"
+        val args = listOf(
+            navArgument(propertyIdArg) { type = NavType.IntType }
+        )
+    }
+
     object Ping : Screen("ping_screen")
 
     object Explore : Screen("explore_screen")
+
+    object CosPaletteEditorPreview : Screen("cos_palette_editor_preview")
 }
 
 @Composable
@@ -74,6 +86,9 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
                 navToEnumPicker = {
                     navController.navigate("${Screen.EnumPicker.route}/$it")
                 },
+                navToPaletteEditor = {
+                    navController.navigate("${Screen.CosPaletteEditor.route}/$it")
+                },
                 navToPingScreen = {
                     navController.navigate(Screen.Ping.route)
                 },
@@ -105,6 +120,15 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
             })
         }
 
+        composable(
+            route = Screen.CosPaletteEditor.routeWithArgs,
+            arguments = Screen.CosPaletteEditor.args
+        ) {
+            CosPaletteEditorScreen(navBack = {
+                navController.popBackStack()
+            })
+        }
+
         composable(Screen.Ping.route) {
             PingScreen(navBack = {
                 navController.popBackStack()
@@ -113,6 +137,10 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
 
         composable(Screen.Explore.route) {
             ExploreScreen()
+        }
+
+        composable(Screen.CosPaletteEditorPreview.route) {
+            CosPaletteEditorPreviewScreen()
         }
     }
 }

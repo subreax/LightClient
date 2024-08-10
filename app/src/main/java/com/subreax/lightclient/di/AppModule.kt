@@ -1,12 +1,11 @@
 package com.subreax.lightclient.di
 
 import android.content.Context
-import com.subreax.lightclient.data.*
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.connection.impl.BleConnectionRepository
+import com.subreax.lightclient.data.device.BleCentralContainer
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.data.device.repo.impl.DeviceRepositoryImpl
-import com.subreax.lightclient.data.device.BleCentralContainer
 import com.subreax.lightclient.ui.UiLog
 import dagger.Module
 import dagger.Provides
@@ -22,9 +21,10 @@ object AppModule {
     @Singleton
     fun provideConnectionRepository(
         @ApplicationContext context: Context,
-        deviceRepository: DeviceRepository
+        deviceRepository: DeviceRepository,
+        bleCentralContainer: BleCentralContainer
     ): ConnectionRepository {
-        return BleConnectionRepository(context, deviceRepository)
+        return BleConnectionRepository(context, deviceRepository, bleCentralContainer)
         //return FakeConnectionRepository()
     }
 
