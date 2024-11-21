@@ -4,20 +4,22 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.subreax.lightclient.ui.ToggleButton
 import com.subreax.lightclient.ui.TopBar
 import com.subreax.lightclient.ui.theme.LightClientTheme
 
@@ -27,69 +29,119 @@ fun CosPaletteEditorScreen(
     navBack: () -> Unit,
     viewModel: CosPaletteEditorViewModel = hiltViewModel()
 ) {
-    val state = viewModel.state
-
-    Column(
-        Modifier
+    CosPaletteEditorScreen(
+        cosPaletteEditorState = viewModel.cosPaletteEditorState,
+        cosFieldsEditorState = viewModel.cosFieldsEditorState,
+        propertyName = viewModel.propertyName,
+        navBack = navBack,
+        selectCosine = viewModel::selectCosine,
+        modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
-    ) {
+    )
+}
+
+@Composable
+fun CosPaletteEditorScreen(
+    cosPaletteEditorState: CosPaletteEditorState,
+    cosFieldsEditorState: CosineFieldsEditorState,
+    propertyName: String,
+    navBack: () -> Unit,
+    selectCosine: (CosPaletteEditorState.CosineId) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier) {
         TopBar(
-            title = viewModel.propertyName,
-            subtitle = {
-                Text(text = "Настройка цветовой палитры")
-            },
+            title = propertyName,
+            subtitle = { Text(text = "Настройка цветовой палитры") },
             navBack = navBack
         )
 
         CosPaletteEditor(
-            state = state,
+            state = cosPaletteEditorState,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1.2f),
-            onChange = {
-                viewModel.onPaletteChanged()
-            }
+                .aspectRatio(1.2f)
         )
 
         CosPaletteViewer(
-            redCosine = state.red,
-            greenCosine = state.green,
-            blueCosine = state.blue,
+            redCosine = cosPaletteEditorState.red,
+            greenCosine = cosPaletteEditorState.green,
+            blueCosine = cosPaletteEditorState.blue,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(16.dp)
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
         Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
-            Button(onClick = { state.select(CosPaletteEditorState.CosineId.Red) }) {
+            ToggleButton(
+                isActive = cosPaletteEditorState.selectedCosineId == CosPaletteEditorState.CosineId.Red,
+                onToggle = { selectCosine(CosPaletteEditorState.CosineId.Red) },
+                activeColor = Color.Red
+            ) {
                 Text("Red")
             }
 
-            Button(onClick = { state.select(CosPaletteEditorState.CosineId.Green) }) {
+            ToggleButton(
+                isActive = cosPaletteEditorState.selectedCosineId == CosPaletteEditorState.CosineId.Green,
+                onToggle = { selectCosine(CosPaletteEditorState.CosineId.Green) },
+                activeColor = Color.Green
+            ) {
                 Text("Green")
             }
 
-            Button(onClick = { state.select(CosPaletteEditorState.CosineId.Blue) }) {
+            ToggleButton(
+                isActive = cosPaletteEditorState.selectedCosineId == CosPaletteEditorState.CosineId.Blue,
+                onToggle = { selectCosine(CosPaletteEditorState.CosineId.Blue) },
+                activeColor = Color.Blue
+            ) {
                 Text("Blue")
             }
+        }
 
-            Button(onClick = { state.select(CosPaletteEditorState.CosineId.Null) }) {
-                Text("Null")
-            }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (cosPaletteEditorState.selectedCosineId != CosPaletteEditorState.CosineId.Null) {
+            CosineFieldsEditor(
+                state = cosFieldsEditorState,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            )
         }
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 320, heightDp = 200)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun CosPaletteEditorPreview() {
     LightClientTheme {
-        Surface {
-            CosPaletteEditor(Modifier.fillMaxSize())
+        val paletteEditorState = remember {
+            CosPaletteEditorState(
+                Cosine(0.5f, 0.5f, 1.0f, 0.0f),
+                Cosine(0.5f, 0.5f, 1.0f, 1f / 3f),
+                Cosine(0.5f, 0.5f, 1.0f, 2f / 3f)
+            ).also { it.select(CosPaletteEditorState.CosineId.Red) }
         }
+
+        val cosineEditorState = remember {
+            CosineFieldsEditorState(paletteEditorState.red, {})
+        }
+
+        CosPaletteEditorScreen(
+            cosPaletteEditorState = paletteEditorState,
+            cosFieldsEditorState = cosineEditorState,
+            propertyName = "PaletteName",
+            navBack = {},
+            selectCosine = {},
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

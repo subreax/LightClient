@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 suspend fun <T> Flow<T>.waitFor(condition: (T) -> Boolean): T {
     var result: T? = null
 
-    withContext(Dispatchers.Default) {
+    withContext(Dispatchers.IO) {
         launch {
             collect {
                 if (condition(it)) {

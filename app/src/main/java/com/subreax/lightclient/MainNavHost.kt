@@ -13,7 +13,6 @@ import androidx.navigation.navArgument
 import com.subreax.lightclient.ui.ExploreScreen
 import com.subreax.lightclient.ui.colorpickerscreen.ColorPickerScreen
 import com.subreax.lightclient.ui.connection.ConnectionScreen
-import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteEditorPreviewScreen
 import com.subreax.lightclient.ui.cospaletteeditor.CosPaletteEditorScreen
 import com.subreax.lightclient.ui.enumscreen.EnumScreen
 import com.subreax.lightclient.ui.home.HomeScreen
@@ -137,10 +136,6 @@ fun MainNavHost(navController: NavHostController = rememberNavController()) {
 
         composable(Screen.Explore.route) {
             ExploreScreen()
-        }
-
-        composable(Screen.CosPaletteEditorPreview.route) {
-            CosPaletteEditorPreviewScreen()
         }
     }
 }

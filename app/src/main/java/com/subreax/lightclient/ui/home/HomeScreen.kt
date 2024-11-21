@@ -369,6 +369,7 @@ private fun HomeBottomSheetContent(
         text = stringResource(R.string.disconnect),
         onClick = disconnectClicked
     )
+    Spacer(modifier = Modifier.navigationBarsPadding())
 }
 
 @Composable

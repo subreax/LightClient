@@ -1,12 +1,8 @@
 package com.subreax.lightclient.ui.cospaletteeditor
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.subreax.lightclient.Screen
-import com.subreax.lightclient.data.CosPaletteData
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,28 +13,49 @@ class CosPaletteEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     deviceRepository: DeviceRepository
 ) : ViewModel() {
-    private val prop: Property.CosPalette
+    private val prop = getProperty(deviceRepository, savedStateHandle)
+    val propertyName = prop.name
 
-    val state = CosPaletteEditorState()
+    val cosPaletteEditorState = cosPaletteEditorStateFrom(
+        prop = prop,
+        onCosineDragged = this::onCosineDragged
+    )
 
-    var propertyName by mutableStateOf("")
-        private set
+    val cosFieldsEditorState = CosineFieldsEditorState(
+        initCosine = Cosine(),
+        onCosineChanged = this::onCosineFieldsChanged
+    )
 
-    init {
-        val id = savedStateHandle.get<Int>(Screen.CosPaletteEditor.propertyIdArg)!!
-        val device = deviceRepository.getDevice()
-        prop = device.findPropertyById(id) as Property.CosPalette
-
-        propertyName = prop.name
-
-        prop.data.value.let {
-            state.red = it.red
-            state.green = it.green
-            state.blue = it.blue
-        }
+    fun selectCosine(id: CosPaletteEditorState.CosineId) {
+        cosPaletteEditorState.select(id)
+        cosFieldsEditorState.cosine = cosPaletteEditorState.selectedCosine
     }
 
-    fun onPaletteChanged() {
-        prop.data.value = CosPaletteData(state.red, state.green, state.blue)
+    private fun onCosineDragged() {
+        cosFieldsEditorState.cosine = cosPaletteEditorState.selectedCosine
+    }
+
+    private fun onCosineFieldsChanged(cosine: Cosine) {
+        cosPaletteEditorState.selectedCosine = cosine
+    }
+
+    companion object {
+        private fun getProperty(
+            deviceRepository: DeviceRepository,
+            savedStateHandle: SavedStateHandle
+        ): Property.CosPalette {
+            val id = savedStateHandle.get<Int>(Screen.CosPaletteEditor.propertyIdArg)!!
+            val device = deviceRepository.getDevice()
+            return device.findPropertyById(id) as Property.CosPalette
+        }
+
+        private fun cosPaletteEditorStateFrom(
+            prop: Property.CosPalette,
+            onCosineDragged: () -> Unit
+        ): CosPaletteEditorState {
+            return with(prop.data.value) {
+                CosPaletteEditorState(red, green, blue, onCosineDragged)
+            }
+        }
     }
 }

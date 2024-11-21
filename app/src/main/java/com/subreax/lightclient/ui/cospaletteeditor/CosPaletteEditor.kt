@@ -1,20 +1,15 @@
 package com.subreax.lightclient.ui.cospaletteeditor
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntSize
 import kotlin.math.cos
 
 private const val FunctionStep = 3
@@ -24,76 +19,28 @@ private const val FunctionStep = 3
 @Composable
 fun CosPaletteEditor(
     modifier: Modifier = Modifier,
-    state: CosPaletteEditorState = remember { CosPaletteEditorState() },
-    onChange: (() -> Unit) = { }
+    state: CosPaletteEditorState = remember { CosPaletteEditorState() }
 ) {
-    val colors = remember(state.selectedCosine) {
-        CosineColors.fromState(state)
+    val colors = remember(state.selectedCosineId) {
+        CosineColors.create(state.selectedCosineId)
     }
 
     Box(
         modifier = modifier
-            .onSizeChanged { }
-            .drawWithCache {
-                onDrawBehind {
-                    drawRect(Color(0xff000000))
+            .focusable()
+            .drawBehind {
+                drawRect(Color.Black)
 
-                    drawCosine(state.red, colors.red, 3f)
-                    drawCosine(state.green, colors.green, 3f)
-                    drawCosine(state.blue, colors.blue, 3f)
-                }
+                drawCosine(state.red, colors.red, 3f)
+                drawCosine(state.green, colors.green, 3f)
+                drawCosine(state.blue, colors.blue, 3f)
             }
             .pointerInput(Unit) {
                 detectPanZoomGestures { centroid, panChange, zoomChange ->
                     state.handlePanZoom(size, centroid, panChange, zoomChange)
-                    onChange()
                 }
             }
     ) { }
-}
-
-class CosPaletteEditorState {
-    enum class CosineId { Red, Green, Blue, Null }
-
-    private val cosines = mutableStateListOf(
-        Cosine(),
-        Cosine(),
-        Cosine(),
-        Cosine() // null cosine
-    )
-
-    var red: Cosine
-        get() = cosines[0]
-        set(value) {
-            cosines[0] = value
-        }
-
-    var green: Cosine
-        get() = cosines[1]
-        set(value) {
-            cosines[1] = value
-        }
-
-    var blue: Cosine
-        get() = cosines[2]
-        set(value) {
-            cosines[2] = value
-        }
-
-    var selectedCosine by mutableStateOf(CosineId.Null)
-        private set
-
-    val selectedIdx: Int
-        get() = selectedCosine.ordinal
-
-    fun select(id: CosineId) {
-        selectedCosine = id
-    }
-
-    fun handlePanZoom(size: IntSize, centroid: Offset, panChange: Offset, zoomChange: Offset) {
-        val i = selectedIdx
-        cosines[i] = cosines[i].handlePanZoom(size, centroid, panChange, zoomChange)
-    }
 }
 
 private data class CosineColors(
@@ -102,10 +49,10 @@ private data class CosineColors(
     val blue: Color
 ) {
     companion object {
-        fun fromState(state: CosPaletteEditorState): CosineColors {
+        fun create(selectedCosineId: CosPaletteEditorState.CosineId): CosineColors {
             val colors = arrayOf(Color.Red, Color.Green, Color.Blue)
             for (i in 0 until 3) {
-                if (i != state.selectedIdx) {
+                if (i != selectedCosineId.ordinal) {
                     colors[i] = colors[i].copy(alpha = 0.4f)
                 }
             }
