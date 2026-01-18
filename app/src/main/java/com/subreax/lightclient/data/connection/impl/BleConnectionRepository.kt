@@ -49,17 +49,31 @@ class BleConnectionRepository(
         coroutineScope.launch {
             while (isActive) {
                 val event = events.receive()
-
                 val isBtEnabled = bleCentralContainer.manager.isBluetoothEnabled
-                if (isBtEnabled) {
-                    if (event == Event.Connected) {
-                        stopScan()
-                    } else {
-                        startScan()
+
+                when (event) {
+                    Event.ConnectivityChanged -> {
+                        if (isBtEnabled) {
+                            startScan()
+                        }
                     }
-                } else {
-                    stopScan()
+
+                    Event.Connected -> {
+                        stopScan()
+                    }
+
+                    Event.Disconnected -> {
+                        if (isBtEnabled) {
+                            startScan()
+                        }
+                    }
                 }
+            }
+        }
+
+        coroutineScope.launch {
+            if (bleCentralContainer.manager.isBluetoothEnabled) {
+                events.send(Event.ConnectivityChanged)
             }
         }
 
@@ -69,10 +83,6 @@ class BleConnectionRepository(
                     events.send(Event.ConnectivityChanged)
                 }
             }
-        }
-
-        if (bleCentralContainer.manager.isBluetoothEnabled) {
-            events.trySend(Event.ConnectivityChanged)
         }
 
         coroutineScope.launch {
