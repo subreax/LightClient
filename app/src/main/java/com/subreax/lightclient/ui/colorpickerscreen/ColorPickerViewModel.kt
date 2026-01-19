@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.subreax.lightclient.Screen
 import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.repo.DeviceRepository
+import com.subreax.lightclient.ui.colorpicker.ColorPickerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import javax.inject.Inject
@@ -19,12 +20,6 @@ class ColorPickerViewModel @Inject constructor(
     private val device = deviceRepository.getDevice()
     private val property: Property.Color
 
-    val propertyName: String
-        get() = property.name
-
-    val propertyColor: Color
-        get() = Color(property.color.value)
-
     init {
         val propId: Int = state[Screen.ColorPicker.propertyIdArg]!!
         val genericProp = device.findPropertyById(propId)
@@ -33,6 +28,19 @@ class ColorPickerViewModel @Inject constructor(
         }
         property = genericProp!! as Property.Color
     }
+
+    val propertyName: String
+        get() = property.name
+
+    val propertyColor: Color
+        get() = Color(property.color.value)
+
+    val colorPickerState = ColorPickerState(
+        initialColor = propertyColor,
+        onUpdate = {
+            setColor(it)
+        }
+    )
 
     fun setColor(color: Color) {
         property.color.value = color.toArgb()

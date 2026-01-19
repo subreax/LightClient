@@ -17,13 +17,11 @@ import kotlin.math.roundToInt
 
 @Composable
 fun SVPicker(
-    hsv: HSVColor,
-    onColorChanged: (HSVColor) -> Unit,
+    hsv: HsvaColorPickerState,
     modifier: Modifier = Modifier,
     thumbSize: Dp = 24.dp
 ) {
     val colorRight = Color.hsv(hsv.h, 1.0f, 1.0f)
-    val currentHsv by rememberUpdatedState(hsv)
 
     Layout(
         modifier = modifier
@@ -33,11 +31,9 @@ fun SVPicker(
 
                     val dx = dragAmount.x / size.width
                     val dy = dragAmount.y / size.height
-                    onColorChanged(
-                        currentHsv.copy(
-                            s = (currentHsv.s + dx).coerceIn(0f, 1f),
-                            v = (currentHsv.v - dy).coerceIn(0f, 1f)
-                        )
+                    hsv.update(
+                        sat = (hsv.s + dx).coerceIn(0f, 1f),
+                        value = (hsv.v - dy).coerceIn(0f, 1f)
                     )
                 }
             }
@@ -51,7 +47,7 @@ fun SVPicker(
             },
         content = {
             Thumb(
-                color = currentHsv.toColor(alpha = 1.0f),
+                color = hsv.toColor(alpha = 1.0f),
                 modifier = Modifier.size(thumbSize)
             )
         }

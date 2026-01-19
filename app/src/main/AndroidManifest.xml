@@ -24,11 +24,12 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.LightClient"
-        tools:targetApi="33">
+        tools:targetApi="36">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.LightClient">
+            android:theme="@style/Theme.LightClient"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

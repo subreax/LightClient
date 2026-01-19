@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 
 @Composable
 fun AlphaPicker(
-    hsv: HSVColor,
+    hsv: HsvaColorPickerState,
     alpha: Float,
     onAlphaChanged: (Float) -> Unit,
     modifier: Modifier = Modifier
