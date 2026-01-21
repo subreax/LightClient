@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 
 sealed class UiText {
-    class Res(@StringRes val id: Int, vararg val args: Any = emptyArray()) : UiText()
+    class Res(@field:StringRes val id: Int, vararg val args: Any = emptyArray()) : UiText()
     class Hardcoded(val str: String) : UiText()
 
     @Composable
