@@ -1,11 +1,11 @@
 package com.subreax.lightclient.ui.colorpickerscreen
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.subreax.lightclient.R
+import com.subreax.lightclient.ui.ToggleButton
 import com.subreax.lightclient.ui.TopBar
 import com.subreax.lightclient.ui.colorpicker.ColorPicker
 import com.subreax.lightclient.ui.colorpicker.ColorPickerState
@@ -60,12 +61,32 @@ fun ColorPickerScreen(
             navBack = navBack
         )
 
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            ToggleButton(
+                isActive = true,
+                onToggle = {}
+            ) {
+                Text("Выбор цвета")
+            }
+
+            ToggleButton(
+                isActive = false,
+                onToggle = {}
+            ) {
+                Text("Библиотека")
+            }
+        }
+
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-
             ColorPicker(
                 state = state,
                 svPickerAspectRatio = 1f

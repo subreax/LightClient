@@ -5,15 +5,14 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.util.fastRoundToInt
-import kotlin.math.round
+import androidx.compose.ui.graphics.fromColorLong
 import kotlin.math.roundToInt
 
 class ColorPickerState(
-    initialColor: Color = Color.Companion.White,
+    initialColor: Color = Color.White,
     private val onUpdate: (Color) -> Unit
 ) {
-    val rgbaStr: RgbaColorPickerState = RgbaColorPickerState(onUpdate = {
+    val hex: HexColorPickerState = HexColorPickerState(onUpdate = {
         color = it
         hsva.sync(it)
         onUpdate(it)
@@ -21,7 +20,7 @@ class ColorPickerState(
 
     val hsva: HsvaColorPickerState = HsvaColorPickerState(onUpdate = {
         color = it
-        rgbaStr.sync(it)
+        hex.sync(it)
         onUpdate(it)
     })
 
@@ -29,52 +28,53 @@ class ColorPickerState(
         private set
 
     init {
-        rgbaStr.sync(color)
+        hex.sync(color)
         hsva.sync(color)
     }
 }
 
-class RgbaColorPickerState(
+class HexColorPickerState(
     private val onUpdate: (Color) -> Unit
 ) {
-    var r by mutableStateOf("")
-        private set
-
-    var g by mutableStateOf("")
-        private set
-
-    var b by mutableStateOf("")
-        private set
-
-    var a by mutableStateOf("")
-        private set
+    var value by mutableStateOf("")
 
     fun toColor(): Color? {
-        val ri = r.toIntOrNull() ?: return null
-        val gi = g.toIntOrNull() ?: return null
-        val bi = b.toIntOrNull() ?: return null
-        val ai = a.toIntOrNull() ?: return null
-        return Color(ri, gi, bi, ai)
+        if (value.length != 8) {
+            return null
+        }
+
+        val color = value.toLongOrNull(16)
+        return color?.let { Color(it) }
     }
 
-    fun update(red: String = r, green: String = g, blue: String = b, alpha: String = a) {
-        r = red
-        g = green
-        b = blue
-        a = alpha
-        toColor()?.let(onUpdate)
+    fun update(newValue: String) {
+        value = newValue.filter { it.isHexDigit() }
+        toColor()?.let { onUpdate(it) }
     }
 
     fun sync(newColor: Color) {
-        r = (newColor.red * 255).fastRoundPositiveToInt().toString()
-        g = (newColor.green * 255).fastRoundPositiveToInt().toString()
-        b = (newColor.blue * 255).fastRoundPositiveToInt().toString()
-        a = (newColor.alpha * 255).fastRoundPositiveToInt().toString()
+        value = newColor.toHexString()
     }
 
     companion object {
-        fun Float.fastRoundPositiveToInt(): Int {
-            return (this + 0.5f).toInt()
+        private const val HEX_DIGITS = "0123456789ABCDEF"
+
+        private fun Color.toHexString(): String {
+            return buildString {
+                arrayOf(
+                    (alpha * 255f).roundToInt(),
+                    (red * 255f).roundToInt(),
+                    (green * 255f).roundToInt(),
+                    (blue * 255f).roundToInt()
+                ).forEach {
+                    append(HEX_DIGITS[(it shr 4) and 0xf])
+                    append(HEX_DIGITS[it and 0xf])
+                }
+            }
+        }
+
+        private fun Char.isHexDigit(): Boolean {
+            return HEX_DIGITS.contains(this.uppercase())
         }
     }
 }
