@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.subreax.lightclient.ui.ToggleButton
 import com.subreax.lightclient.ui.TopBar
 import com.subreax.lightclient.ui.theme.LightClientTheme

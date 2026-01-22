@@ -5,38 +5,50 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.fromColorLong
 import kotlin.math.roundToInt
 
 class ColorPickerState(
     initialColor: Color = Color.White,
     private val onUpdate: (Color) -> Unit
 ) {
-    val hex: HexColorPickerState = HexColorPickerState(onUpdate = {
-        color = it
-        hsva.sync(it)
-        onUpdate(it)
-    })
+    val hex: HexColorPickerState = HexColorPickerState(
+        initialColor = initialColor,
+        onUpdate = {
+            color = it
+            hsva.sync(it)
+            onUpdate(it)
+        }
+    )
 
-    val hsva: HsvaColorPickerState = HsvaColorPickerState(onUpdate = {
-        color = it
-        hex.sync(it)
-        onUpdate(it)
-    })
+    val hsva: HsvaColorPickerState = HsvaColorPickerState(
+        initialColor = initialColor,
+        onUpdate = {
+            color = it
+            hex.sync(it)
+            onUpdate(it)
+        }
+    )
 
     var color by mutableStateOf(initialColor)
         private set
 
-    init {
-        hex.sync(color)
-        hsva.sync(color)
+    fun update(newColor: Color) {
+        color = newColor
+        hsva.sync(newColor)
+        hex.sync(newColor)
+        onUpdate(newColor)
     }
 }
 
 class HexColorPickerState(
+    initialColor: Color,
     private val onUpdate: (Color) -> Unit
 ) {
-    var value by mutableStateOf("")
+    var value by mutableStateOf(initialColor.toHexString())
+
+    init {
+        sync(initialColor)
+    }
 
     fun toColor(): Color? {
         if (value.length != 8) {
@@ -80,6 +92,7 @@ class HexColorPickerState(
 }
 
 class HsvaColorPickerState(
+    initialColor: Color,
     private val onUpdate: (Color) -> Unit
 ) {
     var h by mutableFloatStateOf(0f)
@@ -93,6 +106,10 @@ class HsvaColorPickerState(
 
     var a by mutableFloatStateOf(0f)
         private set
+
+    init {
+        sync(initialColor)
+    }
 
     fun update(hue: Float = h, sat: Float = s, value: Float = v, alpha: Float = a) {
         h = hue
@@ -122,11 +139,5 @@ class HsvaColorPickerState(
 
     fun toColor(alpha: Float): Color {
         return Color.hsv(h, s, v, alpha)
-    }
-
-    companion object {
-        fun from(color: Color, onUpdate: (Color) -> Unit): HsvaColorPickerState {
-            return HsvaColorPickerState(onUpdate).apply { sync(color) }
-        }
     }
 }

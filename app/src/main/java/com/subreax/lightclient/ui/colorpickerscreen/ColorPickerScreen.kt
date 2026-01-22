@@ -1,6 +1,7 @@
 package com.subreax.lightclient.ui.colorpickerscreen
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -26,6 +32,9 @@ import com.subreax.lightclient.ui.colorpicker.ColorPicker
 import com.subreax.lightclient.ui.colorpicker.ColorPickerState
 import com.subreax.lightclient.ui.theme.LightClientTheme
 
+private enum class ColorPickerSection {
+    Picker, Library
+}
 
 @Composable
 fun ColorPickerScreen(
@@ -33,19 +42,32 @@ fun ColorPickerScreen(
     navBack: () -> Unit = {}
 ) {
     val state = colorPickerViewModel.colorPickerState
+    var section by rememberSaveable {
+        mutableStateOf(ColorPickerSection.Picker)
+    }
+
+    val colorLibrary by colorPickerViewModel.colorLibrary.collectAsState()
 
     ColorPickerScreen(
         colorName = colorPickerViewModel.propertyName,
         state = state,
-        navBack = navBack
+        colorLibrary = colorLibrary,
+        navBack = navBack,
+        addColorToLibrary = colorPickerViewModel::addColorToLibrary,
+        currentSection = section,
+        setCurrentSection = { section = it }
     )
 }
 
 @Composable
-fun ColorPickerScreen(
+private fun ColorPickerScreen(
     colorName: String,
     state: ColorPickerState,
-    navBack: () -> Unit
+    colorLibrary: List<Color>,
+    navBack: () -> Unit,
+    addColorToLibrary: (Color) -> Unit,
+    currentSection: ColorPickerSection,
+    setCurrentSection: (ColorPickerSection) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -68,15 +90,19 @@ fun ColorPickerScreen(
                 .padding(horizontal = 16.dp)
         ) {
             ToggleButton(
-                isActive = true,
-                onToggle = {}
+                isActive = currentSection == ColorPickerSection.Picker,
+                onToggle = {
+                    setCurrentSection(ColorPickerSection.Picker)
+                }
             ) {
                 Text("Выбор цвета")
             }
 
             ToggleButton(
-                isActive = false,
-                onToggle = {}
+                isActive = currentSection == ColorPickerSection.Library,
+                onToggle = {
+                    setCurrentSection(ColorPickerSection.Library)
+                }
             ) {
                 Text("Библиотека")
             }
@@ -87,10 +113,28 @@ fun ColorPickerScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            ColorPicker(
-                state = state,
-                svPickerAspectRatio = 1f
-            )
+            AnimatedVisibility(
+                visible = currentSection == ColorPickerSection.Picker
+            ) {
+                ColorPicker(
+                    state = state,
+                    addColorToLibrary = addColorToLibrary,
+                    svPickerAspectRatio = 1f
+                )
+            }
+
+            AnimatedVisibility(
+                visible = currentSection == ColorPickerSection.Library
+            ) {
+                ColorLibrary(
+                    pickedColor = state.color,
+                    savedColors = colorLibrary,
+                    onColorSelected = { state.update(it) },
+                    modifier = Modifier
+                        .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
         }
 
     }
@@ -103,12 +147,16 @@ fun ColorPickerScreen(
     showBackground = true
 )
 @Composable
-fun ColorPickerScreenPreview() {
+private fun ColorPickerScreenPreview() {
     LightClientTheme {
         ColorPickerScreen(
             colorName = "Main",
             state = ColorPickerState(Color(0xffff9800u), {}),
-            navBack = {}
+            colorLibrary = emptyList(),
+            navBack = {},
+            addColorToLibrary = {},
+            currentSection = ColorPickerSection.Picker,
+            setCurrentSection = {}
         )
     }
 }

@@ -9,6 +9,8 @@ import com.subreax.lightclient.data.Property
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.ui.colorpicker.ColorPickerState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -42,7 +44,14 @@ class ColorPickerViewModel @Inject constructor(
         }
     )
 
+    private val _colorLibrary = MutableStateFlow(emptyList<Color>())
+    val colorLibrary = _colorLibrary.asStateFlow()
+
     fun setColor(color: Color) {
         property.color.value = color.toArgb()
+    }
+
+    fun addColorToLibrary(color: Color) {
+        _colorLibrary.value += color
     }
 }

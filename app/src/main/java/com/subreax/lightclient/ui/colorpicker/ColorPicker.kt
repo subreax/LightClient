@@ -25,6 +25,7 @@ import com.subreax.lightclient.ui.theme.LightClientTheme
 @Composable
 fun ColorPicker(
     state: ColorPickerState,
+    addColorToLibrary: (Color) -> Unit,
     modifier: Modifier = Modifier,
     svPickerAspectRatio: Float = 4.0f / 3.0f
 ) {
@@ -81,7 +82,9 @@ fun ColorPicker(
                 innerPadding = PaddingValues(vertical = 16.dp)
             )
 
-            TextButton(onClick = {}) {
+            TextButton(onClick = {
+                addColorToLibrary(state.color)
+            }) {
                 Text("+ Сохранить")
             }
         }
@@ -94,7 +97,7 @@ fun ColorPicker(
 fun ColorPickerPreview() {
     LightClientTheme {
         SVPicker(
-            hsv = HsvaColorPickerState.from(Color(0xffff9800), {}),
+            hsv = HsvaColorPickerState(Color(0xffff9800), {}),
             modifier = Modifier.size(300.dp)
         )
     }
