@@ -1,7 +1,14 @@
 package com.subreax.lightclient.ui.colorpickerscreen
 
 import android.content.res.Configuration
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -113,31 +120,40 @@ private fun ColorPickerScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            AnimatedVisibility(
-                visible = currentSection == ColorPickerSection.Picker
-            ) {
-                ColorPicker(
-                    state = state,
-                    addColorToLibrary = addColorToLibrary,
-                    svPickerAspectRatio = 1f
-                )
-            }
+            AnimatedContent(
+                targetState = currentSection,
+                transitionSpec = { slideAndFade() }
+            ) { section ->
+                when (section) {
+                    ColorPickerSection.Picker -> {
+                        ColorPicker(
+                            state = state,
+                            addColorToLibrary = addColorToLibrary,
+                            svPickerAspectRatio = 1f
+                        )
+                    }
 
-            AnimatedVisibility(
-                visible = currentSection == ColorPickerSection.Library
-            ) {
-                ColorLibrary(
-                    pickedColor = state.color,
-                    savedColors = colorLibrary,
-                    onColorSelected = { state.update(it) },
-                    modifier = Modifier
-                        .padding(top = 8.dp, start = 16.dp, end = 16.dp)
-                        .fillMaxWidth()
-                )
+                    ColorPickerSection.Library -> {
+                        ColorLibrary(
+                            pickedColor = state.color,
+                            savedColors = colorLibrary,
+                            onColorSelected = { state.update(it) },
+                            modifier = Modifier
+                                .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                }
             }
         }
 
     }
+}
+
+fun slideAndFade(): ContentTransform {
+    val enter = slideInVertically(animationSpec = tween(200)) + fadeIn(animationSpec = tween(200))
+    val exit = slideOutVertically(animationSpec = tween(200)) + fadeOut(animationSpec = tween(200))
+    return enter.togetherWith(exit)
 }
 
 @Preview(
