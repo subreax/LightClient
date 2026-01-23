@@ -117,45 +117,64 @@ private fun ColorPickerScreen(
             }
         }
 
-        Column(
+        AnimatedContent(
+            targetState = currentSection,
+            transitionSpec = { slideAndFade() },
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
-        ) {
-            AnimatedContent(
-                targetState = currentSection,
-                transitionSpec = { slideAndFade() }
-            ) { section ->
-                when (section) {
-                    ColorPickerSection.Picker -> {
+                .fillMaxWidth()
+        ) { section ->
+            when (section) {
+                ColorPickerSection.Picker -> {
+                    val scrollState = rememberScrollState()
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                    ) {
                         ColorPicker(
                             state = state,
                             addColorToLibrary = addColorToLibrary,
-                            svPickerAspectRatio = 1f
-                        )
-                    }
-
-                    ColorPickerSection.Library -> {
-                        ColorLibrary(
-                            pickedColor = state.color,
-                            savedColors = colorLibrary,
-                            onColorSelected = { state.update(it) },
-                            onDeleteColor = deleteColorFromLibrary,
+                            svPickerAspectRatio = 1f,
                             modifier = Modifier
-                                .padding(top = 8.dp, start = 16.dp, end = 16.dp)
-                                .fillMaxWidth()
+                                .padding(top = 12.dp)
+                                .fillMaxSize()
                         )
                     }
                 }
+
+                ColorPickerSection.Library -> {
+                    ColorLibrary(
+                        pickedColor = state.color,
+                        savedColors = colorLibrary,
+                        onColorSelected = { state.update(it) },
+                        onDeleteColor = deleteColorFromLibrary,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth()
+                    )
+                }
             }
         }
-
     }
 }
 
 fun slideAndFade(): ContentTransform {
-    val enter = slideInVertically(animationSpec = tween(200)) + fadeIn(animationSpec = tween(200))
-    val exit = slideOutVertically(animationSpec = tween(200)) + fadeOut(animationSpec = tween(200))
+    val enter = slideInVertically(
+        animationSpec = tween(200),
+        initialOffsetY = { h -> -h / 8 }
+    ) + fadeIn(
+        animationSpec = tween(200)
+    )
+
+    val exit = slideOutVertically(
+        animationSpec = tween(200),
+        targetOffsetY = { h -> -h / 8 }
+    ) + fadeOut(
+        animationSpec = tween(200)
+    )
+
     return enter.togetherWith(exit)
 }
 

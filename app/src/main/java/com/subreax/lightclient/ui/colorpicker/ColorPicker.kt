@@ -46,7 +46,7 @@ fun ColorPicker(
     coroutineScope: CoroutineScope = rememberCoroutineScope()
 ) {
     Column(
-        modifier,
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         SVPicker(
