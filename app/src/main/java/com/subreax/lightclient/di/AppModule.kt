@@ -1,8 +1,11 @@
 package com.subreax.lightclient.di
 
 import android.content.Context
+import com.subreax.lightclient.data.color_lib.ColorRepository
+import com.subreax.lightclient.data.color_lib.ColorRepositoryImpl
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.connection.impl.BleConnectionRepository
+import com.subreax.lightclient.data.db.ColorLibraryDao
 import com.subreax.lightclient.data.device.BleCentralContainer
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.data.device.repo.impl.DeviceRepositoryImpl
@@ -47,5 +50,11 @@ object AppModule {
     @Provides
     fun provideBleCentralContainer(@ApplicationContext context: Context): BleCentralContainer {
         return BleCentralContainer(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideColorRepository(colorLibraryDao: ColorLibraryDao): ColorRepository {
+        return ColorRepositoryImpl(colorLibraryDao)
     }
 }

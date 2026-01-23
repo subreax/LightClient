@@ -4,19 +4,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.subreax.lightclient.Screen
 import com.subreax.lightclient.data.Property
+import com.subreax.lightclient.data.color_lib.ColorRepository
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.subreax.lightclient.ui.colorpicker.ColorPickerState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class ColorPickerViewModel @Inject constructor(
     deviceRepository: DeviceRepository,
+    private val colorRepository: ColorRepository,
     state: SavedStateHandle
 ) : ViewModel() {
     private val device = deviceRepository.getDevice()
@@ -44,14 +50,17 @@ class ColorPickerViewModel @Inject constructor(
         }
     )
 
-    private val _colorLibrary = MutableStateFlow(emptyList<Color>())
-    val colorLibrary = _colorLibrary.asStateFlow()
+    val colorLibrary: StateFlow<List<Color>> = colorRepository.argbColors
+        .map { colors -> colors.map { Color(it) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun setColor(color: Color) {
         property.color.value = color.toArgb()
     }
 
     fun addColorToLibrary(color: Color) {
-        _colorLibrary.value += color
+        viewModelScope.launch {
+            colorRepository.add(color.toArgb())
+        }
     }
 }

@@ -70,14 +70,15 @@ fun loadKeystoreProperties(path: String): Properties {
 }
 
 dependencies {
+    val composeBom = platform("androidx.compose:compose-bom:2026.01.00")
+    val roomVersion = "2.8.4"
+
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
 
-    val composeBom = platform("androidx.compose:compose-bom:2026.01.00")
     implementation(composeBom)
     testImplementation(composeBom)
     androidTestImplementation(composeBom)
-
     implementation("androidx.activity:activity-compose")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -93,11 +94,20 @@ dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.9.6")
 
+    // DI | Dagger Hilt
     implementation("com.google.dagger:hilt-android:2.58")
     ksp("com.google.dagger:hilt-compiler:2.58")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel-compose:1.3.0")
 
+    // BLE | Blessed
     implementation("com.github.weliem:blessed-android:2.4.1")
+
+    // Logs | Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
+
+    // Database | Room
+    implementation("androidx.room:room-runtime:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
 }
