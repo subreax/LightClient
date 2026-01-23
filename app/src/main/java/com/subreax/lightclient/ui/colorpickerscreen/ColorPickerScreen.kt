@@ -61,6 +61,7 @@ fun ColorPickerScreen(
         colorLibrary = colorLibrary,
         navBack = navBack,
         addColorToLibrary = colorPickerViewModel::addColorToLibrary,
+        deleteColorFromLibrary = colorPickerViewModel::deleteColorFromLibrary,
         currentSection = section,
         setCurrentSection = { section = it }
     )
@@ -73,6 +74,7 @@ private fun ColorPickerScreen(
     colorLibrary: List<Color>,
     navBack: () -> Unit,
     addColorToLibrary: (Color) -> Unit,
+    deleteColorFromLibrary: (Color) -> Unit,
     currentSection: ColorPickerSection,
     setCurrentSection: (ColorPickerSection) -> Unit
 ) {
@@ -138,6 +140,7 @@ private fun ColorPickerScreen(
                             pickedColor = state.color,
                             savedColors = colorLibrary,
                             onColorSelected = { state.update(it) },
+                            onDeleteColor = deleteColorFromLibrary,
                             modifier = Modifier
                                 .padding(top = 8.dp, start = 16.dp, end = 16.dp)
                                 .fillMaxWidth()
@@ -171,6 +174,7 @@ private fun ColorPickerScreenPreview() {
             colorLibrary = emptyList(),
             navBack = {},
             addColorToLibrary = {},
+            deleteColorFromLibrary = {},
             currentSection = ColorPickerSection.Picker,
             setCurrentSection = {}
         )

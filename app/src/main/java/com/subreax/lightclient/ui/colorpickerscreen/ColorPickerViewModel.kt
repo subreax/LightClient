@@ -63,4 +63,10 @@ class ColorPickerViewModel @Inject constructor(
             colorRepository.add(color.toArgb())
         }
     }
+
+    fun deleteColorFromLibrary(color: Color) {
+        viewModelScope.launch {
+            colorRepository.delete(color.toArgb())
+        }
+    }
 }
