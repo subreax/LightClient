@@ -14,16 +14,16 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 
 @Composable
 fun AlphaPicker(
-    hsv: HsvaColorPickerState,
-    alpha: Float,
-    onAlphaChanged: (Float) -> Unit,
+    hsva: HsvaColorPickerState,
     modifier: Modifier = Modifier
 ) {
     DraggableHorizontalSeekbar(
-        progress = alpha,
-        onProgressChanged = onAlphaChanged,
+        progress = hsva.a,
+        onProgressChanged = {
+            hsva.update(alpha = it)
+        },
         modifier = modifier,
-        thumbColor = lerp(Color.White, hsv.toColor(), alpha)
+        thumbColor = lerp(Color.White, hsva.toColor(), hsva.a)
     ) {
         Box(
             Modifier
@@ -39,7 +39,7 @@ fun AlphaPicker(
                     Brush.horizontalGradient(
                         listOf(
                             Color.Transparent,
-                            hsv.toColor(alpha = 1.0f)
+                            hsva.toColor(alpha = 1.0f)
                         )
                     )
                 ),

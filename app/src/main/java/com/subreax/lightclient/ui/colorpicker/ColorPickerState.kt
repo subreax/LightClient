@@ -1,5 +1,6 @@
 package com.subreax.lightclient.ui.colorpicker
 
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -7,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import kotlin.math.roundToInt
 
+@Stable
 class ColorPickerState(
     initialColor: Color = Color.White,
     private val onUpdate: (Color) -> Unit
@@ -91,6 +93,7 @@ class HexColorPickerState(
     }
 }
 
+@Stable
 class HsvaColorPickerState(
     initialColor: Color,
     private val onUpdate: (Color) -> Unit

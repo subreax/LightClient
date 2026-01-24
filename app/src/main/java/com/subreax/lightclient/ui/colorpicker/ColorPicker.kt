@@ -72,13 +72,7 @@ fun ColorPicker(
                     }
                 )
 
-                AlphaPicker(
-                    hsv = state.hsva,
-                    alpha = state.hsva.a,
-                    onAlphaChanged = {
-                        state.hsva.update(alpha = it)
-                    }
-                )
+                AlphaPicker(hsva = state.hsva)
             }
         }
 

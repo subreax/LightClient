@@ -1,19 +1,17 @@
 package com.subreax.lightclient.ui.colorpicker
 
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 
 @Composable
 fun SVPicker(
@@ -21,11 +19,9 @@ fun SVPicker(
     modifier: Modifier = Modifier,
     thumbSize: Dp = 24.dp
 ) {
-    val colorRight = Color.hsv(hsv.h, 1.0f, 1.0f)
-
-    Layout(
+    Box(
         modifier = modifier
-            .pointerInput(Unit) {
+            .pointerInput(hsv) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
 
@@ -38,30 +34,35 @@ fun SVPicker(
                 }
             }
             .drawWithCache {
+                val colorRight = Color.hsv(hsv.h, 1.0f, 1.0f)
+                val horizontalBrush = Brush.horizontalGradient(listOf(Color.White, colorRight))
+                val verticalBrush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black))
+
                 onDrawBehind {
-                    val horizontalBrush = Brush.horizontalGradient(listOf(Color.White, colorRight))
-                    val verticalBrush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black))
                     drawRect(horizontalBrush)
                     drawRect(verticalBrush)
                 }
-            },
-        content = {
-            Thumb(
-                color = hsv.toColor(alpha = 1.0f),
-                modifier = Modifier.size(thumbSize)
-            )
-        }
-    ) { measurables, constraints ->
-        val thumb = measurables[0].measure(constraints.copy(minWidth = 0, minHeight = 0))
+            }
+            .drawWithContent {
+                val oneDp = 1.dp.toPx()
+                val color = hsv.toColor(alpha = 1f)
+                val radius = thumbSize.toPx() / 2
+                val pos = Offset(
+                    x = hsv.s * size.width,
+                    y = (1 - hsv.v) * size.height
+                )
 
-        val w = constraints.maxWidth
-        val h = constraints.maxHeight
-
-        layout(w, h) {
-            val x = hsv.s * w - thumb.width / 2
-            val y = (1 - hsv.v) * h - thumb.height / 2
-
-            thumb.place(x.roundToInt(), y.roundToInt())
-        }
+                drawCircle(Color(0x0C000000), radius = radius, center = pos)
+                drawCircle(Color.White, radius = radius - oneDp * 2, center = pos)
+                drawCircle(color, radius = radius - oneDp * 4, center = pos)
+            }
+    ) {
+        /*Thumb(
+            color = Color.Black,
+            modifier = Modifier.size(thumbSize).graphicsLayer {
+                translationX = hsv.s * containerSize.width - size.width / 2
+                translationY = (1 - hsv.v) * containerSize.height - size.height / 2
+            }
+        )*/
     }
 }
