@@ -1,15 +1,16 @@
 <resources>
     <string name="app_name">LightClient</string>
     <string name="retrieving_list_of_devices">Получение списка устройств</string>
-    <string name="connecting_to">Подключение к %s…</string>
-    <string name="fetching_data">Получение данных…</string>
-    <string name="devices_not_found">Устройств не обнаружено🙁</string>
+    <string name="connecting_to">Подключение к %s</string>
+    <string name="fetching_data">Получение данных</string>
+    <string name="devices_not_found">Устройств не обнаружено 🙁</string>
     <string name="connecting_to_controller">Подключение к контроллеру</string>
     <string name="pick_controller">Выберите контроллер, к которому вы хотите подключиться</string>
     <string name="waiting_for_connectivity">Ожидание блюпупа…</string>
     <string name="failed_to_connect">Не удалось подключиться к %s</string>
     <string name="connection_timed_out">Вышло время подключения к контроллеру</string>
     <string name="fetch_timed_out">Вышло время получения данных от контроллера</string>
+    <string name="error_ocurred_while_connecting">Произошла ошибка при подключении к контроллеру</string>
     <string name="bluetooth_is_off">Bluetooth отключён</string>
     <string name="failed_to_parse_header">Не удалось прочитать заголовок ответа</string>
     <string name="failed_to_receive_response">Не удалось получить запрос: время истекло</string>

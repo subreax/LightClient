@@ -24,12 +24,13 @@ fun TopBar(
     modifier: Modifier = Modifier,
     subtitle: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
-    navBack: (() -> Unit)? = null
+    navBack: (() -> Unit)? = null,
+    insets: WindowInsets = WindowInsets.statusBars
 ) {
     Row(
         modifier = modifier
             .padding(top = 32.dp, bottom = 16.dp)
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(insets)
             .fillMaxWidth()
     ) {
         if (navBack != null) {

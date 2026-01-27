@@ -10,96 +10,67 @@ import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.except.UiTextException
-import com.subreax.lightclient.ui.UiLog
 import com.subreax.lightclient.ui.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class ErrorMsg(
-    val time: Long,
-    val msg: UiText
-)
+sealed class UiConnectionState {
+    object Idle : UiConnectionState()
+    data class Connecting(val deviceName: String) : UiConnectionState()
+    data class Fetching(val deviceName: String) : UiConnectionState()
+}
+
+sealed class UiConnectionEvents {
+    data class NavHome(val deviceDesc: DeviceDesc) : UiConnectionEvents()
+    data class ConnectError(val message: UiText) : UiConnectionEvents()
+}
 
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
-    private val connectionRepository: ConnectionRepository,
-    private val uiLog: UiLog
+    private val connectionRepository: ConnectionRepository
 ) : ViewModel() {
-    data class UiState(
-        val loading: Boolean,
-        val loadingMsg: UiText,
-        val errorMsg: ErrorMsg,
-        val waitingForConnectivity: Boolean,
-        val devices: List<DeviceDesc>
-    )
+    val devices = connectionRepository.devices
 
-    var uiState by mutableStateOf(
-        UiState(
-            false,
-            UiText.Empty(),
-            ErrorMsg(System.currentTimeMillis(), UiText.Empty()),
-            false,
-            emptyList()
-        )
-    )
-        private set
+    var connectionState by mutableStateOf<UiConnectionState>(UiConnectionState.Idle)
 
-    private val _navHome = MutableSharedFlow<DeviceDesc>()
-    val navHome: Flow<DeviceDesc>
-        get() = _navHome
+    private val _events = MutableSharedFlow<UiConnectionEvents>()
+    val events = _events.asSharedFlow()
 
-
-    init {
-        viewModelScope.launch {
-            connectionRepository.devices.collect { devices ->
-                uiState = uiState.copy(devices = devices)
-            }
-        }
-    }
-
-    fun connect(deviceDesc: DeviceDesc) {
-        viewModelScope.launch {
-            _connect(deviceDesc)
-        }
-    }
-
-    private suspend fun _connect(deviceDesc: DeviceDesc) {
+    fun connect(deviceDesc: DeviceDesc) = viewModelScope.launch {
         connectionRepository.connect(deviceDesc)
             .catch {
-                uiState = uiState.copy(loading = false)
+                connectionState = UiConnectionState.Idle
                 if (it is UiTextException) {
-                    uiLog.e(it.details)
+                    _events.emit(UiConnectionEvents.ConnectError(it.details))
                 } else {
-                    uiLog.e(UiText.Hardcoded(it.toString()))
+                    _events.emit(UiConnectionEvents.ConnectError(UiText.Hardcoded(it.toString())))
                 }
             }
             .collect {
                 when (it) {
                     Device.State.Connecting -> {
-                        uiState = uiState.copy(
-                            loading = true,
-                            loadingMsg = UiText.Res(R.string.connecting_to, deviceDesc.name)
-                        )
+                        connectionState = UiConnectionState.Connecting(deviceDesc.name)
                     }
 
                     Device.State.Fetching -> {
-                        uiState = uiState.copy(
-                            loading = true,
-                            loadingMsg = UiText.Res(R.string.fetching_data)
-                        )
+                        connectionState = UiConnectionState.Fetching(deviceDesc.name)
                     }
 
                     Device.State.Ready -> {
-                        _navHome.emit(deviceDesc)
+                        connectionState = UiConnectionState.Idle
+
+                        _events.emit(UiConnectionEvents.NavHome(deviceDesc))
                     }
 
                     else -> {
-                        uiState = uiState.copy(loading = false)
-                        uiLog.e(UiText.Res(R.string.failed_to_connect, deviceDesc.name))
+                        connectionState = UiConnectionState.Idle
+
+                        val msg = UiText.Res(R.string.failed_to_connect, deviceDesc.name)
+                        _events.emit(UiConnectionEvents.ConnectError(msg))
                     }
                 }
             }
