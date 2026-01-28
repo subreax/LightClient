@@ -80,7 +80,6 @@ class BleConnector(
         val callback = BleDeviceCallback()
         val connectResult = tryToConnect(peripheral, callback)
         if (connectResult is LResult.Failure) {
-            disconnect(peripheral)
             return@withContext connectResult
         }
 
@@ -123,7 +122,7 @@ class BleConnector(
                 central.manager.connectPeripheral(peripheral, btPeripheralCallback)
             }
             .waitForWithTimeout(3000L) {
-                it == BleConnectionEvent.Connected
+                it == BleConnectionEvent.Connected || it == BleConnectionEvent.FailedToConnect
             }
 
         // giving the last chance
@@ -131,6 +130,9 @@ class BleConnector(
             central.connectionListener.status.waitForWithTimeout(500L) {
                 it == BleConnectionEvent.Connected
             }
+        }
+        else if (res == BleConnectionEvent.FailedToConnect) {
+            return LResult.Failure(R.string.error_ocurred_while_connecting)
         }
 
         return if (peripheral.state == ConnectionState.CONNECTED) {
@@ -174,7 +176,7 @@ class BleConnector(
 
     private suspend fun disconnect(peripheral: BluetoothPeripheral) = withContext(Dispatchers.IO) {
         peripheral.cancelConnection()
-        central.connectionListener.status.waitForWithTimeout(1000L) { event ->
+        central.connectionListener.status.waitForWithTimeout(500L) { event ->
             event == BleConnectionEvent.Disconnected
         }
         _connectionState.value = Socket.ConnectionState.Disconnected
