@@ -23,6 +23,9 @@ fun Context.isPermissionGranted(permission: String): Boolean {
     return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 }
 
+fun Context.isPermissionsGranted(permissions: Iterable<String>): Boolean =
+    permissions.all { isPermissionGranted(it) }
+
 @Composable
 fun Dp.toPx() = with(LocalDensity.current) { toPx() }
 

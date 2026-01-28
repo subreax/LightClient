@@ -10,4 +10,7 @@ interface ConnectionRepository {
 
     suspend fun connect(deviceDesc: DeviceDesc): Flow<Device.State>
     suspend fun disconnect()
+
+    suspend fun startBtScan()
+    suspend fun stopBtScan()
 }

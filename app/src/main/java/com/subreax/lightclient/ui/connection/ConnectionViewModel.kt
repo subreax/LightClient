@@ -40,6 +40,8 @@ class ConnectionViewModel @Inject constructor(
     private val _events = MutableSharedFlow<UiConnectionEvents>()
     val events = _events.asSharedFlow()
 
+    val permissions = PermissionsModule()
+
     fun connect(deviceDesc: DeviceDesc) = viewModelScope.launch {
         connectionRepository.connect(deviceDesc)
             .catch {
@@ -74,5 +76,13 @@ class ConnectionViewModel @Inject constructor(
                     }
                 }
             }
+    }
+
+    fun startScan() = viewModelScope.launch {
+        connectionRepository.startBtScan()
+    }
+
+    fun stopScan() = viewModelScope.launch {
+        connectionRepository.stopBtScan()
     }
 }

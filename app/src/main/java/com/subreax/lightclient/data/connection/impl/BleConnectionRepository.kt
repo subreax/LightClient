@@ -18,7 +18,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -45,31 +44,6 @@ class BleConnectionRepository(
     init {
         val btManager = appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         btAdapter = btManager.adapter!!
-
-        coroutineScope.launch {
-            while (isActive) {
-                val event = events.receive()
-                val isBtEnabled = bleCentralContainer.manager.isBluetoothEnabled
-
-                when (event) {
-                    Event.ConnectivityChanged -> {
-                        if (isBtEnabled) {
-                            startScan()
-                        }
-                    }
-
-                    Event.Connected -> {
-                        stopScan()
-                    }
-
-                    Event.Disconnected -> {
-                        if (isBtEnabled) {
-                            startScan()
-                        }
-                    }
-                }
-            }
-        }
 
         coroutineScope.launch {
             if (bleCentralContainer.manager.isBluetoothEnabled) {
@@ -120,12 +94,12 @@ class BleConnectionRepository(
         }
     }
 
-    private fun startScan() {
+    override suspend fun startBtScan() {
         Timber.d("Start scan")
         bleCentralContainer.manager.scanForPeripherals()
     }
 
-    private fun stopScan() {
+    override suspend fun stopBtScan() {
         Timber.d("Stop scan")
         bleCentralContainer.manager.stopScan()
     }

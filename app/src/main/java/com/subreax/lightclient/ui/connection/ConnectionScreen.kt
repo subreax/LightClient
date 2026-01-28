@@ -1,6 +1,15 @@
 package com.subreax.lightclient.ui.connection
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -17,7 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.BottomStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,33 +36,73 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.subreax.lightclient.R
 import com.subreax.lightclient.data.ConnectionType
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.ui.TopBar
+import com.subreax.lightclient.ui.isPermissionsGranted
 import com.subreax.lightclient.ui.theme.LightClientTheme
 import kotlinx.coroutines.launch
 
+private val permissions =
+    arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN)
 
 @Composable
 fun ConnectionScreen(
     navHome: (DeviceDesc) -> Unit,
     connectionViewModel: ConnectionViewModel = hiltViewModel()
 ) {
+    val permissionsModule = connectionViewModel.permissions
+
     val connectionState = connectionViewModel.connectionState
     val devices by connectionViewModel.devices.collectAsState(emptyList())
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val ctx = LocalContext.current
+    val activity = LocalContext.current.findActivity()
+
+    var isPermissionsGranted by remember { mutableStateOf(checkPermissions(activity)) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { result ->
+            isPermissionsGranted = result.entries.all { (_, isGranted) -> isGranted }
+            permissionsModule.onPermissionResult(
+                isPermissionsGranted,
+                activity.shouldShowRequestPermissionRationale(permissions[0])
+            )
+
+            if (permissionsModule.shouldNavToSettings) {
+                openPermissionSettingsActivity(activity)
+            }
+        }
+    )
 
     ConnectionScreen(
         connectionState = connectionState,
         devices = devices,
         onDeviceSelected = connectionViewModel::connect,
         waitingForConnectivity = false, /* todo */
-        isBtPermissionsGranted = true,
-        onRequestPermissions = {},
+        isBtPermissionsGranted = isPermissionsGranted,
+        onRequestPermissions = { permissionLauncher.launch(permissions) },
         snackbarHostState = snackbarHostState
+    )
+
+    LifecycleStartEffect(Unit) {
+        isPermissionsGranted = checkPermissions(activity)
+
+        permissionsModule.setInitialData(
+            isPermissionsGranted,
+            activity.shouldShowRequestPermissionRationale(permissions[0])
+        )
+
+        onStopOrDispose {  }
+    }
+
+    ScanDevicesEffect(
+        isPermissionGranted = isPermissionsGranted,
+        startScan = connectionViewModel::startScan,
+        stopScan = connectionViewModel::stopScan
     )
 
     LaunchedEffect(Unit) {
@@ -59,7 +110,7 @@ fun ConnectionScreen(
             when (it) {
                 is UiConnectionEvents.ConnectError -> {
                     launch {
-                        snackbarHostState.showSnackbar(it.message.stringValue(ctx))
+                        snackbarHostState.showSnackbar(it.message.stringValue(activity))
                     }
                 }
 
@@ -117,17 +168,49 @@ private fun ConnectionScreen(
                     .padding(bottom = 16.dp), thickness = 2.dp
             )
 
-            DevicesList(
-                devices = devices,
-                waitingForConnectivity = waitingForConnectivity,
-                onDeviceSelected = onDeviceSelected,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            )
+            if (!isBtPermissionsGranted) {
+                NoPermissionsAlert(
+                    requestPermissions = onRequestPermissions,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            } else {
+                DevicesList(
+                    devices = devices,
+                    waitingForConnectivity = waitingForConnectivity,
+                    onDeviceSelected = onDeviceSelected,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            }
         }
 
         LoadingOverlay(connectionState)
+    }
+}
+
+@Composable
+fun ScanDevicesEffect(
+    isPermissionGranted: Boolean,
+    startScan: () -> Unit,
+    stopScan: () -> Unit
+) {
+    LifecycleStartEffect(Unit) {
+        if (isPermissionGranted) {
+            startScan()
+        }
+
+        onStopOrDispose {
+            if (isPermissionGranted) {
+                stopScan()
+            }
+        }
+    }
+
+    LaunchedEffect(isPermissionGranted) {
+        if (isPermissionGranted) {
+            startScan()
+        }
     }
 }
 
@@ -162,5 +245,24 @@ private fun ConnectionScreenPreviewNoDevices() {
             isBtPermissionsGranted = true,
             onRequestPermissions = {}
         )
+    }
+}
+
+private fun Context.findActivity(): Activity {
+    return when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> throw IllegalStateException()
+    }
+}
+
+private fun checkPermissions(context: Context) = context.isPermissionsGranted(permissions.toList())
+
+private fun openPermissionSettingsActivity(context: Context) {
+    Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null)
+    ).also {
+        context.startActivity(it)
     }
 }

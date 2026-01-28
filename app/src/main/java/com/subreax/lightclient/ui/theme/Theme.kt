@@ -1,6 +1,7 @@
 package com.subreax.lightclient.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.darkColors
@@ -52,3 +53,8 @@ fun LightClientTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Compo
         }
     )
 }
+
+
+val Colors.warning: Color
+    @Composable
+    get() = Color(0xFFFF9800)

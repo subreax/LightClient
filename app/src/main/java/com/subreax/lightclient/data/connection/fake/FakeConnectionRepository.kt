@@ -28,4 +28,12 @@ class FakeConnectionRepository : ConnectionRepository {
     override suspend fun disconnect() {
 
     }
+
+    override suspend fun startBtScan() {
+
+    }
+
+    override suspend fun stopBtScan() {
+
+    }
 }
