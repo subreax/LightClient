@@ -7,17 +7,13 @@ import com.subreax.lightclient.data.ConnectionType
 import com.subreax.lightclient.data.DeviceDesc
 import com.subreax.lightclient.data.connection.ConnectionRepository
 import com.subreax.lightclient.data.device.BleCentralContainer
-import com.subreax.lightclient.data.device.BleConnectionEvent
-import com.subreax.lightclient.data.device.Device
 import com.subreax.lightclient.data.device.repo.DeviceRepository
 import com.welie.blessed.Transport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -34,30 +30,9 @@ class BleConnectionRepository(
     override val devices: Flow<List<DeviceDesc>>
         get() = _devices
 
-
-    private enum class Event {
-        ConnectivityChanged, Disconnected, Connected
-    }
-
-    private val events = Channel<Event>()
-
     init {
         val btManager = appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         btAdapter = btManager.adapter!!
-
-        coroutineScope.launch {
-            if (bleCentralContainer.manager.isBluetoothEnabled) {
-                events.send(Event.ConnectivityChanged)
-            }
-        }
-
-        coroutineScope.launch {
-            bleCentralContainer.connectionListener.status.collect {
-                if (it == BleConnectionEvent.NoConnectivity || it == BleConnectionEvent.HasConnectivity) {
-                    events.send(Event.ConnectivityChanged)
-                }
-            }
-        }
 
         coroutineScope.launch {
             bleCentralContainer.connectionListener.discoveredPeripherals.collect {
@@ -79,14 +54,7 @@ class BleConnectionRepository(
         }
     }
 
-    override suspend fun connect(deviceDesc: DeviceDesc) =
-        deviceRepository.connect(deviceDesc).onEach {
-            if (it == Device.State.Ready) {
-                events.send(Event.Connected)
-            } else if (it == Device.State.Disconnected || it == Device.State.NoConnectivity) {
-                events.send(Event.Disconnected)
-            }
-        }
+    override suspend fun connect(deviceDesc: DeviceDesc) = deviceRepository.connect(deviceDesc)
 
     override suspend fun disconnect() {
         if (deviceRepository.isConnected()) {

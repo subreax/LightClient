@@ -37,10 +37,8 @@ class ConnectionViewModel @Inject constructor(
 
     var connectionState by mutableStateOf<UiConnectionState>(UiConnectionState.Idle)
 
-    private val _events = MutableSharedFlow<UiConnectionEvents>()
+    private val _events = MutableSharedFlow<UiConnectionEvents>(extraBufferCapacity = 3)
     val events = _events.asSharedFlow()
-
-    val permissions = PermissionsModule()
 
     fun connect(deviceDesc: DeviceDesc) = viewModelScope.launch {
         connectionRepository.connect(deviceDesc)
